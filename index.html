@@ -38,7 +38,6 @@
             overflow: hidden;
         }
 
-        /* Верхняя панель */
         .header {
             padding: 12px 16px;
             display: flex;
@@ -88,7 +87,6 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        /* История раундов - как на cs.fail */
         .history-bar {
             display: flex;
             gap: 8px;
@@ -116,38 +114,10 @@
             justify-content: center;
             font-weight: 800;
             font-size: 15px;
-            color: white;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
             flex-shrink: 0;
             transition: all 0.2s;
-            position: relative;
-            overflow: hidden;
         }
 
-        /* Градиентная подсветка для истории */
-        .history-item[data-mult] {
-            background: linear-gradient(135deg, #2a2a4a, #1a1a3a);
-        }
-
-        .history-item::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: inherit;
-            filter: blur(8px);
-            opacity: 0;
-            transition: opacity 0.3s;
-            z-index: -1;
-        }
-
-        .history-item:hover::before {
-            opacity: 0.5;
-        }
-
-        /* Игровая область */
         .game-area {
             flex: 1;
             display: flex;
@@ -190,10 +160,15 @@
         .multiplier {
             font-size: 72px;
             font-weight: 900;
-            color: #fff;
             font-variant-numeric: tabular-nums;
             line-height: 1.1;
-            transition: text-shadow 0.1s, color 0.1s;
+            transition: color 0.1s, text-shadow 0.1s;
+        }
+
+        /* Красный при краше */
+        .multiplier.crashed-state {
+            color: #ff0044 !important;
+            text-shadow: 0 0 40px #ff0044 !important;
         }
 
         .multiplier.crashing {
@@ -214,12 +189,11 @@
             letter-spacing: 1px;
         }
 
-        /* График */
         .graph-container {
             width: 100%;
             flex: 1;
-            min-height: 130px;
-            max-height: 170px;
+            min-height: 140px;
+            max-height: 180px;
             position: relative;
             margin: 5px 0;
             overflow: hidden;
@@ -232,7 +206,6 @@
             height: 100%;
         }
 
-        /* Панель управления */
         .bet-panel {
             background: rgba(10, 14, 39, 0.95);
             backdrop-filter: blur(20px);
@@ -393,7 +366,6 @@
             cursor: not-allowed;
         }
 
-        /* Результат */
         .result-overlay {
             position: absolute;
             top: 0;
@@ -461,7 +433,6 @@
             font-size: 14px;
         }
 
-        /* Магазин */
         .shop-panel {
             position: absolute;
             top: 0;
@@ -571,7 +542,6 @@
             color: #ffd700;
         }
 
-        /* Звук */
         .sound-overlay {
             position: absolute;
             top: 0;
@@ -624,7 +594,7 @@
             </div>
             
             <div class="graph-container">
-                <canvas id="graph" width="400" height="170"></canvas>
+                <canvas id="graph" width="400" height="180"></canvas>
             </div>
         </div>
 
@@ -730,24 +700,22 @@
     <script>
         // Telegram Init
         let tg = null;
-        let isTelegramEnvironment = false;
         if (window.Telegram && window.Telegram.WebApp) {
             tg = window.Telegram.WebApp;
-            isTelegramEnvironment = true;
             tg.ready();
             tg.expand();
             tg.enableClosingConfirmation();
         }
 
-        // Вспомогательная функция цвета множителя (градиент от зеленого к красному)
+        // Цвет множителя: зеленый → желтый → красный
         function getMultiplierColor(mult) {
-            if (mult < 1.5) return '#00ff88'; // Ярко-зеленый
-            if (mult < 2.0) return '#88ff00'; // Салатовый
-            if (mult < 3.0) return '#ccff00'; // Желто-зеленый
-            if (mult < 5.0) return '#ffcc00'; // Желтый
-            if (mult < 10.0) return '#ff8800'; // Оранжевый
-            if (mult < 20.0) return '#ff4400'; // Красно-оранжевый
-            return '#ff0044'; // Ярко-красный
+            if (mult < 1.5) return '#00ff88';
+            if (mult < 2.0) return '#88ff00';
+            if (mult < 3.0) return '#ccff00';
+            if (mult < 5.0) return '#ffcc00';
+            if (mult < 10.0) return '#ff8800';
+            if (mult < 20.0) return '#ff4400';
+            return '#ff0044';
         }
 
         function getGlowIntensity(mult) {
@@ -762,7 +730,7 @@
                 this.hasActiveBet = false;
                 this.cashedOut = false;
                 
-                this.roundState = 'betting';
+                this.roundState = 'betting'; // betting, running, crashed
                 this.roundTimer = 5;
                 this.currentMultiplier = 1.00;
                 this.crashPoint = 1.00;
@@ -775,9 +743,9 @@
                 this.soundEnabled = false;
                 this.audioContext = null;
                 
-                // Для бесконечного графика
-                this.graphOffset = 0;
+                // Точки графика
                 this.graphPoints = [];
+                this.maxY = 2.0; // Максимальный Y для масштабирования
                 
                 this.sessionSeed = Math.random().toString(36);
                 this.gameIndex = 0;
@@ -795,10 +763,10 @@
                     else if (rtpPool < -15) crash = 1.5 + Math.random() * 30;
                     else {
                         const r = Math.random();
-                        if (r < 0.35) crash = 1.0 + Math.random() * 0.3;
-                        else if (r < 0.65) crash = 1.3 + Math.random() * 1.5;
-                        else if (r < 0.88) crash = 3.0 + Math.random() * 8;
-                        else crash = 10.0 + Math.random() * 90;
+                        if (r < 0.35) crash = 1.0 + Math.random() * 0.4;
+                        else if (r < 0.65) crash = 1.4 + Math.random() * 2.0;
+                        else if (r < 0.88) crash = 3.0 + Math.random() * 10;
+                        else crash = 12.0 + Math.random() * 88;
                     }
                     crash = Math.min(100, Math.max(1.01, crash));
                     deck.push(Number(crash.toFixed(2)));
@@ -825,7 +793,7 @@
             
             loadFromStorage() {
                 try {
-                    const saved = localStorage.getItem('crash_auto_v2');
+                    const saved = localStorage.getItem('crash_auto_v3');
                     if (saved) {
                         const data = JSON.parse(saved);
                         this.balance = data.balance || 1000;
@@ -837,7 +805,7 @@
             
             saveToStorage() {
                 try {
-                    localStorage.setItem('crash_auto_v2', JSON.stringify({
+                    localStorage.setItem('crash_auto_v3', JSON.stringify({
                         balance: this.balance,
                         history: this.history.slice(0, 20),
                         transactions: this.transactions
@@ -926,12 +894,13 @@
                 this.roundTimer = 5;
                 this.currentMultiplier = 1.00;
                 this.cashedOut = false;
-                this.graphOffset = 0;
-                this.graphPoints = [];
+                this.graphPoints = [{ t: 0, mult: 1.0 }];
+                this.maxY = 2.0;
                 
+                // Убираем красный класс
+                document.getElementById('multiplier').classList.remove('crashed-state');
                 document.getElementById('gameStatus').textContent = 'Приём ставок';
                 document.getElementById('cashoutBtn').disabled = true;
-                document.getElementById('multiplier').className = 'multiplier';
                 
                 this.updateTimer();
                 this.timerInterval = setInterval(() => {
@@ -974,6 +943,7 @@
                 }
                 
                 this.startTime = Date.now();
+                this.graphPoints = [{ t: 0, mult: 1.0 }];
                 this.animate();
                 this.saveToStorage();
             }
@@ -983,16 +953,18 @@
                 
                 const elapsed = (Date.now() - this.startTime) / 1000;
                 
-                // Сложный процент с ускорением (реалистичная кривая краша)
-                // Формула: multiplier = e^(k * t) где k подбирается под crashPoint
-                const k = Math.log(this.crashPoint) / 8; // 8 секунд до краша
+                // Экспоненциальный рост
+                const k = Math.log(this.crashPoint) / 8;
                 this.currentMultiplier = Math.exp(k * Math.min(elapsed, 8));
                 
-                // Добавляем точку для графика
-                if (this.graphPoints.length === 0 || elapsed - this.graphPoints[this.graphPoints.length - 1].t > 0.05) {
+                // Добавляем точку
+                if (this.graphPoints.length === 0 || elapsed - this.graphPoints[this.graphPoints.length - 1].t > 0.03) {
                     this.graphPoints.push({ t: elapsed, mult: this.currentMultiplier });
-                    if (this.graphPoints.length > 100) this.graphPoints.shift();
+                    if (this.graphPoints.length > 150) this.graphPoints.shift();
                 }
+                
+                // Обновляем maxY для масштабирования
+                this.maxY = Math.max(this.maxY, this.currentMultiplier * 1.1);
                 
                 if (this.currentMultiplier >= this.crashPoint || elapsed >= 8) {
                     this.currentMultiplier = this.crashPoint;
@@ -1003,7 +975,7 @@
                 this.render();
                 
                 if (this.soundEnabled && Math.floor(this.currentMultiplier * 10) % 5 === 0) {
-                    this.playBeep(600 + this.currentMultiplier * 100, 0.02);
+                    this.playBeep(600 + this.currentMultiplier * 80, 0.02);
                 }
                 
                 this.animationFrame = requestAnimationFrame(() => this.animate());
@@ -1083,12 +1055,14 @@
                 this.roundState = 'crashed';
                 
                 if (this.animationFrame) cancelAnimationFrame(this.animationFrame);
-                if (this.soundEnabled) this.playBeep(200, 0.3, 'crash');
+                if (this.soundEnabled) this.playBeep(200, 0.35, 'crash');
                 if (tg) tg.HapticFeedback.notificationOccurred('error');
                 
-                document.getElementById('multiplier').classList.add('crashing');
+                // Включаем красный цвет множителя и держим до нового раунда
+                const multElement = document.getElementById('multiplier');
+                multElement.classList.add('crashing');
+                multElement.classList.add('crashed-state');
                 
-                // Добавляем в историю ТОЛЬКО точку краша
                 this.history.unshift(this.crashPoint);
                 
                 if (this.hasActiveBet && !this.cashedOut) {
@@ -1104,6 +1078,7 @@
                 this.saveToStorage();
                 this.renderHistory();
                 
+                // Оставляем красный цвет на 3 секунды
                 setTimeout(() => this.resetForNextRound(), 3000);
             }
             
@@ -1149,7 +1124,7 @@
                 } else {
                     emoji.textContent = '💥';
                     title.textContent = 'CRASH!';
-                    title.style.color = '#ff3d00';
+                    title.style.color = '#ff0044';
                     mult.textContent = this.crashPoint.toFixed(2) + 'x';
                     amt.textContent = '- ' + this.currentBet + ' ⭐';
                     msg.textContent = 'В следующий раз повезет!';
@@ -1168,11 +1143,14 @@
                 const multElement = document.getElementById('multiplier');
                 multElement.textContent = this.currentMultiplier.toFixed(2) + 'x';
                 
-                // Динамический цвет и свечение
-                const color = getMultiplierColor(this.currentMultiplier);
-                const glow = getGlowIntensity(this.currentMultiplier);
-                multElement.style.color = color;
-                multElement.style.textShadow = `0 0 ${glow}px ${color}`;
+                // Цвет зависит от состояния
+                if (this.roundState !== 'crashed') {
+                    const color = getMultiplierColor(this.currentMultiplier);
+                    const glow = getGlowIntensity(this.currentMultiplier);
+                    multElement.style.color = color;
+                    multElement.style.textShadow = `0 0 ${glow}px ${color}`;
+                }
+                // Если crashed - цвет уже задан классом crashed-state
                 
                 this.drawGraph();
             }
@@ -1186,25 +1164,42 @@
                 
                 if (this.graphPoints.length < 2) return;
                 
-                // Находим диапазон для отображения
-                const maxMult = Math.max(...this.graphPoints.map(p => p.mult), 1.5);
+                // Рисуем сетку
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+                ctx.lineWidth = 1;
+                for (let i = 0; i <= 4; i++) {
+                    const y = h - (i * h / 4);
+                    ctx.beginPath();
+                    ctx.moveTo(0, y);
+                    ctx.lineTo(w, y);
+                    ctx.stroke();
+                }
                 
-                // Рисуем кривую
+                const now = (Date.now() - this.startTime) / 1000;
+                const duration = Math.min(8, this.graphPoints[this.graphPoints.length - 1]?.t || 0);
+                
+                // Масштабирование: X — время, Y — множитель
+                // X: каждый пиксель = 0.025 секунды (40px/сек)
+                // Y: логарифмическая шкала для лучшего отображения
+                
+                const pixelsPerSecond = 35;
+                const maxYDisplay = Math.max(2.0, this.maxY);
+                
                 ctx.beginPath();
                 
                 let firstPoint = true;
-                const now = (Date.now() - this.startTime) / 1000;
+                let lastX = 0, lastY = h;
                 
                 for (let i = 0; i < this.graphPoints.length; i++) {
                     const p = this.graphPoints[i];
                     
-                    // X - сдвигаем график влево, чтобы правая часть всегда была видна
-                    const x = w - (now - p.t) * 50; // 50px в секунду
+                    // X — растет вправо
+                    const x = p.t * pixelsPerSecond;
+                    if (x > w + 50) continue;
                     
-                    if (x < -50) continue;
-                    
-                    // Y - логарифмическая шкала для лучшей визуализации
-                    const y = h - (Math.log(p.mult) / Math.log(maxMult)) * (h * 0.7) - 20;
+                    // Y — логарифмическая шкала
+                    const logY = Math.log(p.mult) / Math.log(maxYDisplay);
+                    const y = h - (logY * h * 0.7) - 20;
                     
                     if (firstPoint) {
                         ctx.moveTo(x, y);
@@ -1212,12 +1207,16 @@
                     } else {
                         ctx.lineTo(x, y);
                     }
+                    
+                    lastX = x;
+                    lastY = y;
                 }
                 
-                // Градиент для линии
+                // Градиент линии
                 const gradient = ctx.createLinearGradient(0, 0, w, 0);
                 gradient.addColorStop(0, '#00ff88');
-                gradient.addColorStop(0.5, '#ffcc00');
+                gradient.addColorStop(0.4, '#ccff00');
+                gradient.addColorStop(0.7, '#ff8800');
                 gradient.addColorStop(1, '#ff0044');
                 
                 ctx.strokeStyle = gradient;
@@ -1229,23 +1228,24 @@
                 ctx.stroke();
                 
                 // Точка на конце
-                if (this.graphPoints.length > 0) {
+                if (this.graphPoints.length > 0 && this.roundState === 'running') {
                     const lastPoint = this.graphPoints[this.graphPoints.length - 1];
-                    const x = w - (now - lastPoint.t) * 50;
-                    const y = h - (Math.log(lastPoint.mult) / Math.log(maxMult)) * (h * 0.7) - 20;
+                    const x = lastPoint.t * pixelsPerSecond;
+                    const logY = Math.log(lastPoint.mult) / Math.log(maxYDisplay);
+                    const y = h - (logY * h * 0.7) - 20;
                     
                     const color = getMultiplierColor(lastPoint.mult);
                     
                     ctx.shadowColor = color;
                     ctx.shadowBlur = 25;
                     ctx.beginPath();
-                    ctx.arc(x, y, 6, 0, Math.PI * 2);
+                    ctx.arc(Math.min(x, w), y, 6, 0, Math.PI * 2);
                     ctx.fillStyle = color;
                     ctx.fill();
                     
                     ctx.shadowBlur = 35;
                     ctx.beginPath();
-                    ctx.arc(x, y, 3, 0, Math.PI * 2);
+                    ctx.arc(Math.min(x, w), y, 3, 0, Math.PI * 2);
                     ctx.fillStyle = 'white';
                     ctx.fill();
                 }
