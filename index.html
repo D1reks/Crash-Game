@@ -15,7 +15,7 @@
         }
 
         body {
-            background: var(--tg-theme-bg-color, #0a0e27);
+            background: #0a0e27;
             min-height: 100vh;
             display: flex;
             justify-content: center;
@@ -33,12 +33,12 @@
             display: flex;
             flex-direction: column;
             position: relative;
-            background: radial-gradient(circle at 50% 30%, #1e2448, #0c1020);
+            background: radial-gradient(circle at 50% 30%, #1a1f3a, #0a0e27);
             box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
             overflow: hidden;
         }
 
-        /* Верхняя панель - ФИКСИРОВАННАЯ */
+        /* Верхняя панель */
         .header {
             padding: 12px 16px;
             display: flex;
@@ -86,21 +86,21 @@
             cursor: pointer;
             backdrop-filter: blur(5px);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            transition: all 0.2s;
         }
 
-        /* История раундов - ФИКСИРОВАННАЯ */
+        /* История раундов - как на cs.fail */
         .history-bar {
             display: flex;
-            gap: 6px;
-            padding: 8px 16px;
+            gap: 8px;
+            padding: 10px 16px;
             overflow-x: auto;
-            background: rgba(0, 0, 0, 0.3);
+            background: rgba(0, 0, 0, 0.2);
             white-space: nowrap;
             scrollbar-width: none;
             z-index: 5;
             flex-shrink: 0;
-            min-height: 44px;
+            min-height: 50px;
+            align-items: center;
         }
 
         .history-bar::-webkit-scrollbar {
@@ -108,29 +108,46 @@
         }
 
         .history-item {
-            min-width: 50px;
-            height: 28px;
-            border-radius: 6px;
+            min-width: 55px;
+            height: 34px;
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: bold;
-            font-size: 13px;
+            font-weight: 800;
+            font-size: 15px;
             color: white;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
-            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
             flex-shrink: 0;
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
         }
 
-        .history-win {
-            background: linear-gradient(135deg, #00c853, #00a844);
+        /* Градиентная подсветка для истории */
+        .history-item[data-mult] {
+            background: linear-gradient(135deg, #2a2a4a, #1a1a3a);
         }
 
-        .history-lose {
-            background: linear-gradient(135deg, #ff3d00, #d50000);
+        .history-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: inherit;
+            filter: blur(8px);
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: -1;
         }
 
-        /* Игровая область - РАСТЯГИВАЕТСЯ */
+        .history-item:hover::before {
+            opacity: 0.5;
+        }
+
+        /* Игровая область */
         .game-area {
             flex: 1;
             display: flex;
@@ -142,7 +159,6 @@
             min-height: 0;
         }
 
-        /* Таймер до следующего раунда */
         .round-timer {
             position: absolute;
             top: 10px;
@@ -172,30 +188,27 @@
         }
 
         .multiplier {
-            font-size: 64px;
+            font-size: 72px;
             font-weight: 900;
             color: #fff;
-            text-shadow: 0 0 30px rgba(0, 200, 255, 0.8);
             font-variant-numeric: tabular-nums;
-            line-height: 1.2;
+            line-height: 1.1;
+            transition: text-shadow 0.1s, color 0.1s;
         }
 
         .multiplier.crashing {
-            color: #ff3d00;
-            text-shadow: 0 0 40px rgba(255, 61, 0, 0.8);
-            animation: shake 0.5s ease-in-out;
+            animation: shake 0.4s ease-in-out;
         }
 
         @keyframes shake {
             0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
-            75% { transform: translateX(5px); }
+            25% { transform: translateX(-4px); }
+            75% { transform: translateX(4px); }
         }
 
-        /* Статус игры */
         .game-status {
             color: rgba(255, 255, 255, 0.6);
-            font-size: 14px;
+            font-size: 13px;
             margin-top: 5px;
             text-transform: uppercase;
             letter-spacing: 1px;
@@ -205,20 +218,21 @@
         .graph-container {
             width: 100%;
             flex: 1;
-            min-height: 120px;
-            max-height: 180px;
+            min-height: 130px;
+            max-height: 170px;
             position: relative;
             margin: 5px 0;
+            overflow: hidden;
+            border-radius: 8px;
         }
 
         canvas {
+            display: block;
             width: 100%;
             height: 100%;
-            display: block;
-            filter: drop-shadow(0 0 15px rgba(0, 255, 136, 0.4));
         }
 
-        /* Панель управления - ФИКСИРОВАННАЯ ВНИЗУ */
+        /* Панель управления */
         .bet-panel {
             background: rgba(10, 14, 39, 0.95);
             backdrop-filter: blur(20px);
@@ -278,16 +292,13 @@
             border-radius: 10px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s;
             font-size: 13px;
         }
 
         .quick-bet-btn:active {
             background: rgba(255, 215, 0, 0.2);
-            transform: scale(0.95);
         }
 
-        /* Слайдер */
         .slider-container {
             margin: 10px 0;
         }
@@ -308,10 +319,8 @@
             border-radius: 50%;
             box-shadow: 0 0 15px #ffd700;
             border: 2px solid white;
-            cursor: pointer;
         }
 
-        /* Индикатор активной ставки */
         .active-bet-indicator {
             display: flex;
             align-items: center;
@@ -345,7 +354,6 @@
             cursor: pointer;
         }
 
-        /* Кнопки действий */
         .action-buttons {
             display: flex;
             gap: 10px;
@@ -359,7 +367,6 @@
             font-size: 16px;
             border: none;
             cursor: pointer;
-            transition: all 0.2s;
             text-transform: uppercase;
             letter-spacing: 1px;
         }
@@ -370,14 +377,9 @@
             box-shadow: 0 6px 15px rgba(0, 200, 83, 0.3);
         }
 
-        .btn-primary:active {
-            transform: scale(0.98);
-        }
-
         .btn-primary:disabled {
             opacity: 0.5;
             cursor: not-allowed;
-            transform: none;
         }
 
         .btn-danger {
@@ -386,19 +388,9 @@
             box-shadow: 0 6px 15px rgba(255, 61, 0, 0.3);
         }
 
-        .btn-danger:active {
-            transform: scale(0.98);
-        }
-
         .btn-danger:disabled {
             opacity: 0.5;
             cursor: not-allowed;
-            transform: none;
-        }
-
-        .btn-warning {
-            background: linear-gradient(135deg, #ff9800, #f57c00);
-            color: white;
         }
 
         /* Результат */
@@ -408,7 +400,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(0, 0, 0, 0.85);
             backdrop-filter: blur(10px);
             display: flex;
             justify-content: center;
@@ -425,7 +417,7 @@
         }
 
         .result-card {
-            background: #1e2448;
+            background: #1a1f3a;
             border-radius: 30px;
             padding: 30px 25px;
             text-align: center;
@@ -612,7 +604,6 @@
 </head>
 <body>
     <div id="app">
-        <!-- Верхняя панель -->
         <div class="header">
             <div class="balance-container">
                 <span class="star-icon">⭐</span>
@@ -621,27 +612,23 @@
             <button class="menu-btn" id="shopBtn">🛍️</button>
         </div>
 
-        <!-- История раундов -->
         <div class="history-bar" id="history"></div>
 
-        <!-- Игровая область -->
         <div class="game-area">
-            <div class="round-timer" id="roundTimer">Следующий: 5с</div>
+            <div class="round-timer" id="roundTimer">Старт: 5с</div>
             
             <div class="multiplier-container">
                 <div class="multiplier-label">Множитель</div>
                 <div class="multiplier" id="multiplier">1.00x</div>
-                <div class="game-status" id="gameStatus">Ожидание ставок</div>
+                <div class="game-status" id="gameStatus">Приём ставок</div>
             </div>
             
             <div class="graph-container">
-                <canvas id="graph" width="400" height="180"></canvas>
+                <canvas id="graph" width="400" height="170"></canvas>
             </div>
         </div>
 
-        <!-- Панель управления -->
         <div class="bet-panel">
-            <!-- Индикатор активной ставки -->
             <div class="active-bet-indicator" id="activeBetIndicator" style="display: none;">
                 <span class="active-bet-label">Ваша ставка:</span>
                 <span class="active-bet-amount" id="activeBetAmount">0 ⭐</span>
@@ -675,7 +662,6 @@
             </div>
         </div>
 
-        <!-- Экран результата -->
         <div class="result-overlay" id="resultOverlay">
             <div class="result-card">
                 <div class="result-emoji" id="resultEmoji">💥</div>
@@ -687,7 +673,6 @@
             </div>
         </div>
 
-        <!-- Звук -->
         <div class="sound-overlay" id="soundOverlay">
             <div class="sound-message">
                 <h2>🔊 Включите звук</h2>
@@ -696,7 +681,6 @@
             </div>
         </div>
 
-        <!-- Магазин -->
         <div class="shop-panel" id="shopPanel">
             <div class="shop-header">
                 <span class="shop-title">Магазин подарков</span>
@@ -744,10 +728,9 @@
 
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script>
-        // ============== TELEGRAM MINI APP INIT ==============
+        // Telegram Init
         let tg = null;
         let isTelegramEnvironment = false;
-        
         if (window.Telegram && window.Telegram.WebApp) {
             tg = window.Telegram.WebApp;
             isTelegramEnvironment = true;
@@ -755,18 +738,32 @@
             tg.expand();
             tg.enableClosingConfirmation();
         }
-        
-        // ============== АВТО-РАУНД CRASH GAME ==============
+
+        // Вспомогательная функция цвета множителя (градиент от зеленого к красному)
+        function getMultiplierColor(mult) {
+            if (mult < 1.5) return '#00ff88'; // Ярко-зеленый
+            if (mult < 2.0) return '#88ff00'; // Салатовый
+            if (mult < 3.0) return '#ccff00'; // Желто-зеленый
+            if (mult < 5.0) return '#ffcc00'; // Желтый
+            if (mult < 10.0) return '#ff8800'; // Оранжевый
+            if (mult < 20.0) return '#ff4400'; // Красно-оранжевый
+            return '#ff0044'; // Ярко-красный
+        }
+
+        function getGlowIntensity(mult) {
+            return Math.min(30, 10 + (mult - 1) * 5);
+        }
+
         class AutoCrashGame {
             constructor() {
                 this.balance = 1000;
-                this.pendingBet = 0; // Ставка на следующий раунд
-                this.currentBet = 0;  // Активная ставка в текущем раунде
+                this.pendingBet = 0;
+                this.currentBet = 0;
                 this.hasActiveBet = false;
                 this.cashedOut = false;
                 
-                this.roundState = 'betting'; // betting, running, crashed, finished
-                this.roundTimer = 5; // Секунд до старта
+                this.roundState = 'betting';
+                this.roundTimer = 5;
                 this.currentMultiplier = 1.00;
                 this.crashPoint = 1.00;
                 
@@ -777,8 +774,10 @@
                 this.transactions = [];
                 this.soundEnabled = false;
                 this.audioContext = null;
-                this.sounds = {};
-                this.glowIntensity = 0;
+                
+                // Для бесконечного графика
+                this.graphOffset = 0;
+                this.graphPoints = [];
                 
                 this.sessionSeed = Math.random().toString(36);
                 this.gameIndex = 0;
@@ -792,14 +791,14 @@
                 let rtpPool = 0;
                 for (let i = 0; i < 100; i++) {
                     let crash;
-                    if (rtpPool > 10) crash = 1.0 + Math.random() * 0.5;
-                    else if (rtpPool < -10) crash = 1.5 + Math.random() * 20;
+                    if (rtpPool > 15) crash = 1.0 + Math.random() * 0.5;
+                    else if (rtpPool < -15) crash = 1.5 + Math.random() * 30;
                     else {
                         const r = Math.random();
-                        if (r < 0.4) crash = 1.0 + Math.random() * 0.3;
-                        else if (r < 0.7) crash = 1.3 + Math.random() * 1.5;
-                        else if (r < 0.9) crash = 3.0 + Math.random() * 5;
-                        else crash = 8.0 + Math.random() * 92;
+                        if (r < 0.35) crash = 1.0 + Math.random() * 0.3;
+                        else if (r < 0.65) crash = 1.3 + Math.random() * 1.5;
+                        else if (r < 0.88) crash = 3.0 + Math.random() * 8;
+                        else crash = 10.0 + Math.random() * 90;
                     }
                     crash = Math.min(100, Math.max(1.01, crash));
                     deck.push(Number(crash.toFixed(2)));
@@ -822,12 +821,11 @@
                 this.startRoundCycle();
                 this.render();
                 this.renderHistory();
-                this.drawGraph(0, false);
             }
             
             loadFromStorage() {
                 try {
-                    const saved = localStorage.getItem('crash_auto_mock');
+                    const saved = localStorage.getItem('crash_auto_v2');
                     if (saved) {
                         const data = JSON.parse(saved);
                         this.balance = data.balance || 1000;
@@ -839,9 +837,9 @@
             
             saveToStorage() {
                 try {
-                    localStorage.setItem('crash_auto_mock', JSON.stringify({
+                    localStorage.setItem('crash_auto_v2', JSON.stringify({
                         balance: this.balance,
-                        history: this.history,
+                        history: this.history.slice(0, 20),
                         transactions: this.transactions
                     }));
                 } catch (e) {}
@@ -859,22 +857,18 @@
                 betInput.addEventListener('input', (e) => {
                     let val = parseInt(e.target.value) || 10;
                     val = Math.min(this.balance, Math.max(10, val));
-                    document.getElementById('betSlider').value = val;
+                    betSlider.value = val;
                     document.getElementById('maxBet').textContent = this.balance;
                 });
                 
                 betSlider.addEventListener('input', (e) => {
-                    let val = parseInt(e.target.value);
-                    val = Math.min(this.balance, Math.max(10, val));
-                    betInput.value = val;
+                    betInput.value = e.target.value;
                 });
                 
                 document.querySelectorAll('.quick-bet-btn').forEach(btn => {
                     btn.addEventListener('click', (e) => {
                         const bet = e.target.dataset.bet;
-                        let val;
-                        if (bet === 'half') val = Math.floor(this.balance / 2);
-                        else val = parseInt(bet);
+                        let val = bet === 'half' ? Math.floor(this.balance / 2) : parseInt(bet);
                         val = Math.min(this.balance, Math.max(10, val));
                         betInput.value = val;
                         betSlider.value = val;
@@ -906,12 +900,6 @@
                 try {
                     this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
                     await this.audioContext.resume();
-                    this.sounds = {
-                        tick: () => this.playBeep(800, 0.03),
-                        cashout: () => this.playBeep(1200, 0.15),
-                        crash: () => this.playBeep(200, 0.25, 'crash'),
-                        win: () => this.playBeep(1500, 0.3)
-                    };
                 } catch (e) {}
             }
             
@@ -938,7 +926,8 @@
                 this.roundTimer = 5;
                 this.currentMultiplier = 1.00;
                 this.cashedOut = false;
-                this.glowIntensity = 0;
+                this.graphOffset = 0;
+                this.graphPoints = [];
                 
                 document.getElementById('gameStatus').textContent = 'Приём ставок';
                 document.getElementById('cashoutBtn').disabled = true;
@@ -956,7 +945,6 @@
                 }, 1000);
                 
                 this.render();
-                this.drawGraph(0, false);
             }
             
             updateTimer() {
@@ -967,7 +955,6 @@
                 this.roundState = 'running';
                 this.crashPoint = this.getNextCrashPoint();
                 
-                // Активируем pending ставку
                 if (this.pendingBet > 0) {
                     this.currentBet = this.pendingBet;
                     this.hasActiveBet = true;
@@ -995,12 +982,19 @@
                 if (this.roundState !== 'running') return;
                 
                 const elapsed = (Date.now() - this.startTime) / 1000;
-                const progress = Math.min(1, elapsed / 8);
-                const curvedProgress = Math.pow(progress, 1.8);
-                this.currentMultiplier = 1 + (this.crashPoint - 1) * curvedProgress;
-                this.glowIntensity = Math.min(1, (this.currentMultiplier - 1) / 3);
                 
-                if (this.currentMultiplier >= this.crashPoint) {
+                // Сложный процент с ускорением (реалистичная кривая краша)
+                // Формула: multiplier = e^(k * t) где k подбирается под crashPoint
+                const k = Math.log(this.crashPoint) / 8; // 8 секунд до краша
+                this.currentMultiplier = Math.exp(k * Math.min(elapsed, 8));
+                
+                // Добавляем точку для графика
+                if (this.graphPoints.length === 0 || elapsed - this.graphPoints[this.graphPoints.length - 1].t > 0.05) {
+                    this.graphPoints.push({ t: elapsed, mult: this.currentMultiplier });
+                    if (this.graphPoints.length > 100) this.graphPoints.shift();
+                }
+                
+                if (this.currentMultiplier >= this.crashPoint || elapsed >= 8) {
                     this.currentMultiplier = this.crashPoint;
                     this.crash();
                     return;
@@ -1009,7 +1003,7 @@
                 this.render();
                 
                 if (this.soundEnabled && Math.floor(this.currentMultiplier * 10) % 5 === 0) {
-                    this.sounds.tick();
+                    this.playBeep(600 + this.currentMultiplier * 100, 0.02);
                 }
                 
                 this.animationFrame = requestAnimationFrame(() => this.animate());
@@ -1030,7 +1024,6 @@
                 }
                 
                 if (this.pendingBet > 0) {
-                    // Возвращаем старую ставку
                     this.balance += this.pendingBet;
                 }
                 
@@ -1073,17 +1066,15 @@
                 this.cashedOut = true;
                 this.hasActiveBet = false;
                 
-                if (this.soundEnabled) this.sounds.cashout();
+                if (this.soundEnabled) this.playBeep(1200, 0.15);
                 if (tg) tg.HapticFeedback.notificationOccurred('success');
                 
-                this.history.unshift({ mult: this.currentMultiplier, win: true });
                 this.showResult(true, winAmount);
                 
                 document.getElementById('cashoutBtn').disabled = true;
                 document.getElementById('activeBetIndicator').style.display = 'none';
                 
                 this.saveToStorage();
-                this.renderHistory();
             }
             
             crash() {
@@ -1092,17 +1083,17 @@
                 this.roundState = 'crashed';
                 
                 if (this.animationFrame) cancelAnimationFrame(this.animationFrame);
-                if (this.soundEnabled) this.sounds.crash();
+                if (this.soundEnabled) this.playBeep(200, 0.3, 'crash');
                 if (tg) tg.HapticFeedback.notificationOccurred('error');
                 
                 document.getElementById('multiplier').classList.add('crashing');
                 
+                // Добавляем в историю ТОЛЬКО точку краша
+                this.history.unshift(this.crashPoint);
+                
                 if (this.hasActiveBet && !this.cashedOut) {
-                    this.history.unshift({ mult: this.crashPoint, win: false });
                     this.showResult(false, 0);
                     this.hasActiveBet = false;
-                } else {
-                    this.history.unshift({ mult: this.crashPoint, win: false });
                 }
                 
                 document.getElementById('cashoutBtn').disabled = true;
@@ -1110,16 +1101,13 @@
                 document.getElementById('gameStatus').textContent = 'КРАШ!';
                 document.getElementById('roundTimer').textContent = '💥 КРАШ';
                 
-                this.drawGraph(1, true);
                 this.saveToStorage();
                 this.renderHistory();
                 
-                // Запускаем следующий раунд через 3 секунды
                 setTimeout(() => this.resetForNextRound(), 3000);
             }
             
             resetForNextRound() {
-                // Сбрасываем ставку
                 this.pendingBet = 0;
                 this.currentBet = 0;
                 this.hasActiveBet = false;
@@ -1129,7 +1117,6 @@
                 document.getElementById('placeBetBtn').textContent = 'Поставить';
                 document.getElementById('activeBetIndicator').style.display = 'none';
                 
-                // Обновляем UI
                 const betSlider = document.getElementById('betSlider');
                 betSlider.max = this.balance;
                 document.getElementById('maxBet').textContent = this.balance;
@@ -1158,7 +1145,7 @@
                     mult.textContent = this.currentMultiplier.toFixed(2) + 'x';
                     amt.textContent = '+' + amount + ' ⭐';
                     msg.textContent = 'Отличный кэшаут!';
-                    if (this.soundEnabled) this.sounds.win();
+                    if (this.soundEnabled) this.playBeep(1500, 0.3);
                 } else {
                     emoji.textContent = '💥';
                     title.textContent = 'CRASH!';
@@ -1181,81 +1168,84 @@
                 const multElement = document.getElementById('multiplier');
                 multElement.textContent = this.currentMultiplier.toFixed(2) + 'x';
                 
-                const hue = 120 + (this.currentMultiplier - 1) * 30;
-                const glowColor = `hsla(${Math.min(200, hue)}, 100%, 50%, ${0.3 + this.glowIntensity * 0.5})`;
-                multElement.style.textShadow = `0 0 ${20 + this.glowIntensity * 40}px ${glowColor}`;
+                // Динамический цвет и свечение
+                const color = getMultiplierColor(this.currentMultiplier);
+                const glow = getGlowIntensity(this.currentMultiplier);
+                multElement.style.color = color;
+                multElement.style.textShadow = `0 0 ${glow}px ${color}`;
                 
-                if (this.roundState === 'running') {
-                    const progress = (this.currentMultiplier - 1) / (this.crashPoint - 1);
-                    this.drawGraph(Math.min(1, progress), false);
-                }
+                this.drawGraph();
             }
             
-            drawGraph(progress, isCrash) {
+            drawGraph() {
                 const canvas = document.getElementById('graph');
                 const ctx = canvas.getContext('2d');
                 const w = canvas.width, h = canvas.height;
                 
                 ctx.clearRect(0, 0, w, h);
                 
-                // Сетка
-                ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
-                ctx.lineWidth = 1;
-                for (let i = 0; i <= 4; i++) {
-                    const y = h - (i * h/4);
-                    ctx.beginPath();
-                    ctx.moveTo(0, y);
-                    ctx.lineTo(w, y);
-                    ctx.stroke();
-                }
+                if (this.graphPoints.length < 2) return;
                 
-                const gradient = ctx.createLinearGradient(0, h, 0, 0);
-                const alpha = isCrash ? 0.8 : 0.6;
-                if (isCrash) {
-                    gradient.addColorStop(0, `rgba(255, 61, 0, ${alpha})`);
-                    gradient.addColorStop(1, `rgba(255, 100, 0, ${alpha})`);
-                } else {
-                    gradient.addColorStop(0, `rgba(0, 255, 136, ${alpha})`);
-                    gradient.addColorStop(1, `rgba(0, 200, 255, ${alpha})`);
-                }
+                // Находим диапазон для отображения
+                const maxMult = Math.max(...this.graphPoints.map(p => p.mult), 1.5);
                 
+                // Рисуем кривую
                 ctx.beginPath();
-                ctx.moveTo(0, h);
                 
-                const points = [];
-                for (let x = 0; x <= w * progress; x++) {
-                    const t = x / w;
-                    const curveY = h - (h * 0.85) * Math.pow(t, 1.8);
-                    points.push({x, y: curveY});
-                    if (x === 0) ctx.moveTo(x, curveY);
-                    else ctx.lineTo(x, curveY);
+                let firstPoint = true;
+                const now = (Date.now() - this.startTime) / 1000;
+                
+                for (let i = 0; i < this.graphPoints.length; i++) {
+                    const p = this.graphPoints[i];
+                    
+                    // X - сдвигаем график влево, чтобы правая часть всегда была видна
+                    const x = w - (now - p.t) * 50; // 50px в секунду
+                    
+                    if (x < -50) continue;
+                    
+                    // Y - логарифмическая шкала для лучшей визуализации
+                    const y = h - (Math.log(p.mult) / Math.log(maxMult)) * (h * 0.7) - 20;
+                    
+                    if (firstPoint) {
+                        ctx.moveTo(x, y);
+                        firstPoint = false;
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
                 }
+                
+                // Градиент для линии
+                const gradient = ctx.createLinearGradient(0, 0, w, 0);
+                gradient.addColorStop(0, '#00ff88');
+                gradient.addColorStop(0.5, '#ffcc00');
+                gradient.addColorStop(1, '#ff0044');
                 
                 ctx.strokeStyle = gradient;
-                ctx.lineWidth = 5;
+                ctx.lineWidth = 4;
                 ctx.lineCap = 'round';
-                
-                ctx.shadowColor = isCrash ? '#ff3d00' : '#00ff88';
-                ctx.shadowBlur = 15 + this.glowIntensity * 20;
+                ctx.lineJoin = 'round';
+                ctx.shadowColor = '#00ff88';
+                ctx.shadowBlur = 15;
                 ctx.stroke();
                 
-                ctx.shadowBlur = 25 + this.glowIntensity * 30;
-                ctx.lineWidth = 3;
-                ctx.stroke();
-                
-                if (points.length > 0 && progress > 0) {
-                    const lastPoint = points[points.length - 1];
-                    const pulseSize = 5 + Math.sin(Date.now() / 100) * 2;
+                // Точка на конце
+                if (this.graphPoints.length > 0) {
+                    const lastPoint = this.graphPoints[this.graphPoints.length - 1];
+                    const x = w - (now - lastPoint.t) * 50;
+                    const y = h - (Math.log(lastPoint.mult) / Math.log(maxMult)) * (h * 0.7) - 20;
                     
-                    ctx.shadowBlur = 30 + this.glowIntensity * 40;
+                    const color = getMultiplierColor(lastPoint.mult);
+                    
+                    ctx.shadowColor = color;
+                    ctx.shadowBlur = 25;
                     ctx.beginPath();
-                    ctx.arc(lastPoint.x, lastPoint.y, pulseSize, 0, Math.PI * 2);
-                    ctx.fillStyle = isCrash ? '#ff3d00' : '#00ff88';
+                    ctx.arc(x, y, 6, 0, Math.PI * 2);
+                    ctx.fillStyle = color;
                     ctx.fill();
                     
-                    ctx.shadowBlur = 40;
+                    ctx.shadowBlur = 35;
                     ctx.beginPath();
-                    ctx.arc(lastPoint.x, lastPoint.y, pulseSize * 0.6, 0, Math.PI * 2);
+                    ctx.arc(x, y, 3, 0, Math.PI * 2);
                     ctx.fillStyle = 'white';
                     ctx.fill();
                 }
@@ -1265,9 +1255,21 @@
             
             renderHistory() {
                 const historyDiv = document.getElementById('history');
-                historyDiv.innerHTML = this.history.slice(0, 10).map(h => {
-                    const cls = h.win ? 'history-win' : 'history-lose';
-                    return `<div class="history-item ${cls}">${h.mult.toFixed(2)}x</div>`;
+                
+                historyDiv.innerHTML = this.history.slice(0, 12).map(mult => {
+                    const color = getMultiplierColor(mult);
+                    const glow = getGlowIntensity(mult);
+                    
+                    return `
+                        <div class="history-item" 
+                             style="background: ${color}20; 
+                                    border: 1px solid ${color}40;
+                                    color: ${color};
+                                    text-shadow: 0 0 ${glow/2}px ${color};
+                                    box-shadow: 0 0 ${glow/3}px ${color}40;">
+                            ${mult.toFixed(2)}x
+                        </div>
+                    `;
                 }).join('');
             }
             
@@ -1312,8 +1314,7 @@
                 `).join('');
             }
         }
-        
-        // Запуск
+
         const game = new AutoCrashGame();
     </script>
 </body>
