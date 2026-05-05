@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Crash Stars • CS.Fail Style</title>
+    <title>Upgrade Stars • Gift Upgrade Game</title>
     <style>
         * {
             margin: 0;
@@ -57,6 +57,12 @@
             padding: 6px 12px;
             border-radius: 30px;
             border: 1px solid #30363d;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .balance-container:active {
+            background: #30363d;
         }
 
         .star-icon {
@@ -69,7 +75,7 @@
             font-size: 18px;
         }
 
-        .menu-btn {
+        .inventory-btn {
             background: #21262d;
             border: none;
             color: #c9d1d9;
@@ -82,6 +88,11 @@
             justify-content: center;
             cursor: pointer;
             border: 1px solid #30363d;
+            transition: background 0.2s;
+        }
+
+        .inventory-btn:active {
+            background: #30363d;
         }
 
         .history-bar {
@@ -104,276 +115,298 @@
         }
 
         .history-item {
-            min-width: 48px;
-            height: 28px;
-            border-radius: 14px;
+            min-width: 70px;
+            height: 32px;
+            border-radius: 16px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: 700;
-            font-size: 13px;
+            gap: 4px;
+            font-weight: 600;
+            font-size: 12px;
             flex-shrink: 0;
-            transition: all 0.2s;
             background: #21262d;
+            color: #c9d1d9;
+            padding: 0 10px;
         }
 
-        .game-area {
+        .history-item.win {
+            border: 1px solid #3fb95040;
+            color: #3fb950;
+        }
+
+        .history-item.lose {
+            border: 1px solid #f8514940;
+            color: #f85149;
+        }
+
+        .main-content {
             flex: 1;
             display: flex;
             flex-direction: column;
-            justify-content: center;
             align-items: center;
-            position: relative;
-            padding: 10px 12px;
+            justify-content: center;
+            padding: 12px;
+            gap: 12px;
             min-height: 0;
-            background: #0d1117;
+            overflow-y: auto;
         }
 
-        .round-timer {
-            position: absolute;
-            top: 10px;
-            right: 12px;
-            background: #21262d;
-            padding: 4px 10px;
-            border-radius: 20px;
-            color: #c9d1d9;
-            font-weight: 600;
-            font-size: 12px;
-            border: 1px solid #30363d;
-            z-index: 5;
-        }
-
-        .multiplier-container {
-            text-align: center;
+        .gift-selection-row {
+            display: flex;
+            gap: 10px;
             width: 100%;
-            margin-bottom: 10px;
+            align-items: stretch;
         }
 
-        .multiplier-label {
-            color: #8b949e;
-            font-size: 11px;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            margin-bottom: 4px;
+        .gift-card {
+            flex: 1;
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 12px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            min-width: 0;
+            cursor: pointer;
+            transition: border-color 0.2s, box-shadow 0.2s;
         }
 
-        .multiplier {
-            font-size: 64px;
-            font-weight: 800;
-            font-variant-numeric: tabular-nums;
-            line-height: 1.1;
-            transition: color 0.05s, text-shadow 0.05s;
+        .gift-card.selected {
+            border-color: #ffd700;
+            box-shadow: 0 0 15px #ffd70030;
         }
 
-        .multiplier.crashed-state {
-            color: #f85149 !important;
-            text-shadow: 0 0 30px #f85149 !important;
+        .gift-card.current-gift {
+            border-color: #3fb95080;
         }
 
-        .multiplier.crashing {
-            animation: shake 0.3s ease-in-out;
+        .gift-card.target-gift {
+            border-color: #f0883e80;
         }
 
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            20% { transform: translateX(-6px); }
-            40% { transform: translateX(6px); }
-            60% { transform: translateX(-3px); }
-            80% { transform: translateX(3px); }
+        .gift-emoji {
+            font-size: 36px;
+            line-height: 1;
         }
 
-        .game-status {
-            color: #8b949e;
+        .gift-name {
+            color: #c9d1d9;
             font-size: 12px;
-            margin-top: 4px;
+            font-weight: 600;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
+        }
+
+        .gift-price {
+            color: #ffd700;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .gift-label {
+            color: #8b949e;
+            font-size: 9px;
             text-transform: uppercase;
             letter-spacing: 1px;
         }
 
-        .graph-container {
-            width: 100%;
-            flex: 1;
-            min-height: 150px;
-            max-height: 200px;
-            position: relative;
-            margin: 5px 0;
-            overflow: hidden;
-            border-radius: 6px;
-            background: #0d1117;
-            border: 1px solid #21262d;
+        .arrow-between {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #8b949e;
+            font-size: 20px;
+            flex-shrink: 0;
         }
 
-        canvas {
-            display: block;
+        .wheel-container {
+            position: relative;
+            width: 180px;
+            height: 180px;
+            flex-shrink: 0;
+        }
+
+        .wheel-canvas {
             width: 100%;
             height: 100%;
         }
 
-        .bet-panel {
-            background: #161b22;
-            padding: 12px 12px 16px;
-            border-radius: 16px 16px 0 0;
-            border-top: 1px solid #30363d;
-            z-index: 10;
-            flex-shrink: 0;
-        }
-
-        .bet-header {
-            display: flex;
-            justify-content: space-between;
-            color: #8b949e;
-            font-size: 11px;
-            margin-bottom: 8px;
-        }
-
-        .bet-amount-container {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 10px;
-        }
-
-        .bet-input-wrapper {
-            flex: 1;
-            background: #0d1117;
-            border: 1px solid #30363d;
-            border-radius: 8px;
-            padding: 6px 12px;
-            display: flex;
-            align-items: center;
-        }
-
-        .bet-input {
-            background: transparent;
-            border: none;
-            color: #ffd700;
-            font-size: 18px;
-            font-weight: bold;
-            width: 100%;
-            outline: none;
+        .chance-display {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
             text-align: center;
+            pointer-events: none;
         }
 
-        .quick-bets {
+        .chance-percent {
+            font-size: 28px;
+            font-weight: 800;
+            color: #ffd700;
+            text-shadow: 0 0 20px #ffd70040;
+        }
+
+        .chance-label {
+            font-size: 10px;
+            color: #8b949e;
+            letter-spacing: 1px;
+        }
+
+        .quick-chance-buttons {
             display: flex;
             gap: 5px;
+            flex-wrap: wrap;
+            justify-content: center;
+            width: 100%;
         }
 
-        .quick-bet-btn {
+        .quick-chance-btn {
             background: #21262d;
             border: 1px solid #30363d;
             color: #c9d1d9;
-            padding: 6px 8px;
+            padding: 6px 10px;
             border-radius: 6px;
             font-weight: 600;
             cursor: pointer;
-            font-size: 12px;
+            font-size: 11px;
+            transition: all 0.2s;
         }
 
-        .quick-bet-btn:active {
+        .quick-chance-btn:active {
             background: #30363d;
         }
 
-        .slider-container {
-            margin: 10px 0;
-        }
-
-        input[type="range"] {
-            width: 100%;
-            height: 4px;
-            background: #21262d;
-            border-radius: 2px;
-            -webkit-appearance: none;
-        }
-
-        input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 18px;
-            height: 18px;
-            background: #ffd700;
-            border-radius: 50%;
-            box-shadow: 0 0 10px #ffd700;
-            border: 2px solid #0d1117;
-        }
-
-        .active-bet-indicator {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background: #21262d;
-            border-radius: 8px;
-            padding: 8px 12px;
-            margin-bottom: 8px;
-            border: 1px solid #30363d;
-        }
-
-        .active-bet-label {
-            color: #8b949e;
-            font-size: 12px;
-        }
-
-        .active-bet-amount {
+        .quick-chance-btn.active {
+            border-color: #ffd700;
             color: #ffd700;
-            font-weight: bold;
-            font-size: 14px;
+            background: #21262d;
         }
 
-        .cancel-bet-btn {
-            background: #3f1a1a;
-            border: 1px solid #f85149;
-            color: #f85149;
-            padding: 4px 8px;
-            border-radius: 6px;
-            font-size: 11px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 8px;
-        }
-
-        .btn {
-            flex: 1;
-            padding: 12px;
-            border-radius: 8px;
+        .upgrade-btn {
+            width: 100%;
+            padding: 14px;
+            border-radius: 10px;
             font-weight: 700;
-            font-size: 14px;
+            font-size: 16px;
             border: none;
             cursor: pointer;
             text-transform: uppercase;
             letter-spacing: 1px;
-        }
-
-        .btn-primary {
             background: #238636;
             color: white;
             border: 1px solid #2ea043;
+            transition: all 0.2s;
         }
 
-        .btn-primary:active {
+        .upgrade-btn:active {
             background: #2ea043;
+            transform: scale(0.98);
         }
 
-        .btn-primary:disabled {
+        .upgrade-btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
+            transform: none;
         }
 
-        .btn-danger {
-            background: #da3633;
-            color: white;
-            border: 1px solid #f85149;
+        .upgrade-btn.spinning {
+            background: #f0883e;
+            border-color: #f0883e;
+            animation: pulse-btn 0.5s ease-in-out infinite;
         }
 
-        .btn-danger:active {
-            background: #f85149;
+        @keyframes pulse-btn {
+            0%,
+            100% {
+                box-shadow: 0 0 0 0 #f0883e60;
+            }
+            50% {
+                box-shadow: 0 0 20px 5px #f0883e40;
+            }
         }
 
-        .btn-danger:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
+        .lists-row {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+            flex: 1;
+            min-height: 120px;
+            overflow: hidden;
+        }
+
+        .gift-list-panel {
+            flex: 1;
+            background: #161b22;
+            border: 1px solid #21262d;
+            border-radius: 10px;
+            overflow-y: auto;
+            scrollbar-width: thin;
+        }
+
+        .gift-list-panel::-webkit-scrollbar {
+            width: 3px;
+        }
+
+        .gift-list-panel::-webkit-scrollbar-thumb {
+            background: #30363d;
+            border-radius: 3px;
+        }
+
+        .gift-list-title {
+            padding: 8px 10px;
+            color: #8b949e;
+            font-size: 10px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            border-bottom: 1px solid #21262d;
+            position: sticky;
+            top: 0;
+            background: #161b22;
+            z-index: 1;
+        }
+
+        .gift-list-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 10px;
+            cursor: pointer;
+            transition: background 0.15s;
+            border-bottom: 1px solid #0d1117;
+        }
+
+        .gift-list-item:hover,
+        .gift-list-item:active {
+            background: #21262d;
+        }
+
+        .gift-list-item .gift-emoji-small {
+            font-size: 24px;
+        }
+
+        .gift-list-item-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .gift-list-item-name {
+            color: #c9d1d9;
+            font-size: 12px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .gift-list-item-price {
+            color: #ffd700;
+            font-size: 10px;
         }
 
         .result-overlay {
@@ -390,7 +423,7 @@
             z-index: 100;
             opacity: 0;
             pointer-events: none;
-            transition: opacity 0.15s;
+            transition: opacity 0.2s;
         }
 
         .result-overlay.show {
@@ -406,7 +439,7 @@
             max-width: 300px;
             border: 1px solid #30363d;
             transform: scale(0.95);
-            transition: transform 0.15s;
+            transition: transform 0.2s;
         }
 
         .result-overlay.show .result-card {
@@ -416,33 +449,51 @@
         .result-emoji {
             font-size: 48px;
             margin-bottom: 12px;
+            animation: pop-in 0.3s ease-out;
+        }
+
+        @keyframes pop-in {
+            0% {
+                transform: scale(0);
+            }
+            70% {
+                transform: scale(1.2);
+            }
+            100% {
+                transform: scale(1);
+            }
         }
 
         .result-title {
-            font-size: 26px;
+            font-size: 22px;
             font-weight: 700;
             margin-bottom: 8px;
         }
 
-        .result-multiplier {
-            font-size: 36px;
-            font-weight: bold;
+        .result-gift {
+            font-size: 14px;
+            color: #c9d1d9;
             margin-bottom: 12px;
         }
 
-        .result-amount {
-            font-size: 20px;
-            color: #ffd700;
-            margin-bottom: 20px;
-        }
-
-        .result-message {
+        .result-details {
             color: #8b949e;
+            font-size: 12px;
             margin-bottom: 20px;
-            font-size: 13px;
+            line-height: 1.5;
         }
 
-        .shop-panel {
+        .btn-close {
+            background: #21262d;
+            border: 1px solid #30363d;
+            color: #c9d1d9;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .shop-overlay {
             position: absolute;
             top: 0;
             left: 0;
@@ -451,11 +502,12 @@
             background: #0d1117;
             z-index: 150;
             transform: translateY(100%);
-            transition: transform 0.25s;
-            overflow-y: auto;
+            transition: transform 0.3s ease;
+            display: flex;
+            flex-direction: column;
         }
 
-        .shop-panel.show {
+        .shop-overlay.show {
             transform: translateY(0);
         }
 
@@ -466,6 +518,7 @@
             align-items: center;
             border-bottom: 1px solid #21262d;
             background: #161b22;
+            flex-shrink: 0;
         }
 
         .shop-title {
@@ -480,13 +533,13 @@
             color: #8b949e;
             font-size: 22px;
             cursor: pointer;
+            padding: 4px 8px;
         }
 
         .shop-items {
-            padding: 16px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px;
         }
 
         .shop-item {
@@ -495,14 +548,23 @@
             border-radius: 12px;
             padding: 14px;
             display: flex;
-            justify-content: space-between;
             align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .shop-item-emoji {
+            font-size: 32px;
+        }
+
+        .shop-item-info {
+            flex: 1;
         }
 
         .shop-item-info h3 {
             color: #c9d1d9;
-            font-size: 15px;
-            margin-bottom: 3px;
+            font-size: 14px;
+            margin-bottom: 2px;
         }
 
         .shop-item-info p {
@@ -513,196 +575,178 @@
         .shop-item-price {
             color: #ffd700;
             font-weight: bold;
-            font-size: 16px;
+            font-size: 14px;
         }
 
         .buy-btn {
-            background: #21262d;
-            border: 1px solid #30363d;
-            color: #c9d1d9;
-            padding: 6px 14px;
+            background: #238636;
+            border: 1px solid #2ea043;
+            color: white;
+            padding: 8px 16px;
             border-radius: 6px;
             font-weight: 600;
             font-size: 12px;
             cursor: pointer;
+            white-space: nowrap;
         }
 
-        .transactions-panel {
-            margin-top: 16px;
-            padding: 0 16px 16px;
+        .buy-btn:active {
+            background: #2ea043;
         }
 
-        .tx-title {
-            color: #c9d1d9;
-            font-size: 14px;
-            margin-bottom: 10px;
+        .buy-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
         }
 
-        .tx-item {
-            background: #161b22;
-            border-radius: 8px;
-            padding: 10px;
-            margin-bottom: 6px;
-            display: flex;
-            justify-content: space-between;
-            color: #8b949e;
-            font-size: 12px;
-        }
-
-        .tx-status {
-            color: #ffd700;
-        }
-
-        .sound-overlay {
+        .balance-topup-overlay {
             position: absolute;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background: #0d1117;
+            background: rgba(13, 17, 23, 0.95);
             display: flex;
             justify-content: center;
             align-items: center;
-            z-index: 200;
+            z-index: 160;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
         }
 
-        .sound-message {
+        .balance-topup-overlay.show {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .topup-card {
+            background: #161b22;
+            border-radius: 16px;
+            padding: 24px;
             text-align: center;
-            color: #c9d1d9;
+            max-width: 300px;
+            border: 1px solid #30363d;
         }
 
-        .sound-message button {
-            background: #238636;
-            color: white;
-            border: 1px solid #2ea043;
-            padding: 12px 28px;
-            border-radius: 8px;
-            font-size: 15px;
-            font-weight: 600;
+        .topup-card h3 {
+            color: #ffd700;
+            margin-bottom: 16px;
+            font-size: 18px;
+        }
+
+        .topup-option {
+            background: #21262d;
+            border: 1px solid #30363d;
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 10px;
             cursor: pointer;
+            transition: background 0.2s;
+            color: #c9d1d9;
+            font-weight: 600;
+        }
+
+        .topup-option:active {
+            background: #30363d;
+        }
+
+        .topup-option .emoji {
+            font-size: 24px;
+            display: block;
+            margin-bottom: 4px;
         }
     </style>
 </head>
 <body>
     <div id="app">
         <div class="header">
-            <div class="balance-container">
+            <div class="balance-container" id="balanceContainer">
                 <span class="star-icon">⭐</span>
                 <span class="balance" id="balance">1,000</span>
             </div>
-            <button class="menu-btn" id="shopBtn">🛍️</button>
+            <button class="inventory-btn" id="shopBtn">🎁</button>
         </div>
 
         <div class="history-bar" id="history"></div>
 
-        <div class="game-area">
-            <div class="round-timer" id="roundTimer">Старт: 5с</div>
-            
-            <div class="multiplier-container">
-                <div class="multiplier-label">Множитель</div>
-                <div class="multiplier" id="multiplier">1.00x</div>
-                <div class="game-status" id="gameStatus">Приём ставок</div>
-            </div>
-            
-            <div class="graph-container">
-                <canvas id="graph" width="400" height="200"></canvas>
-            </div>
-        </div>
-
-        <div class="bet-panel">
-            <div class="active-bet-indicator" id="activeBetIndicator" style="display: none;">
-                <span class="active-bet-label">Ваша ставка:</span>
-                <span class="active-bet-amount" id="activeBetAmount">0 ⭐</span>
-                <button class="cancel-bet-btn" id="cancelBetBtn">Отменить</button>
-            </div>
-
-            <div class="bet-header">
-                <span>Сумма ставки</span>
-                <span>Макс: <span id="maxBet">500</span> ⭐</span>
-            </div>
-            
-            <div class="bet-amount-container">
-                <div class="bet-input-wrapper">
-                    <input type="number" class="bet-input" id="betInput" value="10" min="10" step="10">
+        <div class="main-content" id="mainContent">
+            <div class="gift-selection-row">
+                <div class="gift-card current-gift" id="currentGiftCard">
+                    <div class="gift-label">Текущий</div>
+                    <div class="gift-emoji" id="currentGiftEmoji">🌹</div>
+                    <div class="gift-name" id="currentGiftName">Роза</div>
+                    <div class="gift-price" id="currentGiftPrice">50 ⭐</div>
                 </div>
-                <div class="quick-bets">
-                    <button class="quick-bet-btn" data-bet="10">10</button>
-                    <button class="quick-bet-btn" data-bet="50">50</button>
-                    <button class="quick-bet-btn" data-bet="100">100</button>
-                    <button class="quick-bet-btn" data-bet="half">½</button>
+                <div class="arrow-between">➡️</div>
+                <div class="gift-card target-gift" id="targetGiftCard">
+                    <div class="gift-label">Цель</div>
+                    <div class="gift-emoji" id="targetGiftEmoji">💍</div>
+                    <div class="gift-name" id="targetGiftName">Кольцо</div>
+                    <div class="gift-price" id="targetGiftPrice">200 ⭐</div>
                 </div>
             </div>
 
-            <div class="slider-container">
-                <input type="range" id="betSlider" min="10" max="500" value="10" step="10">
+            <div class="wheel-container" id="wheelContainer">
+                <canvas class="wheel-canvas" id="wheelCanvas" width="360" height="360"></canvas>
+                <div class="chance-display">
+                    <div class="chance-percent" id="chancePercent">23.8%</div>
+                    <div class="chance-label">ШАНС</div>
+                </div>
             </div>
 
-            <div class="action-buttons">
-                <button class="btn btn-primary" id="placeBetBtn">Поставить</button>
-                <button class="btn btn-danger" id="cashoutBtn" disabled>Забрать</button>
+            <div class="quick-chance-buttons" id="quickChanceButtons">
+                <button class="quick-chance-btn" data-fraction="1/2">1/2</button>
+                <button class="quick-chance-btn" data-fraction="1/3">1/3</button>
+                <button class="quick-chance-btn" data-fraction="1/5">1/5</button>
+                <button class="quick-chance-btn" data-fraction="1/10">1/10</button>
+                <button class="quick-chance-btn" data-fraction="1/100">1/100</button>
+            </div>
+
+            <button class="upgrade-btn" id="upgradeBtn">UPGRADE</button>
+
+            <div class="lists-row">
+                <div class="gift-list-panel" id="inventoryPanel">
+                    <div class="gift-list-title">📦 Инвентарь</div>
+                    <div id="inventoryList"></div>
+                </div>
+                <div class="gift-list-panel" id="targetsPanel">
+                    <div class="gift-list-title">🎯 Возможные цели</div>
+                    <div id="targetsList"></div>
+                </div>
             </div>
         </div>
 
         <div class="result-overlay" id="resultOverlay">
             <div class="result-card">
-                <div class="result-emoji" id="resultEmoji">💥</div>
-                <div class="result-title" id="resultTitle">CRASH!</div>
-                <div class="result-multiplier" id="resultMultiplier">1.00x</div>
-                <div class="result-amount" id="resultAmount">0 ⭐</div>
-                <div class="result-message" id="resultMessage"></div>
-                <button class="btn btn-primary" id="continueBtn">Понятно</button>
+                <div class="result-emoji" id="resultEmoji">🎉</div>
+                <div class="result-title" id="resultTitle">УСПЕХ!</div>
+                <div class="result-gift" id="resultGift"></div>
+                <div class="result-details" id="resultDetails"></div>
+                <button class="btn-close" id="resultCloseBtn">Понятно</button>
             </div>
         </div>
 
-        <div class="sound-overlay" id="soundOverlay">
-            <div class="sound-message">
-                <h2>🔊 Включите звук</h2>
-                <p style="margin-bottom: 20px; opacity: 0.7;">Для полного погружения</p>
-                <button id="enableSoundBtn">Нажмите, чтобы играть</button>
-            </div>
-        </div>
-
-        <div class="shop-panel" id="shopPanel">
+        <div class="shop-overlay" id="shopOverlay">
             <div class="shop-header">
-                <span class="shop-title">Магазин подарков</span>
+                <span class="shop-title">🎁 Магазин подарков</span>
                 <button class="close-btn" id="closeShopBtn">✕</button>
             </div>
-            <div class="shop-items">
-                <div class="shop-item">
-                    <div class="shop-item-info">
-                        <h3>Telegram Premium</h3>
-                        <p>1 месяц подписки</p>
-                    </div>
-                    <div>
-                        <div class="shop-item-price">3000 ⭐</div>
-                        <button class="buy-btn" data-item="premium">Купить</button>
-                    </div>
+            <div class="shop-items" id="shopItems"></div>
+        </div>
+
+        <div class="balance-topup-overlay" id="balanceTopupOverlay">
+            <div class="topup-card">
+                <h3>⭐ Пополнить баланс</h3>
+                <div class="topup-option" id="topupGifts">
+                    <span class="emoji">🎁</span>
+                    Подарками в Telegram
                 </div>
-                <div class="shop-item">
-                    <div class="shop-item-info">
-                        <h3>Набор стикеров</h3>
-                        <p>Эксклюзивный набор</p>
-                    </div>
-                    <div>
-                        <div class="shop-item-price">500 ⭐</div>
-                        <button class="buy-btn" data-item="stickers">Купить</button>
-                    </div>
+                <div class="topup-option" id="topupStars">
+                    <span class="emoji">⭐</span>
+                    Звездами
                 </div>
-                <div class="shop-item">
-                    <div class="shop-item-info">
-                        <h3>Premium Emoji</h3>
-                        <p>Набор эмодзи</p>
-                    </div>
-                    <div>
-                        <div class="shop-item-price">300 ⭐</div>
-                        <button class="buy-btn" data-item="emoji">Купить</button>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="transactions-panel">
-                <div class="tx-title">📋 История транзакций</div>
-                <div id="transactions"></div>
+                <button class="btn-close" id="closeTopupBtn" style="margin-top:10px; width:100%;">Отмена</button>
             </div>
         </div>
     </div>
@@ -718,621 +762,735 @@
             tg.enableClosingConfirmation();
         }
 
-        // Цвет как на cs.fail: зеленый → желтый → оранжевый → красный → фиолетовый
-        function getMultiplierColor(mult) {
-            if (mult < 1.8) return '#3fb950';
-            if (mult < 3.0) return '#a5d6a5';
-            if (mult < 5.0) return '#f0e68c';
-            if (mult < 10.0) return '#f0883e';
-            if (mult < 30.0) return '#f85149';
-            return '#bc8cff';
-        }
+        // ==================== DATA ====================
+        const ALL_GIFTS = [
+            { id: 'rose', name: 'Роза', emoji: '🌹', price: 50 },
+            { id: 'cake', name: 'Торт', emoji: '🎂', price: 100 },
+            { id: 'ring', name: 'Кольцо', emoji: '💍', price: 200 },
+            { id: 'crown', name: 'Корона', emoji: '👑', price: 500 },
+            { id: 'diamond', name: 'Алмаз', emoji: '💎', price: 1000 },
+            { id: 'rocket', name: 'Ракета', emoji: '🚀', price: 2500 },
+            { id: 'star_gift', name: 'Звездный дар', emoji: '🌟', price: 5000 },
+            { id: 'unicorn', name: 'Единорог', emoji: '🦄', price: 10000 },
+            { id: 'dragon', name: 'Дракон', emoji: '🐉', price: 25000 },
+            { id: 'phoenix', name: 'Феникс', emoji: '🔥', price: 50000 },
+            { id: 'galaxy', name: 'Галактика', emoji: '🌌', price: 100000 },
+            { id: 'infinity', name: 'Бесконечность', emoji: '♾️', price: 250000 },
+        ];
 
-        function getGlowIntensity(mult) {
-            return Math.min(25, 8 + (mult - 1) * 3);
-        }
-
-        class AutoCrashGame {
+        // ==================== GAME STATE ====================
+        class UpgradeGame {
             constructor() {
                 this.balance = 1000;
-                this.pendingBet = 0;
-                this.currentBet = 0;
-                this.hasActiveBet = false;
-                this.cashedOut = false;
-                
-                this.roundState = 'betting';
-                this.roundTimer = 5;
-                this.currentMultiplier = 1.00;
-                this.crashPoint = 1.00;
-                
-                this.animationFrame = null;
-                this.timerInterval = null;
-                this.startTime = 0;
+                this.inventory = [
+                    { giftId: 'rose', acquiredAt: Date.now() },
+                    { giftId: 'cake', acquiredAt: Date.now() - 10000 },
+                ];
+                this.currentGiftId = 'rose';
+                this.targetGiftId = 'ring';
+                this.currentChance = 0;
                 this.history = [];
-                this.transactions = [];
-                this.soundEnabled = false;
+                this.isSpinning = false;
                 this.audioContext = null;
-                
-                // Для скроллящегося графика
-                this.graphPoints = [];
-                this.cameraX = 0; // Смещение камеры
-                
-                this.sessionSeed = Math.random().toString(36);
-                this.gameIndex = 0;
-                this.deck = this.generateDeck();
-                
+                this.soundEnabled = false;
+                this.wheelAngle = 0;
+                this.wheelRotationSpeed = 0;
+                this.wheelAnimationId = null;
+
                 this.init();
             }
-            
-            generateDeck() {
-                const deck = [];
-                let rtpPool = 0;
-                for (let i = 0; i < 100; i++) {
-                    let crash;
-                    if (rtpPool > 15) crash = 1.0 + Math.random() * 0.5;
-                    else if (rtpPool < -15) crash = 1.5 + Math.random() * 30;
-                    else {
-                        const r = Math.random();
-                        if (r < 0.35) crash = 1.0 + Math.random() * 0.4;
-                        else if (r < 0.65) crash = 1.4 + Math.random() * 2.0;
-                        else if (r < 0.88) crash = 3.0 + Math.random() * 10;
-                        else crash = 12.0 + Math.random() * 88;
+
+            get currentGift() {
+                return ALL_GIFTS.find(g => g.id === this.currentGiftId) || ALL_GIFTS[0];
+            }
+
+            get targetGift() {
+                return ALL_GIFTS.find(g => g.id === this.targetGiftId) || ALL_GIFTS[1];
+            }
+
+            get inventoryGifts() {
+                return this.inventory
+                    .map(entry => ALL_GIFTS.find(g => g.id === entry.giftId))
+                    .filter(Boolean);
+            }
+
+            calculateChance(currentPrice, targetPrice) {
+                if (currentPrice >= targetPrice) return 0;
+                const fairChance = currentPrice / targetPrice;
+                const houseEdge = 0.95;
+                return fairChance * houseEdge;
+            }
+
+            getPotentialTargets() {
+                const currentPrice = this.currentGift.price;
+                return ALL_GIFTS.filter(g => g.price > currentPrice);
+            }
+
+            findTargetByFraction(fractionStr) {
+                const [num, den] = fractionStr.split('/').map(Number);
+                const targetChance = num / den;
+                const currentPrice = this.currentGift.price;
+                const candidates = ALL_GIFTS.filter(g => g.price > currentPrice);
+                if (candidates.length === 0) return null;
+
+                let best = candidates[0];
+                let bestDiff = Infinity;
+                for (const g of candidates) {
+                    const chance = this.calculateChance(currentPrice, g.price);
+                    const diff = Math.abs(chance - targetChance);
+                    if (diff < bestDiff) {
+                        bestDiff = diff;
+                        best = g;
                     }
-                    crash = Math.min(100, Math.max(1.01, crash));
-                    deck.push(Number(crash.toFixed(2)));
-                    rtpPool += (2 - crash);
                 }
-                return deck;
+                return best;
             }
-            
-            getNextCrashPoint() {
-                if (this.gameIndex >= this.deck.length) {
-                    this.deck = this.generateDeck();
-                    this.gameIndex = 0;
-                }
-                return this.deck[this.gameIndex++];
-            }
-            
+
             async init() {
                 this.loadFromStorage();
+                if (!this.inventory.find(e => e.giftId === this.currentGiftId)) {
+                    this.currentGiftId = this.inventory[0]?.giftId || 'rose';
+                }
+                this.autoSelectTarget();
                 this.setupEventListeners();
-                this.startRoundCycle();
-                this.render();
+                this.renderAll();
                 this.renderHistory();
             }
-            
+
+            autoSelectTarget() {
+                const targets = this.getPotentialTargets();
+                if (targets.length > 0 && !targets.find(t => t.id === this.targetGiftId)) {
+                    this.targetGiftId = targets[0].id;
+                }
+                this.currentChance = this.calculateChance(this.currentGift.price, this.targetGift.price);
+            }
+
             loadFromStorage() {
                 try {
-                    const saved = localStorage.getItem('crash_csfail_v1');
+                    const saved = localStorage.getItem('upgrade_stars_v1');
                     if (saved) {
                         const data = JSON.parse(saved);
                         this.balance = data.balance || 1000;
+                        this.inventory = data.inventory || [{ giftId: 'rose', acquiredAt: Date.now() }];
                         this.history = data.history || [];
-                        this.transactions = data.transactions || [];
+                        this.currentGiftId = data.currentGiftId || this.inventory[0]?.giftId || 'rose';
+                        this.targetGiftId = data.targetGiftId || 'ring';
                     }
                 } catch (e) {}
             }
-            
+
             saveToStorage() {
                 try {
-                    localStorage.setItem('crash_csfail_v1', JSON.stringify({
+                    localStorage.setItem('upgrade_stars_v1', JSON.stringify({
                         balance: this.balance,
-                        history: this.history.slice(0, 20),
-                        transactions: this.transactions
+                        inventory: this.inventory,
+                        history: this.history.slice(0, 30),
+                        currentGiftId: this.currentGiftId,
+                        targetGiftId: this.targetGiftId,
                     }));
                 } catch (e) {}
             }
-            
+
             setupEventListeners() {
-                document.getElementById('placeBetBtn').addEventListener('click', () => this.placeBet());
-                document.getElementById('cashoutBtn').addEventListener('click', () => this.cashOut());
-                document.getElementById('cancelBetBtn').addEventListener('click', () => this.cancelBet());
-                document.getElementById('continueBtn').addEventListener('click', () => this.hideResult());
-                
-                const betInput = document.getElementById('betInput');
-                const betSlider = document.getElementById('betSlider');
-                
-                betInput.addEventListener('input', (e) => {
-                    let val = parseInt(e.target.value) || 10;
-                    val = Math.min(this.balance, Math.max(10, val));
-                    betSlider.value = val;
-                    document.getElementById('maxBet').textContent = this.balance;
-                });
-                
-                betSlider.addEventListener('input', (e) => {
-                    betInput.value = e.target.value;
-                });
-                
-                document.querySelectorAll('.quick-bet-btn').forEach(btn => {
+                // Upgrade button
+                document.getElementById('upgradeBtn').addEventListener('click', () => this.startUpgrade());
+
+                // Quick chance buttons
+                document.querySelectorAll('.quick-chance-btn').forEach(btn => {
                     btn.addEventListener('click', (e) => {
-                        const bet = e.target.dataset.bet;
-                        let val = bet === 'half' ? Math.floor(this.balance / 2) : parseInt(bet);
-                        val = Math.min(this.balance, Math.max(10, val));
-                        betInput.value = val;
-                        betSlider.value = val;
-                        betSlider.max = this.balance;
-                        document.getElementById('maxBet').textContent = this.balance;
+                        const fraction = e.target.dataset.fraction;
+                        const bestGift = this.findTargetByFraction(fraction);
+                        if (bestGift) {
+                            this.targetGiftId = bestGift.id;
+                            this.currentChance = this.calculateChance(this.currentGift.price, this.targetGift
+                                .price);
+                            this.renderAll();
+                            this.highlightQuickButton(fraction);
+                        }
                     });
                 });
-                
+
+                // Current gift card
+                document.getElementById('currentGiftCard').addEventListener('click', () => {
+                    const invGifts = this.inventoryGifts;
+                    if (invGifts.length <= 1) return;
+                    const currentIdx = invGifts.findIndex(g => g.id === this.currentGiftId);
+                    const nextIdx = (currentIdx + 1) % invGifts.length;
+                    this.currentGiftId = invGifts[nextIdx].id;
+                    this.autoSelectTarget();
+                    this.currentChance = this.calculateChance(this.currentGift.price, this.targetGift.price);
+                    this.renderAll();
+                    this.saveToStorage();
+                });
+
+                // Target gift card
+                document.getElementById('targetGiftCard').addEventListener('click', () => {
+                    const targets = this.getPotentialTargets();
+                    if (targets.length <= 1) return;
+                    const currentIdx = targets.findIndex(g => g.id === this.targetGiftId);
+                    const nextIdx = (currentIdx + 1) % targets.length;
+                    this.targetGiftId = targets[nextIdx].id;
+                    this.currentChance = this.calculateChance(this.currentGift.price, this.targetGift.price);
+                    this.renderAll();
+                    this.saveToStorage();
+                });
+
+                // Balance topup
+                document.getElementById('balanceContainer').addEventListener('click', () => {
+                    document.getElementById('balanceTopupOverlay').classList.add('show');
+                });
+                document.getElementById('closeTopupBtn').addEventListener('click', () => {
+                    document.getElementById('balanceTopupOverlay').classList.remove('show');
+                });
+                document.getElementById('topupGifts').addEventListener('click', () => {
+                    alert('🔜 Функция пополнения подарками Telegram будет доступна с интеграцией бота.');
+                    document.getElementById('balanceTopupOverlay').classList.remove('show');
+                });
+                document.getElementById('topupStars').addEventListener('click', () => {
+                    this.balance += 500;
+                    this.renderAll();
+                    this.saveToStorage();
+                    document.getElementById('balanceTopupOverlay').classList.remove('show');
+                    if (tg) tg.HapticFeedback.notificationOccurred('success');
+                });
+
+                // Shop
                 document.getElementById('shopBtn').addEventListener('click', () => {
-                    document.getElementById('shopPanel').classList.add('show');
-                    this.renderTransactions();
+                    document.getElementById('shopOverlay').classList.add('show');
+                    this.renderShop();
                 });
                 document.getElementById('closeShopBtn').addEventListener('click', () => {
-                    document.getElementById('shopPanel').classList.remove('show');
+                    document.getElementById('shopOverlay').classList.remove('show');
                 });
-                
-                document.querySelectorAll('.buy-btn').forEach(btn => {
-                    btn.addEventListener('click', (e) => this.buyItem(e.target.dataset.item));
+
+                // Result close
+                document.getElementById('resultCloseBtn').addEventListener('click', () => {
+                    document.getElementById('resultOverlay').classList.remove('show');
                 });
-                
-                document.getElementById('enableSoundBtn').addEventListener('click', async () => {
-                    await this.initAudio();
-                    document.getElementById('soundOverlay').style.display = 'none';
-                    this.soundEnabled = true;
+
+                // Inventory list click
+                document.getElementById('inventoryList').addEventListener('click', (e) => {
+                    const item = e.target.closest('.gift-list-item');
+                    if (!item) return;
+                    const giftId = item.dataset.giftId;
+                    if (giftId && this.inventory.find(entry => entry.giftId === giftId)) {
+                        this.currentGiftId = giftId;
+                        this.autoSelectTarget();
+                        this.currentChance = this.calculateChance(this.currentGift.price, this.targetGift.price);
+                        this.renderAll();
+                        this.saveToStorage();
+                    }
                 });
+
+                // Targets list click
+                document.getElementById('targetsList').addEventListener('click', (e) => {
+                    const item = e.target.closest('.gift-list-item');
+                    if (!item) return;
+                    const giftId = item.dataset.giftId;
+                    const target = ALL_GIFTS.find(g => g.id === giftId);
+                    if (target && target.price > this.currentGift.price) {
+                        this.targetGiftId = giftId;
+                        this.currentChance = this.calculateChance(this.currentGift.price, this.targetGift.price);
+                        this.renderAll();
+                        this.saveToStorage();
+                    }
+                });
+
+                // Audio init on first interaction
+                document.body.addEventListener('click', () => {
+                    if (!this.soundEnabled) this.initAudio();
+                }, { once: true });
             }
-            
+
+            highlightQuickButton(fraction) {
+                document.querySelectorAll('.quick-chance-btn').forEach(b => b.classList.remove('active'));
+                const btn = document.querySelector(`.quick-chance-btn[data-fraction="${fraction}"]`);
+                if (btn) btn.classList.add('active');
+            }
+
             async initAudio() {
                 try {
-                    this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    this.audioContext = new(window.AudioContext || window.webkitAudioContext)();
                     await this.audioContext.resume();
+                    this.soundEnabled = true;
                 } catch (e) {}
             }
-            
+
             playBeep(freq, duration, type = 'sine') {
-                if (!this.audioContext) return;
+                if (!this.audioContext || !this.soundEnabled) return;
                 const osc = this.audioContext.createOscillator();
                 const gain = this.audioContext.createGain();
                 osc.connect(gain);
                 gain.connect(this.audioContext.destination);
                 osc.frequency.value = freq;
-                osc.type = type === 'crash' ? 'sawtooth' : 'sine';
+                osc.type = type;
                 gain.gain.setValueAtTime(0.06, this.audioContext.currentTime);
                 gain.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + duration);
                 osc.start();
                 osc.stop(this.audioContext.currentTime + duration);
             }
-            
-            startRoundCycle() {
-                this.startBettingPhase();
-            }
-            
-            startBettingPhase() {
-                this.roundState = 'betting';
-                this.roundTimer = 5;
-                this.currentMultiplier = 1.00;
-                this.cashedOut = false;
-                this.graphPoints = [{ t: 0, mult: 1.0 }];
-                this.cameraX = 0;
-                
-                document.getElementById('multiplier').classList.remove('crashed-state');
-                document.getElementById('gameStatus').textContent = 'Приём ставок';
-                document.getElementById('cashoutBtn').disabled = true;
-                
-                this.updateTimer();
-                this.timerInterval = setInterval(() => {
-                    this.roundTimer--;
-                    this.updateTimer();
-                    
-                    if (this.roundTimer <= 0) {
-                        clearInterval(this.timerInterval);
-                        this.startRunningPhase();
+
+            startUpgrade() {
+                if (this.isSpinning) return;
+                if (!this.inventory.find(e => e.giftId === this.currentGiftId)) {
+                    alert('У вас нет этого подарка в инвентаре!');
+                    return;
+                }
+                if (this.currentGift.price >= this.targetGift.price) {
+                    alert('Целевой подарок должен быть дороже текущего!');
+                    return;
+                }
+
+                this.isSpinning = true;
+                const upgradeBtn = document.getElementById('upgradeBtn');
+                upgradeBtn.disabled = true;
+                upgradeBtn.classList.add('spinning');
+                upgradeBtn.textContent = 'КРУТИМ...';
+
+                if (tg) tg.HapticFeedback.impactOccurred('heavy');
+
+                // Calculate total rotations + random offset
+                const totalRotations = 5 + Math.floor(Math.random() * 5); // 5-9 full rotations
+                const targetAngle = Math.random() * Math.PI * 2;
+                const totalAngle = totalRotations * Math.PI * 2 + targetAngle;
+                const duration = 4000; // 4 seconds total spin
+                const startTime = Date.now();
+                const startAngle = this.wheelAngle;
+
+                const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
+
+                const animate = () => {
+                    const elapsed = Date.now() - startTime;
+                    const progress = Math.min(elapsed / duration, 1);
+                    const easedProgress = easeOutCubic(progress);
+
+                    this.wheelAngle = startAngle + totalAngle * easedProgress;
+                    this.wheelRotationSpeed = (1 - easedProgress) * 15;
+
+                    this.drawWheel();
+
+                    if (this.soundEnabled && progress < 0.9) {
+                        const tickFreq = 200 + (1 - easedProgress) * 800;
+                        if (Math.floor(progress * 40) % 2 === 0) {
+                            this.playBeep(tickFreq, 0.01);
+                        }
                     }
-                }, 1000);
-                
-                this.render();
+
+                    if (progress < 1) {
+                        this.wheelAnimationId = requestAnimationFrame(animate);
+                    } else {
+                        this.onSpinComplete();
+                    }
+                };
+
+                this.wheelAnimationId = requestAnimationFrame(animate);
             }
-            
-            updateTimer() {
-                document.getElementById('roundTimer').textContent = `Старт: ${this.roundTimer}с`;
-            }
-            
-            startRunningPhase() {
-                this.roundState = 'running';
-                this.crashPoint = this.getNextCrashPoint();
-                
-                if (this.pendingBet > 0) {
-                    this.currentBet = this.pendingBet;
-                    this.hasActiveBet = true;
-                    this.balance -= this.currentBet;
-                    document.getElementById('activeBetIndicator').style.display = 'flex';
-                    document.getElementById('activeBetAmount').textContent = this.currentBet + ' ⭐';
-                    document.getElementById('placeBetBtn').disabled = true;
+
+            onSpinComplete() {
+                this.isSpinning = false;
+                const upgradeBtn = document.getElementById('upgradeBtn');
+                upgradeBtn.classList.remove('spinning');
+                upgradeBtn.textContent = 'UPGRADE';
+                upgradeBtn.disabled = false;
+
+                // Determine result
+                const normalizedAngle = ((this.wheelAngle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+                const successZoneEnd = this.currentChance * Math.PI * 2;
+                const isSuccess = normalizedAngle <= successZoneEnd;
+
+                if (isSuccess) {
+                    this.onUpgradeSuccess();
                 } else {
-                    this.hasActiveBet = false;
+                    this.onUpgradeFail();
                 }
-                
-                document.getElementById('gameStatus').textContent = 'Игра идёт';
-                document.getElementById('roundTimer').textContent = '🚀 ПОЛЕТЕЛИ!';
-                
-                if (this.hasActiveBet) {
-                    document.getElementById('cashoutBtn').disabled = false;
-                }
-                
-                this.startTime = Date.now();
-                this.graphPoints = [{ t: 0, mult: 1.0 }];
-                this.cameraX = 0;
-                this.animate();
+            }
+
+            onUpgradeSuccess() {
+                const oldGift = this.currentGift;
+                const newGift = this.targetGift;
+
+                // Remove old gift from inventory
+                const idx = this.inventory.findIndex(e => e.giftId === oldGift.id);
+                if (idx !== -1) this.inventory.splice(idx, 1);
+
+                // Add new gift
+                this.inventory.push({ giftId: newGift.id, acquiredAt: Date.now() });
+
+                // Update current gift
+                this.currentGiftId = newGift.id;
+                this.autoSelectTarget();
+                this.currentChance = this.calculateChance(this.currentGift.price, this.targetGift.price);
+
+                // Add to history
+                this.history.unshift({
+                    from: oldGift.id,
+                    to: newGift.id,
+                    chance: this.currentChance,
+                    success: true,
+                    time: Date.now(),
+                });
+
                 this.saveToStorage();
-            }
-            
-            animate() {
-                if (this.roundState !== 'running') return;
-                
-                const elapsed = (Date.now() - this.startTime) / 1000;
-                const k = Math.log(this.crashPoint) / 8;
-                this.currentMultiplier = Math.exp(k * Math.min(elapsed, 8));
-                
-                // Добавляем точку
-                if (this.graphPoints.length === 0 || elapsed - this.graphPoints[this.graphPoints.length - 1].t > 0.02) {
-                    this.graphPoints.push({ t: elapsed, mult: this.currentMultiplier });
-                }
-                
-                // Двигаем камеру, если график вышел за пределы
-                const lastPoint = this.graphPoints[this.graphPoints.length - 1];
-                const xPos = lastPoint.t * 50; // 50 пикселей в секунду
-                const canvas = document.getElementById('graph');
-                if (xPos > canvas.width * 0.7) {
-                    this.cameraX = xPos - canvas.width * 0.7;
-                }
-                
-                if (this.currentMultiplier >= this.crashPoint || elapsed >= 8) {
-                    this.currentMultiplier = this.crashPoint;
-                    this.crash();
-                    return;
-                }
-                
-                this.render();
-                
-                if (this.soundEnabled && Math.floor(this.currentMultiplier * 10) % 5 === 0) {
-                    this.playBeep(500 + this.currentMultiplier * 100, 0.015);
-                }
-                
-                this.animationFrame = requestAnimationFrame(() => this.animate());
-            }
-            
-            placeBet() {
-                if (this.roundState !== 'betting') {
-                    alert('Ставки принимаются только до начала раунда!');
-                    return;
-                }
-                
-                const betInput = document.getElementById('betInput');
-                const bet = parseInt(betInput.value) || 10;
-                
-                if (bet > this.balance) {
-                    alert('Недостаточно средств!');
-                    return;
-                }
-                
-                if (this.pendingBet > 0) {
-                    this.balance += this.pendingBet;
-                }
-                
-                this.pendingBet = bet;
-                this.balance -= bet;
-                
-                document.getElementById('activeBetIndicator').style.display = 'flex';
-                document.getElementById('activeBetAmount').textContent = bet + ' ⭐';
-                document.getElementById('placeBetBtn').textContent = 'Ставка принята';
-                
-                if (tg) tg.HapticFeedback.impactOccurred('medium');
-                
-                this.render();
-                this.saveToStorage();
-            }
-            
-            cancelBet() {
-                if (this.roundState !== 'betting') {
-                    alert('Нельзя отменить ставку во время игры!');
-                    return;
-                }
-                
-                if (this.pendingBet > 0) {
-                    this.balance += this.pendingBet;
-                    this.pendingBet = 0;
-                    
-                    document.getElementById('activeBetIndicator').style.display = 'none';
-                    document.getElementById('placeBetBtn').textContent = 'Поставить';
-                    
-                    this.render();
-                    this.saveToStorage();
-                }
-            }
-            
-            cashOut() {
-                if (this.roundState !== 'running' || !this.hasActiveBet || this.cashedOut) return;
-                
-                const winAmount = Math.floor(this.currentBet * this.currentMultiplier);
-                this.balance += winAmount;
-                this.cashedOut = true;
-                this.hasActiveBet = false;
-                
-                if (this.soundEnabled) this.playBeep(1200, 0.15);
-                if (tg) tg.HapticFeedback.notificationOccurred('success');
-                
-                this.showResult(true, winAmount);
-                
-                document.getElementById('cashoutBtn').disabled = true;
-                document.getElementById('activeBetIndicator').style.display = 'none';
-                
-                this.saveToStorage();
-            }
-            
-            crash() {
-                if (this.roundState !== 'running') return;
-                
-                this.roundState = 'crashed';
-                
-                if (this.animationFrame) cancelAnimationFrame(this.animationFrame);
-                if (this.soundEnabled) this.playBeep(200, 0.3, 'crash');
-                if (tg) tg.HapticFeedback.notificationOccurred('error');
-                
-                const multElement = document.getElementById('multiplier');
-                multElement.classList.add('crashing');
-                multElement.classList.add('crashed-state');
-                
-                this.history.unshift(this.crashPoint);
-                
-                if (this.hasActiveBet && !this.cashedOut) {
-                    this.showResult(false, 0);
-                    this.hasActiveBet = false;
-                }
-                
-                document.getElementById('cashoutBtn').disabled = true;
-                document.getElementById('activeBetIndicator').style.display = 'none';
-                document.getElementById('gameStatus').textContent = 'КРАШ!';
-                document.getElementById('roundTimer').textContent = '💥 КРАШ';
-                
-                this.saveToStorage();
+                this.renderAll();
                 this.renderHistory();
-                
-                setTimeout(() => this.resetForNextRound(), 3000);
+                this.showResult(true, oldGift, newGift);
+
+                if (tg) tg.HapticFeedback.notificationOccurred('success');
+                this.playBeep(1500, 0.2);
+                setTimeout(() => this.playBeep(1800, 0.15), 150);
             }
-            
-            resetForNextRound() {
-                this.pendingBet = 0;
-                this.currentBet = 0;
-                this.hasActiveBet = false;
-                this.cashedOut = false;
-                
-                document.getElementById('placeBetBtn').disabled = false;
-                document.getElementById('placeBetBtn').textContent = 'Поставить';
-                document.getElementById('activeBetIndicator').style.display = 'none';
-                
-                const betSlider = document.getElementById('betSlider');
-                betSlider.max = this.balance;
-                document.getElementById('maxBet').textContent = this.balance;
-                
-                const betInput = document.getElementById('betInput');
-                if (parseInt(betInput.value) > this.balance) {
-                    betInput.value = Math.max(10, this.balance);
-                    betSlider.value = betInput.value;
+
+            onUpgradeFail() {
+                const oldGift = this.currentGift;
+                const targetGift = this.targetGift;
+
+                // Remove old gift from inventory
+                const idx = this.inventory.findIndex(e => e.giftId === oldGift.id);
+                if (idx !== -1) this.inventory.splice(idx, 1);
+
+                // If inventory empty, give a default rose
+                if (this.inventory.length === 0) {
+                    this.inventory.push({ giftId: 'rose', acquiredAt: Date.now() });
                 }
-                
-                this.startBettingPhase();
+
+                // Update current gift
+                this.currentGiftId = this.inventory[0].giftId;
+                this.autoSelectTarget();
+                this.currentChance = this.calculateChance(this.currentGift.price, this.targetGift.price);
+
+                // Add to history
+                this.history.unshift({
+                    from: oldGift.id,
+                    to: targetGift.id,
+                    chance: this.currentChance,
+                    success: false,
+                    time: Date.now(),
+                });
+
+                this.saveToStorage();
+                this.renderAll();
+                this.renderHistory();
+                this.showResult(false, oldGift, targetGift);
+
+                if (tg) tg.HapticFeedback.notificationOccurred('error');
+                this.playBeep(200, 0.3, 'sawtooth');
             }
-            
-            showResult(won, amount) {
+
+            showResult(success, oldGift, targetGift) {
                 const overlay = document.getElementById('resultOverlay');
                 const emoji = document.getElementById('resultEmoji');
                 const title = document.getElementById('resultTitle');
-                const mult = document.getElementById('resultMultiplier');
-                const amt = document.getElementById('resultAmount');
-                const msg = document.getElementById('resultMessage');
-                
-                if (won) {
-                    emoji.textContent = '🚀✨';
-                    title.textContent = 'ПОБЕДА!';
+                const gift = document.getElementById('resultGift');
+                const details = document.getElementById('resultDetails');
+
+                overlay.classList.add('show');
+
+                if (success) {
+                    emoji.textContent = '🎉';
+                    title.textContent = 'УСПЕХ!';
                     title.style.color = '#3fb950';
-                    mult.textContent = this.currentMultiplier.toFixed(2) + 'x';
-                    amt.textContent = '+' + amount + ' ⭐';
-                    msg.textContent = 'Отличный кэшаут!';
-                    if (this.soundEnabled) this.playBeep(1500, 0.2);
+                    gift.innerHTML =
+                        `${oldGift.emoji} ${oldGift.name} ➡️ ${targetGift.emoji} <strong>${targetGift.name}</strong>`;
+                    details.textContent = `Шанс был: ${(this.currentChance * 100).toFixed(1)}%\nПодарок улучшен! 🚀`;
                 } else {
                     emoji.textContent = '💥';
-                    title.textContent = 'CRASH!';
+                    title.textContent = 'ПРОВАЛ!';
                     title.style.color = '#f85149';
-                    mult.textContent = this.crashPoint.toFixed(2) + 'x';
-                    amt.textContent = '- ' + this.currentBet + ' ⭐';
-                    msg.textContent = 'В следующий раз повезет!';
+                    gift.innerHTML =
+                        `${oldGift.emoji} ${oldGift.name} ➡️ ${targetGift.emoji} ${targetGift.name}`;
+                    details.textContent =
+                        `Шанс был: ${(this.currentChance * 100).toFixed(1)}%\nПодарок потерян. Попробуйте снова!`;
                 }
-                
-                overlay.classList.add('show');
             }
-            
-            hideResult() {
-                document.getElementById('resultOverlay').classList.remove('show');
-            }
-            
-            render() {
+
+            renderAll() {
                 document.getElementById('balance').textContent = this.balance.toLocaleString();
-                
-                const multElement = document.getElementById('multiplier');
-                multElement.textContent = this.currentMultiplier.toFixed(2) + 'x';
-                
-                if (this.roundState !== 'crashed') {
-                    const color = getMultiplierColor(this.currentMultiplier);
-                    const glow = getGlowIntensity(this.currentMultiplier);
-                    multElement.style.color = color;
-                    multElement.style.textShadow = `0 0 ${glow}px ${color}`;
+
+                // Current gift card
+                document.getElementById('currentGiftEmoji').textContent = this.currentGift.emoji;
+                document.getElementById('currentGiftName').textContent = this.currentGift.name;
+                document.getElementById('currentGiftPrice').textContent = this.currentGift.price + ' ⭐';
+
+                // Target gift card
+                document.getElementById('targetGiftEmoji').textContent = this.targetGift.emoji;
+                document.getElementById('targetGiftName').textContent = this.targetGift.name;
+                document.getElementById('targetGiftPrice').textContent = this.targetGift.price + ' ⭐';
+
+                // Chance
+                const chancePercent = (this.currentChance * 100).toFixed(1);
+                document.getElementById('chancePercent').textContent = chancePercent + '%';
+                document.getElementById('chancePercent').style.color =
+                    this.currentChance >= 0.4 ? '#3fb950' :
+                    this.currentChance >= 0.15 ? '#f0883e' : '#f85149';
+
+                // Wheel
+                this.drawWheel();
+
+                // Inventory list
+                this.renderInventoryList();
+
+                // Targets list
+                this.renderTargetsList();
+
+                // Update upgrade button
+                const upgradeBtn = document.getElementById('upgradeBtn');
+                if (!this.isSpinning) {
+                    upgradeBtn.disabled = false;
+                    upgradeBtn.classList.remove('spinning');
+                    upgradeBtn.textContent = 'UPGRADE';
                 }
-                
-                this.drawGraph();
             }
-            
-            drawGraph() {
-                const canvas = document.getElementById('graph');
+
+            drawWheel() {
+                const canvas = document.getElementById('wheelCanvas');
                 const ctx = canvas.getContext('2d');
-                const w = canvas.width, h = canvas.height;
-                
+                const w = canvas.width;
+                const h = canvas.height;
+                const cx = w / 2;
+                const cy = h / 2;
+                const radius = Math.min(w, h) / 2 - 10;
+
                 ctx.clearRect(0, 0, w, h);
-                
-                if (this.graphPoints.length < 2) return;
-                
-                // Сетка (движется вместе с камерой)
-                ctx.strokeStyle = '#21262d';
-                ctx.lineWidth = 0.5;
-                
-                const gridStep = 50;
-                const startGridX = Math.floor(this.cameraX / gridStep) * gridStep;
-                
-                for (let x = startGridX - this.cameraX; x < w; x += gridStep) {
-                    ctx.beginPath();
-                    ctx.moveTo(x, 0);
-                    ctx.lineTo(x, h);
-                    ctx.strokeStyle = '#21262d';
-                    ctx.stroke();
-                }
-                
-                for (let i = 0; i <= 5; i++) {
-                    const y = h - (i * h / 5);
-                    ctx.beginPath();
-                    ctx.moveTo(0, y);
-                    ctx.lineTo(w, y);
-                    ctx.strokeStyle = '#21262d';
-                    ctx.stroke();
-                }
-                
-                // Находим максимальный множитель для масштабирования Y
-                let maxMult = 2.0;
-                for (const p of this.graphPoints) {
-                    maxMult = Math.max(maxMult, p.mult);
-                }
-                maxMult = Math.max(2.0, maxMult * 1.1);
-                
-                // Рисуем кривую
+
+                // Background circle
                 ctx.beginPath();
-                let firstPoint = true;
-                
-                for (let i = 0; i < this.graphPoints.length; i++) {
-                    const p = this.graphPoints[i];
-                    
-                    // X с учетом камеры
-                    const x = p.t * 50 - this.cameraX;
-                    if (x < -50) continue;
-                    
-                    // Y — логарифмическая шкала
-                    const logY = Math.log(p.mult) / Math.log(maxMult);
-                    const y = h - (logY * h * 0.8) - 10;
-                    
-                    if (firstPoint || x < 0) {
-                        ctx.moveTo(Math.max(0, x), y);
-                        firstPoint = false;
+                ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+                ctx.fillStyle = '#21262d';
+                ctx.fill();
+                ctx.strokeStyle = '#30363d';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+
+                // Success zone arc
+                const successEndAngle = -Math.PI / 2 + this.currentChance * Math.PI * 2;
+                const startAngleFixed = -Math.PI / 2;
+
+                if (this.currentChance > 0) {
+                    ctx.beginPath();
+                    ctx.moveTo(cx, cy);
+                    ctx.arc(cx, cy, radius - 4, startAngleFixed, successEndAngle);
+                    ctx.closePath();
+
+                    // Gradient for success zone
+                    const gradient = ctx.createLinearGradient(
+                        cx - radius, cy - radius,
+                        cx + radius, cy + radius
+                    );
+                    const chanceRatio = this.currentChance;
+                    if (chanceRatio >= 0.4) {
+                        gradient.addColorStop(0, '#3fb950');
+                        gradient.addColorStop(1, '#a5d6a5');
+                    } else if (chanceRatio >= 0.15) {
+                        gradient.addColorStop(0, '#f0883e');
+                        gradient.addColorStop(1, '#f0e68c');
                     } else {
-                        ctx.lineTo(x, y);
+                        gradient.addColorStop(0, '#f85149');
+                        gradient.addColorStop(1, '#f0883e');
                     }
+                    ctx.fillStyle = gradient;
+                    ctx.fill();
+                    ctx.strokeStyle = 'transparent';
+                    ctx.stroke();
                 }
-                
-                // Градиент для линии (как на cs.fail)
-                const gradient = ctx.createLinearGradient(0, 0, w, 0);
-                gradient.addColorStop(0, '#3fb950');
-                gradient.addColorStop(0.3, '#f0e68c');
-                gradient.addColorStop(0.6, '#f0883e');
-                gradient.addColorStop(0.8, '#f85149');
-                gradient.addColorStop(1, '#bc8cff');
-                
-                ctx.strokeStyle = gradient;
+
+                // Inner ring
+                ctx.beginPath();
+                ctx.arc(cx, cy, radius * 0.7, 0, Math.PI * 2);
+                ctx.fillStyle = '#0d1117';
+                ctx.fill();
+                ctx.strokeStyle = '#30363d';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // Tick marks
+                for (let i = 0; i < 36; i++) {
+                    const angle = (i / 36) * Math.PI * 2 - Math.PI / 2;
+                    const isInZone = i / 36 <= this.currentChance;
+                    const outerR = radius - 6;
+                    const innerR = radius - 18;
+
+                    ctx.beginPath();
+                    ctx.moveTo(cx + Math.cos(angle) * innerR, cy + Math.sin(angle) * innerR);
+                    ctx.lineTo(cx + Math.cos(angle) * outerR, cy + Math.sin(angle) * outerR);
+                    ctx.strokeStyle = isInZone ? '#ffd700' : '#30363d';
+                    ctx.lineWidth = isInZone ? 1.5 : 0.8;
+                    ctx.stroke();
+                }
+
+                // Arrow
+                ctx.save();
+                ctx.translate(cx, cy);
+                ctx.rotate(this.wheelAngle);
+
+                // Arrow shaft
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.lineTo(0, -radius + 10);
+                ctx.strokeStyle = '#ffd700';
                 ctx.lineWidth = 3;
                 ctx.lineCap = 'round';
-                ctx.lineJoin = 'round';
-                ctx.shadowColor = '#3fb950';
-                ctx.shadowBlur = 12;
                 ctx.stroke();
-                
-                // Точка на конце
-                if (this.graphPoints.length > 0 && this.roundState === 'running') {
-                    const lastPoint = this.graphPoints[this.graphPoints.length - 1];
-                    const x = lastPoint.t * 50 - this.cameraX;
-                    const logY = Math.log(lastPoint.mult) / Math.log(maxMult);
-                    const y = h - (logY * h * 0.8) - 10;
-                    
-                    if (x >= 0 && x <= w) {
-                        const color = getMultiplierColor(lastPoint.mult);
-                        
-                        ctx.shadowColor = color;
-                        ctx.shadowBlur = 20;
-                        ctx.beginPath();
-                        ctx.arc(x, y, 5, 0, Math.PI * 2);
-                        ctx.fillStyle = color;
-                        ctx.fill();
-                        
-                        ctx.shadowBlur = 30;
-                        ctx.beginPath();
-                        ctx.arc(x, y, 2.5, 0, Math.PI * 2);
-                        ctx.fillStyle = 'white';
-                        ctx.fill();
-                    }
-                }
-                
+
+                // Arrow head
+                ctx.beginPath();
+                ctx.moveTo(0, -radius + 10);
+                ctx.lineTo(-8, -radius + 22);
+                ctx.lineTo(8, -radius + 22);
+                ctx.closePath();
+                ctx.fillStyle = '#ffd700';
+                ctx.fill();
+                ctx.strokeStyle = '#ffd700';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+
+                // Glow effect
+                ctx.shadowColor = '#ffd700';
+                ctx.shadowBlur = 15;
+                ctx.beginPath();
+                ctx.arc(0, -radius + 16, 4, 0, Math.PI * 2);
+                ctx.fillStyle = '#ffd700';
+                ctx.fill();
                 ctx.shadowBlur = 0;
+
+                // Center dot
+                ctx.beginPath();
+                ctx.arc(0, 0, 5, 0, Math.PI * 2);
+                ctx.fillStyle = '#ffd700';
+                ctx.fill();
+                ctx.strokeStyle = '#b8960c';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                ctx.restore();
+
+                // Glass reflection overlay
+                const reflectionGradient = ctx.createRadialGradient(cx - radius * 0.3, cy - radius * 0.3, radius * 0.1, cx,
+                    cy, radius);
+                reflectionGradient.addColorStop(0, 'rgba(255,255,255,0.08)');
+                reflectionGradient.addColorStop(0.5, 'rgba(255,255,255,0.02)');
+                reflectionGradient.addColorStop(1, 'rgba(0,0,0,0.1)');
+                ctx.beginPath();
+                ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+                ctx.fillStyle = reflectionGradient;
+                ctx.fill();
             }
-            
-            renderHistory() {
-                const historyDiv = document.getElementById('history');
-                
-                historyDiv.innerHTML = this.history.slice(0, 12).map(mult => {
-                    const color = getMultiplierColor(mult);
-                    const glow = getGlowIntensity(mult);
-                    
-                    return `
-                        <div class="history-item" 
-                             style="background: ${color}20; 
-                                    border: 1px solid ${color}40;
-                                    color: ${color};
-                                    text-shadow: 0 0 ${glow/2}px ${color};
-                                    box-shadow: 0 0 ${glow/3}px ${color}20;">
-                            ${mult.toFixed(2)}x
+
+            renderInventoryList() {
+                const container = document.getElementById('inventoryList');
+                const invGifts = this.inventoryGifts;
+
+                if (invGifts.length === 0) {
+                    container.innerHTML =
+                    '<div style="padding:20px;text-align:center;color:#8b949e;font-size:12px;">Пусто</div>';
+                    return;
+                }
+
+                container.innerHTML = invGifts.map(g => `
+                    <div class="gift-list-item" data-gift-id="${g.id}" style="${g.id === this.currentGiftId ? 'background:#21262d;border-left:3px solid #ffd700;' : ''}">
+                        <span class="gift-emoji-small">${g.emoji}</span>
+                        <div class="gift-list-item-info">
+                            <div class="gift-list-item-name">${g.name}</div>
+                            <div class="gift-list-item-price">${g.price} ⭐</div>
                         </div>
-                    `;
-                }).join('');
-            }
-            
-            buyItem(item) {
-                const prices = { premium: 3000, stickers: 500, emoji: 300 };
-                const names = { premium: 'Telegram Premium', stickers: 'Набор стикеров', emoji: 'Premium Emoji' };
-                const price = prices[item];
-                
-                if (this.balance < price) {
-                    alert('Недостаточно средств!');
-                    return;
-                }
-                
-                this.balance -= price;
-                this.transactions.unshift({
-                    item: names[item],
-                    price: price,
-                    date: new Date().toLocaleString(),
-                    status: 'В обработке'
-                });
-                
-                alert(`Заявка принята! Бот отправит вам ${names[item]} в ближайшее время.`);
-                
-                this.render();
-                this.renderTransactions();
-                this.saveToStorage();
-            }
-            
-            renderTransactions() {
-                const txDiv = document.getElementById('transactions');
-                if (this.transactions.length === 0) {
-                    txDiv.innerHTML = '<div style="color: #8b949e; text-align: center; padding: 20px;">Пока нет транзакций</div>';
-                    return;
-                }
-                
-                txDiv.innerHTML = this.transactions.map(tx => `
-                    <div class="tx-item">
-                        <span>${tx.item}</span>
-                        <span>${tx.price} ⭐</span>
-                        <span class="tx-status">${tx.status}</span>
+                        ${g.id === this.currentGiftId ? '<span style="color:#ffd700;font-size:10px;">◀ выбран</span>' : ''}
                     </div>
                 `).join('');
             }
+
+            renderTargetsList() {
+                const container = document.getElementById('targetsList');
+                const targets = this.getPotentialTargets();
+
+                if (targets.length === 0) {
+                    container.innerHTML =
+                        '<div style="padding:20px;text-align:center;color:#8b949e;font-size:12px;">Нет целей</div>';
+                    return;
+                }
+
+                container.innerHTML = targets.map(g => {
+                    const chance = this.calculateChance(this.currentGift.price, g.price);
+                    const chanceColor = chance >= 0.4 ? '#3fb950' : chance >= 0.15 ? '#f0883e' : '#f85149';
+                    return `
+                    <div class="gift-list-item" data-gift-id="${g.id}" style="${g.id === this.targetGiftId ? 'background:#21262d;border-left:3px solid #f0883e;' : ''}">
+                        <span class="gift-emoji-small">${g.emoji}</span>
+                        <div class="gift-list-item-info">
+                            <div class="gift-list-item-name">${g.name}</div>
+                            <div class="gift-list-item-price">${g.price} ⭐ • <span style="color:${chanceColor}">${(chance*100).toFixed(1)}%</span></div>
+                        </div>
+                        ${g.id === this.targetGiftId ? '<span style="color:#f0883e;font-size:10px;">🎯 цель</span>' : ''}
+                    </div>
+                `;
+                }).join('');
+            }
+
+            renderShop() {
+                const container = document.getElementById('shopItems');
+                container.innerHTML = ALL_GIFTS.map(g => {
+                    const canBuy = this.balance >= g.price;
+                    return `
+                    <div class="shop-item">
+                        <span class="shop-item-emoji">${g.emoji}</span>
+                        <div class="shop-item-info">
+                            <h3>${g.name}</h3>
+                            <p>Подарок для апгрейда</p>
+                        </div>
+                        <div style="text-align:right;">
+                            <div class="shop-item-price">${g.price} ⭐</div>
+                            <button class="buy-btn" data-gift-id="${g.id}" ${!canBuy ? 'disabled' : ''}>Купить</button>
+                        </div>
+                    </div>
+                `;
+                }).join('');
+
+                // Add buy event listeners
+                container.querySelectorAll('.buy-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const giftId = e.target.dataset.giftId;
+                        const gift = ALL_GIFTS.find(g => g.id === giftId);
+                        if (gift && this.balance >= gift.price) {
+                            this.balance -= gift.price;
+                            this.inventory.push({ giftId: gift.id, acquiredAt: Date.now() });
+                            this.saveToStorage();
+                            this.renderAll();
+                            this.renderShop();
+                            if (tg) tg.HapticFeedback.notificationOccurred('success');
+                        }
+                    });
+                });
+            }
+
+            renderHistory() {
+                const historyDiv = document.getElementById('history');
+                if (this.history.length === 0) {
+                    historyDiv.innerHTML =
+                        '<div style="color:#8b949e;padding:0 8px;font-size:11px;">Нет истории апгрейдов</div>';
+                    return;
+                }
+
+                historyDiv.innerHTML = this.history.slice(0, 10).map(h => {
+                    const fromGift = ALL_GIFTS.find(g => g.id === h.from) || { emoji: '❓', name: '?' };
+                    const toGift = ALL_GIFTS.find(g => g.id === h.to) || { emoji: '❓', name: '?' };
+                    const cls = h.success ? 'win' : 'lose';
+                    const icon = h.success ? '✅' : '❌';
+                    return `
+                    <div class="history-item ${cls}">
+                        ${icon} ${fromGift.emoji}→${toGift.emoji}
+                    </div>
+                `;
+                }).join('');
+            }
         }
 
-        const game = new AutoCrashGame();
+        // ==================== INIT ====================
+        const game = new UpgradeGame();
+
+        // Handle viewport for mobile
+        function setVH() {
+            const vh = window.innerHeight * 0.01;
+            document.documentElement.style.setProperty('--vh', `${vh}px`);
+        }
+        setVH();
+        window.addEventListener('resize', setVH);
     </script>
 </body>
 </html>
