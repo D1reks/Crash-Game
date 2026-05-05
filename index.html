@@ -102,57 +102,6 @@
             box-shadow: 0 0 20px rgba(100, 140, 255, 0.25);
         }
 
-        .history-bar {
-            display: flex;
-            gap: 6px;
-            padding: 10px 12px;
-            overflow-x: auto;
-            background: #080c14;
-            white-space: nowrap;
-            scrollbar-width: none;
-            z-index: 5;
-            flex-shrink: 0;
-            min-height: 44px;
-            align-items: center;
-            border-bottom: 1px solid #1a2540;
-        }
-
-        .history-bar::-webkit-scrollbar {
-            display: none;
-        }
-
-        .history-item {
-            min-width: 70px;
-            height: 32px;
-            border-radius: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 4px;
-            font-weight: 600;
-            font-size: 12px;
-            flex-shrink: 0;
-            background: #111827;
-            color: #a0b4e0;
-            padding: 0 10px;
-            border: 1px solid #1e2a45;
-            box-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
-        }
-
-        .history-item.win {
-            border: 1px solid #3fb95060;
-            color: #5ff57a;
-            box-shadow: 0 0 12px rgba(63, 185, 80, 0.2);
-            text-shadow: 0 0 6px rgba(63, 185, 80, 0.4);
-        }
-
-        .history-item.lose {
-            border: 1px solid #f8514960;
-            color: #ff6b6b;
-            box-shadow: 0 0 12px rgba(248, 81, 73, 0.2);
-            text-shadow: 0 0 6px rgba(248, 81, 73, 0.4);
-        }
-
         .main-content {
             flex: 1;
             display: flex;
@@ -221,23 +170,6 @@
             font-size: 11px;
             font-weight: bold;
             text-shadow: 0 0 8px rgba(255, 215, 0, 0.3);
-        }
-
-        .gift-label {
-            color: #6b7daa;
-            font-size: 9px;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-        }
-
-        .arrow-between {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #4a6099;
-            font-size: 20px;
-            flex-shrink: 0;
-            text-shadow: 0 0 10px rgba(100, 140, 255, 0.4);
         }
 
         .wheel-container {
@@ -684,6 +616,87 @@
             margin-bottom: 4px;
             filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.3));
         }
+
+        .sell-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(6, 8, 13, 0.95);
+            backdrop-filter: blur(8px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 170;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+        }
+        .sell-overlay.show {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .sell-card {
+            background: #0d111f;
+            border-radius: 16px;
+            padding: 24px;
+            text-align: center;
+            max-width: 280px;
+            width: 90%;
+            border: 1px solid #2a3a5c;
+            box-shadow: 0 0 30px rgba(100, 140, 255, 0.1);
+        }
+        .sell-card .sell-emoji {
+            font-size: 56px;
+            filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.4));
+            margin-bottom: 8px;
+        }
+        .sell-card h3 {
+            color: #d0daf0;
+            font-size: 18px;
+            margin-bottom: 6px;
+            text-shadow: 0 0 8px rgba(200, 210, 255, 0.2);
+        }
+        .sell-card .sell-price {
+            color: #ffd700;
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 16px;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+        }
+        .sell-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        .sell-btn-confirm {
+            flex: 1;
+            background: linear-gradient(135deg, #5a1a1a, #c0392b);
+            border: 1px solid #e74c3c60;
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 13px;
+            box-shadow: 0 0 12px rgba(231, 76, 60, 0.2);
+            transition: all 0.2s;
+        }
+        .sell-btn-confirm:active {
+            box-shadow: 0 0 22px rgba(231, 76, 60, 0.5);
+        }
+        .sell-btn-cancel {
+            flex: 1;
+            background: #111827;
+            border: 1px solid #2a3a5c;
+            color: #a0b4e0;
+            padding: 10px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 13px;
+        }
     </style>
 </head>
 <body>
@@ -696,19 +709,14 @@
             <button class="inventory-btn" id="shopBtn">🎁</button>
         </div>
 
-        <div class="history-bar" id="history"></div>
-
         <div class="main-content" id="mainContent">
             <div class="gift-selection-row">
                 <div class="gift-card current-gift" id="currentGiftCard">
-                    <div class="gift-label">Текущий</div>
                     <div class="gift-emoji" id="currentGiftEmoji">🌹</div>
                     <div class="gift-name" id="currentGiftName">Роза</div>
                     <div class="gift-price" id="currentGiftPrice">50 ⭐</div>
                 </div>
-                <div class="arrow-between">➡️</div>
                 <div class="gift-card target-gift" id="targetGiftCard">
-                    <div class="gift-label">Цель</div>
                     <div class="gift-emoji" id="targetGiftEmoji">💍</div>
                     <div class="gift-name" id="targetGiftName">Кольцо</div>
                     <div class="gift-price" id="targetGiftPrice">200 ⭐</div>
@@ -740,11 +748,11 @@
 
             <div class="lists-row">
                 <div class="gift-list-panel" id="inventoryPanel">
-                    <div class="gift-list-title">📦 Инвентарь</div>
+                    <div class="gift-list-title">Инвентарь</div>
                     <div id="inventoryList"></div>
                 </div>
                 <div class="gift-list-panel" id="targetsPanel">
-                    <div class="gift-list-title">🎯 Возможные цели</div>
+                    <div class="gift-list-title">Выберите подарок</div>
                     <div id="targetsList"></div>
                 </div>
             </div>
@@ -769,7 +777,19 @@
                     <span class="emoji">⭐</span>
                     Звездами
                 </div>
-                <button class="btn-close" id="closeTopupBtn" style="margin-top:10px; width:100%;">Отмена</button>
+                <button class="close-btn" id="closeTopupBtn" style="margin-top:10px; width:100%;">Отмена</button>
+            </div>
+        </div>
+
+        <div class="sell-overlay" id="sellOverlay">
+            <div class="sell-card">
+                <div class="sell-emoji" id="sellEmoji">🌹</div>
+                <h3 id="sellName">Роза</h3>
+                <div class="sell-price" id="sellPrice">50 ⭐</div>
+                <div class="sell-buttons">
+                    <button class="sell-btn-confirm" id="sellConfirmBtn">Продать</button>
+                    <button class="sell-btn-cancel" id="sellCancelBtn">Отмена</button>
+                </div>
             </div>
         </div>
     </div>
@@ -897,6 +917,7 @@
                 this.wheelAnimationId = null;
                 this.resultTimeout = null;
                 this.sparkSystem = null;
+                this.sellTargetGiftId = null;
                 this.init();
             }
 
@@ -917,10 +938,8 @@
                 const cPrice = this.currentGift.price;
                 const cands = ALL_GIFTS.filter(g => g.price > cPrice);
                 if (!cands.length) return null;
-                let best = cands[0],
-                    bd = Infinity;
-                for (const g of cands) { const diff = Math.abs(this.calculateChance(cPrice, g.price) - tc); if (diff <
-                        bd) { bd = diff;
+                let best = cands[0], bd = Infinity;
+                for (const g of cands) { const diff = Math.abs(this.calculateChance(cPrice, g.price) - tc); if (diff < bd) { bd = diff;
                         best = g; } }
                 return best;
             }
@@ -928,97 +947,142 @@
             async init() {
                 this.loadFromStorage();
                 this.deduplicateInventory();
-                if (!this.inventory.find(e => e.giftId === this.currentGiftId)) this.currentGiftId = this.inventory[0]
-                    ?.giftId || 'rose';
+                if (!this.inventory.find(e => e.giftId === this.currentGiftId)) this.currentGiftId = this.inventory[0]?.giftId || 'rose';
                 this.autoSelectTarget();
                 this.sparkSystem = new SparkSystem(document.getElementById('sparkCanvas'));
                 this.setupEventListeners();
                 this.renderAll();
-                this.renderHistory();
             }
 
-            deduplicateInventory() { const s = new Set(); const u = []; for (const e of this.inventory) { if (!s.has(e
-                    .giftId)) { s.add(e.giftId);
-                    u.push(e); } } this.inventory = u; }
+            deduplicateInventory() { const s = new Set(); const u = []; for (const e of this.inventory) { if (!s.has(e.giftId)) { s.add(e.giftId);
+                        u.push(e); } } this.inventory = u; }
 
-            autoSelectTarget() { const t = this.getPotentialTargets(); if (t.length && !t.find(x => x.id === this
-                    .targetGiftId)) this.targetGiftId = t[0].id;
+            autoSelectTarget() { const t = this.getPotentialTargets(); if (t.length && !t.find(x => x.id === this.targetGiftId)) this.targetGiftId = t[0].id;
                 this.currentChance = this.calculateChance(this.currentGift.price, this.targetGift.price); }
 
-            loadFromStorage() { try { const s = localStorage.getItem('upgrade_stars_v4'); if (s) { const d = JSON.parse(s);
+            loadFromStorage() { try { const s = localStorage.getItem('upgrade_stars_v5'); if (s) { const d = JSON.parse(s);
                         this.balance = d.balance || 1000;
                         this.inventory = d.inventory || [{ giftId: 'rose', acquiredAt: Date.now() }];
                         this.history = d.history || [];
                         this.currentGiftId = d.currentGiftId || this.inventory[0]?.giftId || 'rose';
                         this.targetGiftId = d.targetGiftId || 'ring'; } } catch (e) {} }
-            saveToStorage() { try { localStorage.setItem('upgrade_stars_v4', JSON.stringify({ balance: this.balance,
+            saveToStorage() { try { localStorage.setItem('upgrade_stars_v5', JSON.stringify({ balance: this.balance,
                         inventory: this.inventory, history: this.history.slice(0, 30), currentGiftId: this.currentGiftId,
                         targetGiftId: this.targetGiftId })); } catch (e) {} }
 
             setupEventListeners() {
                 document.getElementById('upgradeBtn').addEventListener('click', () => this.startUpgrade());
-                document.querySelectorAll('.quick-chance-btn').forEach(b => b.addEventListener('click', e => { const f = e
-                        .target.dataset.fraction;
+                document.querySelectorAll('.quick-chance-btn').forEach(b => b.addEventListener('click', e => { const f = e.target.dataset.fraction;
                     const g = this.findTargetByFraction(f); if (g) { this.targetGiftId = g.id;
                         this.currentChance = this.calculateChance(this.currentGift.price, this.targetGift.price);
                         this.renderAll();
                         this.highlightQuickButton(f); } }));
-                document.getElementById('currentGiftCard').addEventListener('click', () => { const ig = this
-                        .inventoryGifts; if (ig.length <= 1) return; const ci = ig.findIndex(g => g.id === this
-                        .currentGiftId);
+                document.getElementById('currentGiftCard').addEventListener('click', () => { const ig = this.inventoryGifts; if (ig.length <= 1) return; const ci = ig.findIndex(g => g.id === this.currentGiftId);
                     this.currentGiftId = ig[(ci + 1) % ig.length].id;
                     this.autoSelectTarget();
                     this.currentChance = this.calculateChance(this.currentGift.price, this.targetGift.price);
                     this.renderAll();
                     this.saveToStorage(); });
-                document.getElementById('targetGiftCard').addEventListener('click', () => { const t = this
-                        .getPotentialTargets(); if (t.length <= 1) return; const ci = t.findIndex(g => g.id === this
-                        .targetGiftId);
+                document.getElementById('targetGiftCard').addEventListener('click', () => { const t = this.getPotentialTargets(); if (t.length <= 1) return; const ci = t.findIndex(g => g.id === this.targetGiftId);
                     this.targetGiftId = t[(ci + 1) % t.length].id;
                     this.currentChance = this.calculateChance(this.currentGift.price, this.targetGift.price);
                     this.renderAll();
                     this.saveToStorage(); });
-                document.getElementById('balanceContainer').addEventListener('click', () => document.getElementById(
-                    'balanceTopupOverlay').classList.add('show'));
-                document.getElementById('closeTopupBtn').addEventListener('click', () => document.getElementById(
-                    'balanceTopupOverlay').classList.remove('show'));
-                document.getElementById('topupGifts').addEventListener('click', () => { alert(
-                        '🔜 Функция пополнения подарками Telegram будет доступна с интеграцией бота.'); document
-                        .getElementById('balanceTopupOverlay').classList.remove('show'); });
+                document.getElementById('balanceContainer').addEventListener('click', () => document.getElementById('balanceTopupOverlay').classList.add('show'));
+                document.getElementById('closeTopupBtn').addEventListener('click', () => document.getElementById('balanceTopupOverlay').classList.remove('show'));
+                document.getElementById('topupGifts').addEventListener('click', () => { alert('🔜 Функция пополнения подарками Telegram будет доступна с интеграцией бота.'); document.getElementById('balanceTopupOverlay').classList.remove('show'); });
                 document.getElementById('topupStars').addEventListener('click', () => { this.balance += 500;
                     this.renderAll();
-                    this.saveToStorage(); document.getElementById('balanceTopupOverlay').classList.remove('show'); if (
-                        tg) tg.HapticFeedback.notificationOccurred('success'); });
-                document.getElementById('shopBtn').addEventListener('click', () => { document.getElementById('shopOverlay')
-                        .classList.add('show');
+                    this.saveToStorage(); document.getElementById('balanceTopupOverlay').classList.remove('show'); if (tg) tg.HapticFeedback.notificationOccurred('success'); });
+                document.getElementById('shopBtn').addEventListener('click', () => { document.getElementById('shopOverlay').classList.add('show');
                     this.renderShop(); });
-                document.getElementById('closeShopBtn').addEventListener('click', () => document.getElementById(
-                    'shopOverlay').classList.remove('show'));
-                document.getElementById('inventoryList').addEventListener('click', e => { const it = e.target.closest(
-                        '.gift-list-item'); if (!it) return; const gid = it.dataset.giftId; if (gid && this.inventory
-                        .find(en => en.giftId === gid)) { this.currentGiftId = gid;
-                        this.autoSelectTarget();
+                document.getElementById('closeShopBtn').addEventListener('click', () => document.getElementById('shopOverlay').classList.remove('show'));
+                document.getElementById('inventoryList').addEventListener('click', e => { const it = e.target.closest('.gift-list-item'); if (!it) return; const gid = it.dataset.giftId;
+                    // Long press or double-click detection for sell
+                    if (it.dataset.longPress === 'pending') return;
+                    it.dataset.longPress = 'pending';
+                    const pressTime = Date.now();
+                    const releaseHandler = () => {
+                        const duration = Date.now() - pressTime;
+                        if (duration < 600) {
+                            // Short click - select gift
+                            if (gid && this.inventory.find(en => en.giftId === gid)) {
+                                this.currentGiftId = gid;
+                                this.autoSelectTarget();
+                                this.currentChance = this.calculateChance(this.currentGift.price, this.targetGift.price);
+                                this.renderAll();
+                                this.saveToStorage();
+                            }
+                        } else {
+                            // Long press - sell
+                            this.openSellOverlay(gid);
+                        }
+                        it.dataset.longPress = '';
+                        document.removeEventListener('mouseup', releaseHandler);
+                        document.removeEventListener('touchend', releaseHandler);
+                    };
+                    document.addEventListener('mouseup', releaseHandler, { once: true });
+                    document.addEventListener('touchend', releaseHandler, { once: true });
+                });
+                // Also allow sell via single click if we want a simpler approach - let's do click for sell, but add a small sell icon
+                document.getElementById('targetsList').addEventListener('click', e => { const it = e.target.closest('.gift-list-item'); if (!it) return; const gid = it.dataset.giftId; const tgt = ALL_GIFTS.find(g => g.id === gid); if (tgt && tgt.price > this.currentGift.price) { this.targetGiftId = gid;
                         this.currentChance = this.calculateChance(this.currentGift.price, this.targetGift.price);
                         this.renderAll();
                         this.saveToStorage(); } });
-                document.getElementById('targetsList').addEventListener('click', e => { const it = e.target.closest(
-                        '.gift-list-item'); if (!it) return; const gid = it.dataset.giftId; const tgt = ALL_GIFTS.find(g =>
-                        g.id === gid); if (tgt && tgt.price > this.currentGift.price) { this.targetGiftId = gid;
-                        this.currentChance = this.calculateChance(this.currentGift.price, this.targetGift.price);
-                        this.renderAll();
-                        this.saveToStorage(); } });
+                document.getElementById('sellConfirmBtn').addEventListener('click', () => this.confirmSell());
+                document.getElementById('sellCancelBtn').addEventListener('click', () => this.closeSellOverlay());
+                document.getElementById('sellOverlay').addEventListener('click', e => { if (e.target === document.getElementById('sellOverlay')) this.closeSellOverlay(); });
                 document.body.addEventListener('click', () => { if (!this.soundEnabled) this.initAudio(); }, { once: true });
             }
 
-            highlightQuickButton(fr) { document.querySelectorAll('.quick-chance-btn').forEach(b => b.classList.remove(
-                    'active')); const btn = document.querySelector(`.quick-chance-btn[data-fraction="${fr}"]`); if (btn)
-                    btn.classList.add('active'); }
+            openSellOverlay(giftId) {
+                const gift = ALL_GIFTS.find(g => g.id === giftId);
+                if (!gift || !this.inventory.find(e => e.giftId === giftId)) return;
+                if (this.inventory.length <= 1) {
+                    alert('Нельзя продать последний подарок!');
+                    return;
+                }
+                this.sellTargetGiftId = giftId;
+                document.getElementById('sellEmoji').textContent = gift.emoji;
+                document.getElementById('sellName').textContent = gift.name;
+                document.getElementById('sellPrice').textContent = gift.price + ' ⭐';
+                document.getElementById('sellOverlay').classList.add('show');
+            }
 
-            async initAudio() { try { this.audioContext = new(window.AudioContext || window.webkitAudioContext)(); await this
-                    .audioContext.resume();
+            closeSellOverlay() {
+                document.getElementById('sellOverlay').classList.remove('show');
+                this.sellTargetGiftId = null;
+            }
+
+            confirmSell() {
+                if (!this.sellTargetGiftId) return;
+                const gift = ALL_GIFTS.find(g => g.id === this.sellTargetGiftId);
+                if (!gift) return;
+                const idx = this.inventory.findIndex(e => e.giftId === this.sellTargetGiftId);
+                if (idx === -1) return;
+                if (this.inventory.length <= 1) {
+                    alert('Нельзя продать последний подарок!');
+                    this.closeSellOverlay();
+                    return;
+                }
+                this.inventory.splice(idx, 1);
+                this.balance += gift.price;
+                if (this.currentGiftId === this.sellTargetGiftId) {
+                    this.currentGiftId = this.inventory[0]?.giftId || 'rose';
+                    this.autoSelectTarget();
+                    this.currentChance = this.calculateChance(this.currentGift.price, this.targetGift.price);
+                }
+                this.saveToStorage();
+                this.renderAll();
+                this.closeSellOverlay();
+                if (tg) tg.HapticFeedback.notificationOccurred('success');
+            }
+
+            highlightQuickButton(fr) { document.querySelectorAll('.quick-chance-btn').forEach(b => b.classList.remove('active')); const btn = document.querySelector(`.quick-chance-btn[data-fraction="${fr}"]`); if (btn) btn.classList.add('active'); }
+
+            async initAudio() { try { this.audioContext = new(window.AudioContext || window.webkitAudioContext)(); await this.audioContext.resume();
                     this.soundEnabled = true; } catch (e) {} }
-            playBeep(f, d, ty = 'sine') { if (!this.audioContext || !this.soundEnabled) return; const o = this.audioContext
-                    .createOscillator(); const g = this.audioContext.createGain();
+            playBeep(f, d, ty = 'sine') { if (!this.audioContext || !this.soundEnabled) return; const o = this.audioContext.createOscillator(); const g = this.audioContext.createGain();
                 o.connect(g);
                 g.connect(this.audioContext.destination);
                 o.frequency.value = f;
@@ -1033,11 +1097,7 @@
                 const centerResult = document.getElementById('centerResult');
                 const resultText = document.getElementById('centerResultText');
                 const resultChance = document.getElementById('centerResultChance');
-
-                // Hide chance display
                 chanceDisplay.classList.add('hidden-temp');
-
-                // Set result text
                 if (success) {
                     resultText.textContent = 'УСПЕХ!';
                     resultText.style.color = '#5ff57a';
@@ -1051,16 +1111,10 @@
                     resultChance.textContent = `Шанс: ${(chance*100).toFixed(1)}%`;
                     resultChance.style.color = '#ff6b6b';
                 }
-
-                // Reset animation
                 resultText.style.animation = 'none';
                 resultText.offsetHeight;
                 resultText.style.animation = 'result-pop 0.4s ease-out';
-
-                // Show
                 centerResult.classList.add('show');
-
-                // Emit sparks
                 const sc = document.getElementById('sparkCanvas');
                 const cx = sc.width / 2;
                 const cy = sc.height / 2;
@@ -1068,8 +1122,6 @@
                     ['#5ff57a', '#3fb950', '#a5f5b0', '#ffffff', '#7dff90'] :
                     ['#ff6b6b', '#f85149', '#ff9999', '#ffffff', '#ff4444'];
                 this.sparkSystem.emit(cx, cy, 50, colors);
-
-                // Hide after 2 seconds
                 if (this.resultTimeout) clearTimeout(this.resultTimeout);
                 this.resultTimeout = setTimeout(() => {
                     centerResult.classList.remove('show');
@@ -1078,8 +1130,7 @@
             }
 
             startUpgrade() {
-                if (this.isSpinning || !this.inventory.find(e => e.giftId === this.currentGiftId) || this.currentGift
-                    .price >= this.targetGift.price) return;
+                if (this.isSpinning || !this.inventory.find(e => e.giftId === this.currentGiftId) || this.currentGift.price >= this.targetGift.price) return;
                 this.isSpinning = true;
                 const btn = document.getElementById('upgradeBtn');
                 btn.disabled = true;
@@ -1089,16 +1140,11 @@
                 const totalRot = 5 + Math.floor(Math.random() * 5);
                 const ta = Math.random() * Math.PI * 2;
                 const totalAngle = totalRot * Math.PI * 2 + ta;
-                const dur = 4000,
-                    st = Date.now(),
-                    sa = this.wheelAngle;
+                const dur = 4000, st = Date.now(), sa = this.wheelAngle;
                 const ease = t => 1 - Math.pow(1 - t, 3);
-                const anim = () => { const el = Date.now() - st,
-                        p = Math.min(el / dur, 1),
-                        ep = ease(p);
+                const anim = () => { const el = Date.now() - st, p = Math.min(el / dur, 1), ep = ease(p);
                     this.wheelAngle = sa + totalAngle * ep;
-                    this.drawWheel(); if (this.soundEnabled && p < 0.9 && Math.floor(p * 40) % 2 === 0) this.playBeep(
-                        200 + (1 - ep) * 800, 0.01); if (p < 1) this.wheelAnimationId = requestAnimationFrame(anim);
+                    this.drawWheel(); if (this.soundEnabled && p < 0.9 && Math.floor(p * 40) % 2 === 0) this.playBeep(200 + (1 - ep) * 800, 0.01); if (p < 1) this.wheelAnimationId = requestAnimationFrame(anim);
                     else this.onSpinComplete(); };
                 this.wheelAnimationId = requestAnimationFrame(anim);
             }
@@ -1106,14 +1152,9 @@
             onSpinComplete() { this.isSpinning = false; const btn = document.getElementById('upgradeBtn');
                 btn.classList.remove('spinning');
                 btn.textContent = 'UPGRADE';
-                btn.disabled = false; const na = ((this.wheelAngle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2); const
-                    se = this.currentChance * Math.PI * 2; const win = na <= se; const sc = this.currentChance; if (win)
-                    this.onUpgradeSuccess(sc); else this.onUpgradeFail(sc); }
+                btn.disabled = false; const na = ((this.wheelAngle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2); const se = this.currentChance * Math.PI * 2; const win = na <= se; const sc = this.currentChance; if (win) this.onUpgradeSuccess(sc); else this.onUpgradeFail(sc); }
 
-            onUpgradeSuccess(sc) { const og = this.currentGift,
-                    ng = this.targetGift; const idx = this.inventory.findIndex(e => e.giftId === og.id); if (idx !== -1) this
-                    .inventory.splice(idx, 1); if (!this.inventory.find(e => e.giftId === ng.id)) this.inventory.push({
-                        giftId: ng.id,
+            onUpgradeSuccess(sc) { const og = this.currentGift, ng = this.targetGift; const idx = this.inventory.findIndex(e => e.giftId === og.id); if (idx !== -1) this.inventory.splice(idx, 1); if (!this.inventory.find(e => e.giftId === ng.id)) this.inventory.push({ giftId: ng.id,
                         acquiredAt: Date.now() });
                 this.currentGiftId = ng.id;
                 this.autoSelectTarget();
@@ -1121,14 +1162,11 @@
                 this.history.unshift({ from: og.id, to: ng.id, chance: sc, success: true, time: Date.now() });
                 this.saveToStorage();
                 this.renderAll();
-                this.renderHistory();
                 this.showResultText(true, sc); if (tg) tg.HapticFeedback.notificationOccurred('success');
                 this.playBeep(1500, 0.2);
                 setTimeout(() => this.playBeep(1800, 0.15), 150); }
 
-            onUpgradeFail(sc) { const og = this.currentGift,
-                    tgf = this.targetGift; const idx = this.inventory.findIndex(e => e.giftId === og.id); if (idx !== -1) this
-                    .inventory.splice(idx, 1); if (!this.inventory.length) this.inventory.push({ giftId: 'rose',
+            onUpgradeFail(sc) { const og = this.currentGift, tgf = this.targetGift; const idx = this.inventory.findIndex(e => e.giftId === og.id); if (idx !== -1) this.inventory.splice(idx, 1); if (!this.inventory.length) this.inventory.push({ giftId: 'rose',
                     acquiredAt: Date.now() });
                 this.currentGiftId = this.inventory[0].giftId;
                 this.autoSelectTarget();
@@ -1136,7 +1174,6 @@
                 this.history.unshift({ from: og.id, to: tgf.id, chance: sc, success: false, time: Date.now() });
                 this.saveToStorage();
                 this.renderAll();
-                this.renderHistory();
                 this.showResultText(false, sc); if (tg) tg.HapticFeedback.notificationOccurred('error');
                 this.playBeep(200, 0.3, 'sawtooth'); }
 
@@ -1150,8 +1187,7 @@
                 document.getElementById('targetGiftPrice').textContent = this.targetGift.price + ' ⭐';
                 const cp = (this.currentChance * 100).toFixed(1);
                 document.getElementById('chancePercent').textContent = cp + '%';
-                document.getElementById('chancePercent').style.color = this.currentChance >= 0.4 ? '#5ff57a' : this
-                    .currentChance >= 0.15 ? '#f0883e' : '#ff6b6b';
+                document.getElementById('chancePercent').style.color = this.currentChance >= 0.4 ? '#5ff57a' : this.currentChance >= 0.15 ? '#f0883e' : '#ff6b6b';
                 this.drawWheel();
                 this.renderInventoryList();
                 this.renderTargetsList();
@@ -1163,17 +1199,9 @@
             drawWheel() {
                 const c = document.getElementById('wheelCanvas');
                 const ctx = c.getContext('2d');
-                const w = c.width,
-                    h = c.height,
-                    cx = w / 2,
-                    cy = h / 2;
-                const or = Math.min(w, h) / 2 - 10,
-                    rw = 24,
-                    ir = or - rw,
-                    cr = ir - 5;
+                const w = c.width, h = c.height, cx = w / 2, cy = h / 2;
+                const or = Math.min(w, h) / 2 - 10, rw = 24, ir = or - rw, cr = ir - 5;
                 ctx.clearRect(0, 0, w, h);
-
-                // Outer ring bg
                 ctx.beginPath();
                 ctx.arc(cx, cy, or, 0, Math.PI * 2);
                 ctx.arc(cx, cy, ir, 0, Math.PI * 2, true);
@@ -1187,11 +1215,8 @@
                 ctx.shadowBlur = 15;
                 ctx.stroke();
                 ctx.shadowBlur = 0;
-
-                // Success zone
                 if (this.currentChance > 0) {
-                    const sa = -Math.PI / 2,
-                        ea = -Math.PI / 2 + this.currentChance * Math.PI * 2;
+                    const sa = -Math.PI / 2, ea = -Math.PI / 2 + this.currentChance * Math.PI * 2;
                     ctx.beginPath();
                     ctx.arc(cx, cy, or - 2, sa, ea);
                     ctx.arc(cx, cy, ir + 2, ea, sa, true);
@@ -1199,22 +1224,18 @@
                     const grad = ctx.createLinearGradient(cx - or, cy - or, cx + or, cy + or);
                     if (this.currentChance >= 0.4) { grad.addColorStop(0, '#3fb950');
                         grad.addColorStop(0.5, '#7df58a');
-                        grad.addColorStop(1, '#3fb950'); } else if (this.currentChance >= 0.15) { grad.addColorStop(0,
-                            '#f0883e');
+                        grad.addColorStop(1, '#3fb950'); } else if (this.currentChance >= 0.15) { grad.addColorStop(0, '#f0883e');
                         grad.addColorStop(0.5, '#f5c842');
                         grad.addColorStop(1, '#f0883e'); } else { grad.addColorStop(0, '#f85149');
                         grad.addColorStop(0.5, '#f0883e');
                         grad.addColorStop(1, '#f85149'); }
                     ctx.fillStyle = grad;
                     ctx.fill();
-                    ctx.shadowColor = this.currentChance >= 0.4 ? 'rgba(63,185,80,0.5)' : this.currentChance >= 0.15 ?
-                        'rgba(240,136,62,0.5)' : 'rgba(248,81,73,0.5)';
+                    ctx.shadowColor = this.currentChance >= 0.4 ? 'rgba(63,185,80,0.5)' : this.currentChance >= 0.15 ? 'rgba(240,136,62,0.5)' : 'rgba(248,81,73,0.5)';
                     ctx.shadowBlur = 20;
                     ctx.fill();
                     ctx.shadowBlur = 0;
                 }
-
-                // Ring edges
                 ctx.beginPath();
                 ctx.arc(cx, cy, ir, 0, Math.PI * 2);
                 ctx.strokeStyle = '#2a3a5c';
@@ -1231,8 +1252,6 @@
                 ctx.shadowBlur = 8;
                 ctx.stroke();
                 ctx.shadowBlur = 0;
-
-                // Center
                 ctx.beginPath();
                 ctx.arc(cx, cy, cr, 0, Math.PI * 2);
                 ctx.fillStyle = '#080c14';
@@ -1245,17 +1264,11 @@
                 ctx.strokeStyle = '#1a2540';
                 ctx.lineWidth = 1;
                 ctx.stroke();
-
-                // Arrow
                 ctx.save();
                 ctx.translate(cx, cy);
                 ctx.rotate(this.wheelAngle);
-                const abr = ir + rw * 0.55,
-                    atr = or + 10;
-                const abx = 0,
-                    aby = -abr,
-                    atx = 0,
-                    aty = -atr;
+                const abr = ir + rw * 0.55, atr = or + 10;
+                const abx = 0, aby = -abr, atx = 0, aty = -atr;
                 ctx.beginPath();
                 ctx.moveTo(abx, aby);
                 ctx.lineTo(atx, aty);
@@ -1294,8 +1307,6 @@
                 ctx.fill();
                 ctx.shadowBlur = 0;
                 ctx.restore();
-
-                // Glass
                 const rg = ctx.createRadialGradient(cx - or * 0.2, cy - or * 0.2, or * 0.04, cx, cy, or);
                 rg.addColorStop(0, 'rgba(255,255,255,0.05)');
                 rg.addColorStop(0.5, 'rgba(255,255,255,0.01)');
@@ -1311,27 +1322,33 @@
             renderInventoryList() {
                 const c = document.getElementById('inventoryList');
                 const ig = this.inventoryGifts;
-                if (!ig.length) { c.innerHTML =
-                        '<div style="padding:20px;text-align:center;color:#6b7daa;font-size:12px;">Пусто</div>'; return; }
+                if (!ig.length) { c.innerHTML = '<div style="padding:20px;text-align:center;color:#6b7daa;font-size:12px;">Пусто</div>'; return; }
                 c.innerHTML = ig.map(g => `
                     <div class="gift-list-item" data-gift-id="${g.id}" style="${g.id===this.currentGiftId?'background:#111827;border-left:3px solid #ffd700;box-shadow:inset 0 0 15px rgba(255,215,0,0.05);':''}">
                         <span class="gift-emoji-small">${g.emoji}</span>
                         <div class="gift-list-item-info"><div class="gift-list-item-name">${g.name}</div><div class="gift-list-item-price">${g.price} ⭐</div></div>
-                        ${g.id===this.currentGiftId?'<span style="color:#ffd700;font-size:10px;text-shadow:0 0 6px #ffd700;">◀ выбран</span>':''}
+                        ${g.id===this.currentGiftId?'<span style="color:#ffd700;font-size:10px;text-shadow:0 0 6px #ffd700;">◀</span>':''}
+                        <span style="color:#f85149;font-size:14px;cursor:pointer;padding:0 4px;" class="sell-icon" data-gift-id="${g.id}">💰</span>
                     </div>`).join('');
+                // Sell icon handlers
+                c.querySelectorAll('.sell-icon').forEach(icon => {
+                    icon.addEventListener('click', e => {
+                        e.stopPropagation();
+                        const gid = icon.dataset.giftId;
+                        this.openSellOverlay(gid);
+                    });
+                });
             }
 
             renderTargetsList() {
                 const c = document.getElementById('targetsList');
                 const t = this.getPotentialTargets();
-                if (!t.length) { c.innerHTML =
-                        '<div style="padding:20px;text-align:center;color:#6b7daa;font-size:12px;">Нет целей</div>'; return; }
-                c.innerHTML = t.map(g => { const ch = this.calculateChance(this.currentGift.price, g.price); const cc = ch >=
-                        0.4 ? '#5ff57a' : ch >= 0.15 ? '#f0883e' : '#ff6b6b'; return `
+                if (!t.length) { c.innerHTML = '<div style="padding:20px;text-align:center;color:#6b7daa;font-size:12px;">Нет целей</div>'; return; }
+                c.innerHTML = t.map(g => { const ch = this.calculateChance(this.currentGift.price, g.price); const cc = ch >= 0.4 ? '#5ff57a' : ch >= 0.15 ? '#f0883e' : '#ff6b6b'; return `
                     <div class="gift-list-item" data-gift-id="${g.id}" style="${g.id===this.targetGiftId?'background:#111827;border-left:3px solid #f0883e;box-shadow:inset 0 0 15px rgba(240,136,62,0.05);':''}">
                         <span class="gift-emoji-small">${g.emoji}</span>
                         <div class="gift-list-item-info"><div class="gift-list-item-name">${g.name}</div><div class="gift-list-item-price">${g.price} ⭐ • <span style="color:${cc};text-shadow:0 0 6px ${cc};">${(ch*100).toFixed(1)}%</span></div></div>
-                        ${g.id===this.targetGiftId?'<span style="color:#f0883e;font-size:10px;text-shadow:0 0 6px #f0883e;">🎯 цель</span>':''}
+                        ${g.id===this.targetGiftId?'<span style="color:#f0883e;font-size:10px;text-shadow:0 0 6px #f0883e;">🎯</span>':''}
                     </div>`; }).join('');
             }
 
@@ -1344,25 +1361,12 @@
                         <div style="text-align:right;"><div class="shop-item-price">${g.price} ⭐</div>
                         <button class="buy-btn" data-gift-id="${g.id}" ${this.balance<g.price?'disabled':''}>Купить</button></div>
                     </div>`).join('');
-                c.querySelectorAll('.buy-btn').forEach(b => b.addEventListener('click', e => { const gid = e.target.dataset
-                        .giftId; const g = ALL_GIFTS.find(x => x.id === gid); if (g && this.balance >= g.price) { this
-                        .balance -= g.price; if (!this.inventory.find(en => en.giftId === g.id)) this.inventory.push({
-                        giftId: g.id,
+                c.querySelectorAll('.buy-btn').forEach(b => b.addEventListener('click', e => { const gid = e.target.dataset.giftId; const g = ALL_GIFTS.find(x => x.id === gid); if (g && this.balance >= g.price) { this.balance -= g.price; if (!this.inventory.find(en => en.giftId === g.id)) this.inventory.push({ giftId: g.id,
                         acquiredAt: Date.now() });
                     this.deduplicateInventory();
                     this.saveToStorage();
                     this.renderAll();
                     this.renderShop(); if (tg) tg.HapticFeedback.notificationOccurred('success'); } }));
-            }
-
-            renderHistory() {
-                const hd = document.getElementById('history'); if (!this.history.length) { hd.innerHTML =
-                        '<div style="color:#6b7daa;padding:0 8px;font-size:11px;">Нет истории апгрейдов</div>'; return; }
-                hd.innerHTML = this.history.slice(0, 10).map(h => { const fg = ALL_GIFTS.find(g => g.id === h.from) || {
-                        emoji: '❓',
-                        name: '?' }; const tgf = ALL_GIFTS.find(g => g.id === h.to) || { emoji: '❓',
-                        name: '?' }; const cls = h.success ? 'win' : 'lose'; const ic = h.success ? '✅' : '❌'; return `
-                    <div class="history-item ${cls}">${ic} ${fg.emoji}→${tgf.emoji}</div>`; }).join('');
             }
         }
 
