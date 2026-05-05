@@ -809,7 +809,13 @@
             }
 
             get inventoryGifts() {
+                const seen = new Set();
                 return this.inventory
+                    .filter(entry => {
+                        if (seen.has(entry.giftId)) return false;
+                        seen.add(entry.giftId);
+                        return true;
+                    })
                     .map(entry => ALL_GIFTS.find(g => g.id === entry.giftId))
                     .filter(Boolean);
             }
@@ -848,6 +854,8 @@
 
             async init() {
                 this.loadFromStorage();
+                // Deduplicate inventory
+                this.deduplicateInventory();
                 if (!this.inventory.find(e => e.giftId === this.currentGiftId)) {
                     this.currentGiftId = this.inventory[0]?.giftId || 'rose';
                 }
@@ -855,6 +863,18 @@
                 this.setupEventListeners();
                 this.renderAll();
                 this.renderHistory();
+            }
+
+            deduplicateInventory() {
+                const seen = new Set();
+                const unique = [];
+                for (const entry of this.inventory) {
+                    if (!seen.has(entry.giftId)) {
+                        seen.add(entry.giftId);
+                        unique.push(entry);
+                    }
+                }
+                this.inventory = unique;
             }
 
             autoSelectTarget() {
@@ -867,7 +887,7 @@
 
             loadFromStorage() {
                 try {
-                    const saved = localStorage.getItem('upgrade_stars_v1');
+                    const saved = localStorage.getItem('upgrade_stars_v2');
                     if (saved) {
                         const data = JSON.parse(saved);
                         this.balance = data.balance || 1000;
@@ -881,7 +901,7 @@
 
             saveToStorage() {
                 try {
-                    localStorage.setItem('upgrade_stars_v1', JSON.stringify({
+                    localStorage.setItem('upgrade_stars_v2', JSON.stringify({
                         balance: this.balance,
                         inventory: this.inventory,
                         history: this.history.slice(0, 30),
@@ -902,8 +922,8 @@
                         const bestGift = this.findTargetByFraction(fraction);
                         if (bestGift) {
                             this.targetGiftId = bestGift.id;
-                            this.currentChance = this.calculateChance(this.currentGift.price, this.targetGift
-                                .price);
+                            this.currentChance = this.calculateChance(this.currentGift.price, this
+                                .targetGift.price);
                             this.renderAll();
                             this.highlightQuickButton(fraction);
                         }
@@ -976,7 +996,8 @@
                     if (giftId && this.inventory.find(entry => entry.giftId === giftId)) {
                         this.currentGiftId = giftId;
                         this.autoSelectTarget();
-                        this.currentChance = this.calculateChance(this.currentGift.price, this.targetGift.price);
+                        this.currentChance = this.calculateChance(this.currentGift.price, this.targetGift
+                            .price);
                         this.renderAll();
                         this.saveToStorage();
                     }
@@ -990,7 +1011,8 @@
                     const target = ALL_GIFTS.find(g => g.id === giftId);
                     if (target && target.price > this.currentGift.price) {
                         this.targetGiftId = giftId;
-                        this.currentChance = this.calculateChance(this.currentGift.price, this.targetGift.price);
+                        this.currentChance = this.calculateChance(this.currentGift.price, this.targetGift
+                            .price);
                         this.renderAll();
                         this.saveToStorage();
                     }
@@ -1098,14 +1120,17 @@
                 const successZoneEnd = this.currentChance * Math.PI * 2;
                 const isSuccess = normalizedAngle <= successZoneEnd;
 
+                // Save chance for result display
+                const spinChance = this.currentChance;
+
                 if (isSuccess) {
-                    this.onUpgradeSuccess();
+                    this.onUpgradeSuccess(spinChance);
                 } else {
-                    this.onUpgradeFail();
+                    this.onUpgradeFail(spinChance);
                 }
             }
 
-            onUpgradeSuccess() {
+            onUpgradeSuccess(spinChance) {
                 const oldGift = this.currentGift;
                 const newGift = this.targetGift;
 
@@ -1113,19 +1138,22 @@
                 const idx = this.inventory.findIndex(e => e.giftId === oldGift.id);
                 if (idx !== -1) this.inventory.splice(idx, 1);
 
-                // Add new gift
-                this.inventory.push({ giftId: newGift.id, acquiredAt: Date.now() });
+                // Add new gift if not already present
+                if (!this.inventory.find(e => e.giftId === newGift.id)) {
+                    this.inventory.push({ giftId: newGift.id, acquiredAt: Date.now() });
+                }
 
                 // Update current gift
                 this.currentGiftId = newGift.id;
                 this.autoSelectTarget();
-                this.currentChance = this.calculateChance(this.currentGift.price, this.targetGift.price);
+                const newChance = this.calculateChance(this.currentGift.price, this.targetGift.price);
+                this.currentChance = newChance;
 
                 // Add to history
                 this.history.unshift({
                     from: oldGift.id,
                     to: newGift.id,
-                    chance: this.currentChance,
+                    chance: spinChance,
                     success: true,
                     time: Date.now(),
                 });
@@ -1133,14 +1161,14 @@
                 this.saveToStorage();
                 this.renderAll();
                 this.renderHistory();
-                this.showResult(true, oldGift, newGift);
+                this.showResult(true, oldGift, newGift, spinChance);
 
                 if (tg) tg.HapticFeedback.notificationOccurred('success');
                 this.playBeep(1500, 0.2);
                 setTimeout(() => this.playBeep(1800, 0.15), 150);
             }
 
-            onUpgradeFail() {
+            onUpgradeFail(spinChance) {
                 const oldGift = this.currentGift;
                 const targetGift = this.targetGift;
 
@@ -1156,13 +1184,14 @@
                 // Update current gift
                 this.currentGiftId = this.inventory[0].giftId;
                 this.autoSelectTarget();
-                this.currentChance = this.calculateChance(this.currentGift.price, this.targetGift.price);
+                const newChance = this.calculateChance(this.currentGift.price, this.targetGift.price);
+                this.currentChance = newChance;
 
                 // Add to history
                 this.history.unshift({
                     from: oldGift.id,
                     to: targetGift.id,
-                    chance: this.currentChance,
+                    chance: spinChance,
                     success: false,
                     time: Date.now(),
                 });
@@ -1170,13 +1199,13 @@
                 this.saveToStorage();
                 this.renderAll();
                 this.renderHistory();
-                this.showResult(false, oldGift, targetGift);
+                this.showResult(false, oldGift, targetGift, spinChance);
 
                 if (tg) tg.HapticFeedback.notificationOccurred('error');
                 this.playBeep(200, 0.3, 'sawtooth');
             }
 
-            showResult(success, oldGift, targetGift) {
+            showResult(success, oldGift, targetGift, chance) {
                 const overlay = document.getElementById('resultOverlay');
                 const emoji = document.getElementById('resultEmoji');
                 const title = document.getElementById('resultTitle');
@@ -1191,7 +1220,7 @@
                     title.style.color = '#3fb950';
                     gift.innerHTML =
                         `${oldGift.emoji} ${oldGift.name} ➡️ ${targetGift.emoji} <strong>${targetGift.name}</strong>`;
-                    details.textContent = `Шанс был: ${(this.currentChance * 100).toFixed(1)}%\nПодарок улучшен! 🚀`;
+                    details.textContent = `Шанс был: ${(chance * 100).toFixed(1)}%\nПодарок улучшен! 🚀`;
                 } else {
                     emoji.textContent = '💥';
                     title.textContent = 'ПРОВАЛ!';
@@ -1199,7 +1228,7 @@
                     gift.innerHTML =
                         `${oldGift.emoji} ${oldGift.name} ➡️ ${targetGift.emoji} ${targetGift.name}`;
                     details.textContent =
-                        `Шанс был: ${(this.currentChance * 100).toFixed(1)}%\nПодарок потерян. Попробуйте снова!`;
+                        `Шанс был: ${(chance * 100).toFixed(1)}%\nПодарок потерян. Попробуйте снова!`;
                 }
             }
 
@@ -1248,84 +1277,103 @@
                 const h = canvas.height;
                 const cx = w / 2;
                 const cy = h / 2;
-                const radius = Math.min(w, h) / 2 - 10;
+                const outerRadius = Math.min(w, h) / 2 - 8;
+                const ringWidth = 22;
+                const innerRadius = outerRadius - ringWidth;
+                const centerRadius = innerRadius - 4;
 
                 ctx.clearRect(0, 0, w, h);
 
-                // Background circle
+                // Outer ring background
                 ctx.beginPath();
-                ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+                ctx.arc(cx, cy, outerRadius, 0, Math.PI * 2);
+                ctx.arc(cx, cy, innerRadius, 0, Math.PI * 2, true);
+                ctx.closePath();
                 ctx.fillStyle = '#21262d';
                 ctx.fill();
                 ctx.strokeStyle = '#30363d';
-                ctx.lineWidth = 3;
+                ctx.lineWidth = 2;
                 ctx.stroke();
 
-                // Success zone arc
-                const successEndAngle = -Math.PI / 2 + this.currentChance * Math.PI * 2;
-                const startAngleFixed = -Math.PI / 2;
-
+                // Success zone gradient arc on outer ring
                 if (this.currentChance > 0) {
+                    const startAngle = -Math.PI / 2;
+                    const endAngle = -Math.PI / 2 + this.currentChance * Math.PI * 2;
+
                     ctx.beginPath();
-                    ctx.moveTo(cx, cy);
-                    ctx.arc(cx, cy, radius - 4, startAngleFixed, successEndAngle);
+                    ctx.arc(cx, cy, outerRadius - 2, startAngle, endAngle);
+                    ctx.arc(cx, cy, innerRadius + 2, endAngle, startAngle, true);
                     ctx.closePath();
 
-                    // Gradient for success zone
-                    const gradient = ctx.createLinearGradient(
-                        cx - radius, cy - radius,
-                        cx + radius, cy + radius
-                    );
+                    const gradient = ctx.createConicalGradient ?
+                        ctx.createConicalGradient(cx, cy, startAngle) :
+                        ctx.createLinearGradient(cx - outerRadius, cy - outerRadius, cx + outerRadius, cy +
+                            outerRadius);
+
                     const chanceRatio = this.currentChance;
                     if (chanceRatio >= 0.4) {
                         gradient.addColorStop(0, '#3fb950');
-                        gradient.addColorStop(1, '#a5d6a5');
+                        gradient.addColorStop(0.5, '#a5d6a5');
+                        gradient.addColorStop(1, '#3fb950');
                     } else if (chanceRatio >= 0.15) {
                         gradient.addColorStop(0, '#f0883e');
-                        gradient.addColorStop(1, '#f0e68c');
+                        gradient.addColorStop(0.5, '#f0e68c');
+                        gradient.addColorStop(1, '#f0883e');
                     } else {
                         gradient.addColorStop(0, '#f85149');
-                        gradient.addColorStop(1, '#f0883e');
+                        gradient.addColorStop(0.5, '#f0883e');
+                        gradient.addColorStop(1, '#f85149');
                     }
                     ctx.fillStyle = gradient;
                     ctx.fill();
-                    ctx.strokeStyle = 'transparent';
-                    ctx.stroke();
                 }
 
-                // Inner ring
+                // Inner ring edge
                 ctx.beginPath();
-                ctx.arc(cx, cy, radius * 0.7, 0, Math.PI * 2);
+                ctx.arc(cx, cy, innerRadius, 0, Math.PI * 2);
+                ctx.strokeStyle = '#30363d';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // Outer ring edge
+                ctx.beginPath();
+                ctx.arc(cx, cy, outerRadius, 0, Math.PI * 2);
+                ctx.strokeStyle = '#30363d';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // Center circle
+                ctx.beginPath();
+                ctx.arc(cx, cy, centerRadius, 0, Math.PI * 2);
                 ctx.fillStyle = '#0d1117';
                 ctx.fill();
                 ctx.strokeStyle = '#30363d';
                 ctx.lineWidth = 2;
                 ctx.stroke();
 
-                // Tick marks
-                for (let i = 0; i < 36; i++) {
-                    const angle = (i / 36) * Math.PI * 2 - Math.PI / 2;
-                    const isInZone = i / 36 <= this.currentChance;
-                    const outerR = radius - 6;
-                    const innerR = radius - 18;
+                // Inner subtle ring
+                ctx.beginPath();
+                ctx.arc(cx, cy, centerRadius - 3, 0, Math.PI * 2);
+                ctx.strokeStyle = '#21262d';
+                ctx.lineWidth = 1;
+                ctx.stroke();
 
-                    ctx.beginPath();
-                    ctx.moveTo(cx + Math.cos(angle) * innerR, cy + Math.sin(angle) * innerR);
-                    ctx.lineTo(cx + Math.cos(angle) * outerR, cy + Math.sin(angle) * outerR);
-                    ctx.strokeStyle = isInZone ? '#ffd700' : '#30363d';
-                    ctx.lineWidth = isInZone ? 1.5 : 0.8;
-                    ctx.stroke();
-                }
-
-                // Arrow
+                // Arrow rotating AROUND the ring (not inside it)
                 ctx.save();
                 ctx.translate(cx, cy);
                 ctx.rotate(this.wheelAngle);
 
-                // Arrow shaft
+                const arrowBaseRadius = innerRadius + ringWidth * 0.6;
+                const arrowTipRadius = outerRadius + 10;
+                const arrowBaseX = 0;
+                const arrowBaseY = -arrowBaseRadius;
+                const arrowTipX = 0;
+                const arrowTipY = -arrowTipRadius;
+
+                // Arrow body
                 ctx.beginPath();
-                ctx.moveTo(0, 0);
-                ctx.lineTo(0, -radius + 10);
+                ctx.moveTo(arrowBaseX, arrowBaseY);
+                ctx.lineTo(arrowTipX, arrowTipY);
                 ctx.strokeStyle = '#ffd700';
                 ctx.lineWidth = 3;
                 ctx.lineCap = 'round';
@@ -1333,44 +1381,48 @@
 
                 // Arrow head
                 ctx.beginPath();
-                ctx.moveTo(0, -radius + 10);
-                ctx.lineTo(-8, -radius + 22);
-                ctx.lineTo(8, -radius + 22);
+                ctx.moveTo(arrowTipX, arrowTipY);
+                ctx.lineTo(-8, arrowTipY + 12);
+                ctx.lineTo(8, arrowTipY + 12);
                 ctx.closePath();
                 ctx.fillStyle = '#ffd700';
                 ctx.fill();
-                ctx.strokeStyle = '#ffd700';
+                ctx.strokeStyle = '#b8960c';
                 ctx.lineWidth = 1;
                 ctx.stroke();
 
-                // Glow effect
+                // Glow dot at tip
                 ctx.shadowColor = '#ffd700';
-                ctx.shadowBlur = 15;
+                ctx.shadowBlur = 12;
                 ctx.beginPath();
-                ctx.arc(0, -radius + 16, 4, 0, Math.PI * 2);
-                ctx.fillStyle = '#ffd700';
+                ctx.arc(arrowTipX, arrowTipY, 3, 0, Math.PI * 2);
+                ctx.fillStyle = '#ffffff';
                 ctx.fill();
                 ctx.shadowBlur = 0;
 
-                // Center dot
+                // Base dot on ring
                 ctx.beginPath();
-                ctx.arc(0, 0, 5, 0, Math.PI * 2);
+                ctx.arc(arrowBaseX, arrowBaseY, 4, 0, Math.PI * 2);
                 ctx.fillStyle = '#ffd700';
                 ctx.fill();
                 ctx.strokeStyle = '#b8960c';
-                ctx.lineWidth = 2;
+                ctx.lineWidth = 1.5;
                 ctx.stroke();
 
                 ctx.restore();
 
-                // Glass reflection overlay
-                const reflectionGradient = ctx.createRadialGradient(cx - radius * 0.3, cy - radius * 0.3, radius * 0.1, cx,
-                    cy, radius);
-                reflectionGradient.addColorStop(0, 'rgba(255,255,255,0.08)');
-                reflectionGradient.addColorStop(0.5, 'rgba(255,255,255,0.02)');
-                reflectionGradient.addColorStop(1, 'rgba(0,0,0,0.1)');
+                // Glass reflection
+                const reflectionGradient = ctx.createRadialGradient(
+                    cx - outerRadius * 0.25, cy - outerRadius * 0.25, outerRadius * 0.05,
+                    cx, cy, outerRadius
+                );
+                reflectionGradient.addColorStop(0, 'rgba(255,255,255,0.06)');
+                reflectionGradient.addColorStop(0.4, 'rgba(255,255,255,0.01)');
+                reflectionGradient.addColorStop(1, 'rgba(0,0,0,0.15)');
                 ctx.beginPath();
-                ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+                ctx.arc(cx, cy, outerRadius, 0, Math.PI * 2);
+                ctx.arc(cx, cy, innerRadius, 0, Math.PI * 2, true);
+                ctx.closePath();
                 ctx.fillStyle = reflectionGradient;
                 ctx.fill();
             }
@@ -1381,7 +1433,7 @@
 
                 if (invGifts.length === 0) {
                     container.innerHTML =
-                    '<div style="padding:20px;text-align:center;color:#8b949e;font-size:12px;">Пусто</div>';
+                        '<div style="padding:20px;text-align:center;color:#8b949e;font-size:12px;">Пусто</div>';
                     return;
                 }
 
@@ -1449,7 +1501,11 @@
                         const gift = ALL_GIFTS.find(g => g.id === giftId);
                         if (gift && this.balance >= gift.price) {
                             this.balance -= gift.price;
-                            this.inventory.push({ giftId: gift.id, acquiredAt: Date.now() });
+                            // Check for duplicate before adding
+                            if (!this.inventory.find(entry => entry.giftId === gift.id)) {
+                                this.inventory.push({ giftId: gift.id, acquiredAt: Date.now() });
+                            }
+                            this.deduplicateInventory();
                             this.saveToStorage();
                             this.renderAll();
                             this.renderShop();
