@@ -15,7 +15,7 @@
         }
 
         body {
-            background: #0a0e27;
+            background: #06080d;
             min-height: 100vh;
             display: flex;
             justify-content: center;
@@ -33,8 +33,8 @@
             display: flex;
             flex-direction: column;
             position: relative;
-            background: #0d1117;
-            box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
+            background: #080c14;
+            box-shadow: 0 0 60px rgba(100, 100, 255, 0.15), 0 0 120px rgba(100, 100, 255, 0.05);
             overflow: hidden;
         }
 
@@ -43,42 +43,47 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: #161b22;
-            border-bottom: 1px solid #30363d;
+            background: #0d111f;
+            border-bottom: 1px solid #1e2a45;
             z-index: 10;
             flex-shrink: 0;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
         }
 
         .balance-container {
             display: flex;
             align-items: center;
             gap: 6px;
-            background: #21262d;
+            background: #111827;
             padding: 6px 12px;
             border-radius: 30px;
-            border: 1px solid #30363d;
+            border: 1px solid #2a3a5c;
             cursor: pointer;
-            transition: background 0.2s;
+            transition: all 0.2s;
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.1);
         }
 
         .balance-container:active {
-            background: #30363d;
+            background: #1a2540;
+            box-shadow: 0 0 25px rgba(255, 215, 0, 0.2);
         }
 
         .star-icon {
             font-size: 16px;
+            filter: drop-shadow(0 0 4px #ffd700);
         }
 
         .balance {
             color: #ffd700;
             font-weight: bold;
             font-size: 18px;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.4);
         }
 
         .inventory-btn {
-            background: #21262d;
+            background: #111827;
             border: none;
-            color: #c9d1d9;
+            color: #a0b4e0;
             font-size: 20px;
             width: 40px;
             height: 40px;
@@ -87,12 +92,14 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            border: 1px solid #30363d;
-            transition: background 0.2s;
+            border: 1px solid #2a3a5c;
+            transition: all 0.2s;
+            box-shadow: 0 0 10px rgba(100, 140, 255, 0.1);
         }
 
         .inventory-btn:active {
-            background: #30363d;
+            background: #1a2540;
+            box-shadow: 0 0 20px rgba(100, 140, 255, 0.25);
         }
 
         .history-bar {
@@ -100,14 +107,14 @@
             gap: 6px;
             padding: 10px 12px;
             overflow-x: auto;
-            background: #0d1117;
+            background: #080c14;
             white-space: nowrap;
             scrollbar-width: none;
             z-index: 5;
             flex-shrink: 0;
             min-height: 44px;
             align-items: center;
-            border-bottom: 1px solid #21262d;
+            border-bottom: 1px solid #1a2540;
         }
 
         .history-bar::-webkit-scrollbar {
@@ -125,19 +132,25 @@
             font-weight: 600;
             font-size: 12px;
             flex-shrink: 0;
-            background: #21262d;
-            color: #c9d1d9;
+            background: #111827;
+            color: #a0b4e0;
             padding: 0 10px;
+            border: 1px solid #1e2a45;
+            box-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
         }
 
         .history-item.win {
-            border: 1px solid #3fb95040;
-            color: #3fb950;
+            border: 1px solid #3fb95060;
+            color: #5ff57a;
+            box-shadow: 0 0 12px rgba(63, 185, 80, 0.2);
+            text-shadow: 0 0 6px rgba(63, 185, 80, 0.4);
         }
 
         .history-item.lose {
-            border: 1px solid #f8514940;
-            color: #f85149;
+            border: 1px solid #f8514960;
+            color: #ff6b6b;
+            box-shadow: 0 0 12px rgba(248, 81, 73, 0.2);
+            text-shadow: 0 0 6px rgba(248, 81, 73, 0.4);
         }
 
         .main-content {
@@ -161,8 +174,8 @@
 
         .gift-card {
             flex: 1;
-            background: #161b22;
-            border: 1px solid #30363d;
+            background: #0d111f;
+            border: 1px solid #1e2a45;
             border-radius: 12px;
             padding: 10px;
             display: flex;
@@ -171,29 +184,28 @@
             gap: 6px;
             min-width: 0;
             cursor: pointer;
-            transition: border-color 0.2s, box-shadow 0.2s;
-        }
-
-        .gift-card.selected {
-            border-color: #ffd700;
-            box-shadow: 0 0 15px #ffd70030;
+            transition: all 0.25s;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
         }
 
         .gift-card.current-gift {
-            border-color: #3fb95080;
+            border-color: #3fb95060;
+            box-shadow: 0 0 20px rgba(63, 185, 80, 0.2);
         }
 
         .gift-card.target-gift {
-            border-color: #f0883e80;
+            border-color: #f0883e60;
+            box-shadow: 0 0 20px rgba(240, 136, 62, 0.2);
         }
 
         .gift-emoji {
             font-size: 36px;
             line-height: 1;
+            filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.3));
         }
 
         .gift-name {
-            color: #c9d1d9;
+            color: #d0daf0;
             font-size: 12px;
             font-weight: 600;
             text-align: center;
@@ -201,35 +213,39 @@
             overflow: hidden;
             text-overflow: ellipsis;
             max-width: 100%;
+            text-shadow: 0 0 8px rgba(200, 210, 255, 0.2);
         }
 
         .gift-price {
             color: #ffd700;
             font-size: 11px;
             font-weight: bold;
+            text-shadow: 0 0 8px rgba(255, 215, 0, 0.3);
         }
 
         .gift-label {
-            color: #8b949e;
+            color: #6b7daa;
             font-size: 9px;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 1.5px;
         }
 
         .arrow-between {
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #8b949e;
+            color: #4a6099;
             font-size: 20px;
             flex-shrink: 0;
+            text-shadow: 0 0 10px rgba(100, 140, 255, 0.4);
         }
 
         .wheel-container {
             position: relative;
-            width: 180px;
-            height: 180px;
+            width: 190px;
+            height: 190px;
             flex-shrink: 0;
+            filter: drop-shadow(0 0 30px rgba(100, 140, 255, 0.2));
         }
 
         .wheel-canvas {
@@ -250,85 +266,96 @@
             font-size: 28px;
             font-weight: 800;
             color: #ffd700;
-            text-shadow: 0 0 20px #ffd70040;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.5), 0 0 40px rgba(255, 215, 0, 0.2);
         }
 
         .chance-label {
             font-size: 10px;
-            color: #8b949e;
-            letter-spacing: 1px;
+            color: #6b7daa;
+            letter-spacing: 2px;
+            text-shadow: 0 0 8px rgba(100, 140, 255, 0.3);
         }
 
         .quick-chance-buttons {
             display: flex;
-            gap: 5px;
+            gap: 6px;
             flex-wrap: wrap;
             justify-content: center;
             width: 100%;
         }
 
         .quick-chance-btn {
-            background: #21262d;
-            border: 1px solid #30363d;
-            color: #c9d1d9;
-            padding: 6px 10px;
-            border-radius: 6px;
+            background: #111827;
+            border: 1px solid #2a3a5c;
+            color: #a0b4e0;
+            padding: 7px 11px;
+            border-radius: 8px;
             font-weight: 600;
             cursor: pointer;
             font-size: 11px;
             transition: all 0.2s;
+            box-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
+            text-shadow: 0 0 6px rgba(160, 180, 224, 0.3);
         }
 
         .quick-chance-btn:active {
-            background: #30363d;
+            background: #1a2540;
+            box-shadow: 0 0 18px rgba(100, 140, 255, 0.3);
         }
 
         .quick-chance-btn.active {
             border-color: #ffd700;
             color: #ffd700;
-            background: #21262d;
+            background: #1a2540;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
         }
 
         .upgrade-btn {
             width: 100%;
             padding: 14px;
-            border-radius: 10px;
+            border-radius: 12px;
             font-weight: 700;
             font-size: 16px;
             border: none;
             cursor: pointer;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            background: #238636;
+            letter-spacing: 2px;
+            background: linear-gradient(135deg, #1a3a2a, #238636);
             color: white;
-            border: 1px solid #2ea043;
-            transition: all 0.2s;
+            border: 1px solid #2ea04380;
+            transition: all 0.25s;
+            box-shadow: 0 0 25px rgba(46, 160, 67, 0.3), 0 0 50px rgba(46, 160, 67, 0.1);
+            text-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
         }
 
         .upgrade-btn:active {
-            background: #2ea043;
+            background: linear-gradient(135deg, #238636, #2ea043);
             transform: scale(0.98);
+            box-shadow: 0 0 40px rgba(46, 160, 67, 0.5);
         }
 
         .upgrade-btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
             transform: none;
+            box-shadow: 0 0 15px rgba(46, 160, 67, 0.1);
         }
 
         .upgrade-btn.spinning {
-            background: #f0883e;
+            background: linear-gradient(135deg, #5a2a10, #c0501e);
             border-color: #f0883e;
-            animation: pulse-btn 0.5s ease-in-out infinite;
+            animation: neon-pulse 0.6s ease-in-out infinite;
+            text-shadow: 0 0 8px rgba(255, 200, 100, 0.5);
         }
 
-        @keyframes pulse-btn {
+        @keyframes neon-pulse {
             0%,
             100% {
-                box-shadow: 0 0 0 0 #f0883e60;
+                box-shadow: 0 0 30px rgba(240, 136, 62, 0.4), 0 0 60px rgba(240, 136, 62, 0.15);
             }
             50% {
-                box-shadow: 0 0 20px 5px #f0883e40;
+                box-shadow: 0 0 50px rgba(240, 136, 62, 0.7), 0 0 90px rgba(240, 136, 62, 0.3);
             }
         }
 
@@ -343,33 +370,35 @@
 
         .gift-list-panel {
             flex: 1;
-            background: #161b22;
-            border: 1px solid #21262d;
+            background: #0d111f;
+            border: 1px solid #1e2a45;
             border-radius: 10px;
             overflow-y: auto;
             scrollbar-width: thin;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
         }
 
         .gift-list-panel::-webkit-scrollbar {
             width: 3px;
         }
-
         .gift-list-panel::-webkit-scrollbar-thumb {
-            background: #30363d;
+            background: #1e2a45;
             border-radius: 3px;
+            box-shadow: 0 0 5px rgba(100, 140, 255, 0.2);
         }
 
         .gift-list-title {
             padding: 8px 10px;
-            color: #8b949e;
+            color: #6b7daa;
             font-size: 10px;
-            letter-spacing: 1px;
+            letter-spacing: 2px;
             text-transform: uppercase;
-            border-bottom: 1px solid #21262d;
+            border-bottom: 1px solid #1a2540;
             position: sticky;
             top: 0;
-            background: #161b22;
+            background: #0d111f;
             z-index: 1;
+            text-shadow: 0 0 8px rgba(100, 140, 255, 0.2);
         }
 
         .gift-list-item {
@@ -378,17 +407,19 @@
             gap: 8px;
             padding: 8px 10px;
             cursor: pointer;
-            transition: background 0.15s;
-            border-bottom: 1px solid #0d1117;
+            transition: all 0.2s;
+            border-bottom: 1px solid #0a0f1a;
         }
 
         .gift-list-item:hover,
         .gift-list-item:active {
-            background: #21262d;
+            background: #111827;
+            box-shadow: inset 0 0 15px rgba(100, 140, 255, 0.05);
         }
 
         .gift-list-item .gift-emoji-small {
             font-size: 24px;
+            filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.2));
         }
 
         .gift-list-item-info {
@@ -397,16 +428,18 @@
         }
 
         .gift-list-item-name {
-            color: #c9d1d9;
+            color: #d0daf0;
             font-size: 12px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            text-shadow: 0 0 5px rgba(200, 210, 255, 0.15);
         }
 
         .gift-list-item-price {
             color: #ffd700;
             font-size: 10px;
+            text-shadow: 0 0 5px rgba(255, 215, 0, 0.25);
         }
 
         .result-overlay {
@@ -415,15 +448,15 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(13, 17, 23, 0.95);
-            backdrop-filter: blur(8px);
+            background: rgba(6, 8, 13, 0.95);
+            backdrop-filter: blur(12px);
             display: flex;
             justify-content: center;
             align-items: center;
             z-index: 100;
             opacity: 0;
             pointer-events: none;
-            transition: opacity 0.2s;
+            transition: opacity 0.25s;
         }
 
         .result-overlay.show {
@@ -432,14 +465,15 @@
         }
 
         .result-card {
-            background: #161b22;
+            background: #0d111f;
             border-radius: 16px;
             padding: 30px 25px;
             text-align: center;
             max-width: 300px;
-            border: 1px solid #30363d;
+            border: 1px solid #2a3a5c;
             transform: scale(0.95);
-            transition: transform 0.2s;
+            transition: transform 0.25s;
+            box-shadow: 0 0 40px rgba(100, 140, 255, 0.15);
         }
 
         .result-overlay.show .result-card {
@@ -449,18 +483,22 @@
         .result-emoji {
             font-size: 48px;
             margin-bottom: 12px;
-            animation: pop-in 0.3s ease-out;
+            animation: neon-pop 0.4s ease-out;
+            filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.5));
         }
 
-        @keyframes pop-in {
+        @keyframes neon-pop {
             0% {
                 transform: scale(0);
+                filter: drop-shadow(0 0 30px rgba(255, 215, 0, 1));
             }
-            70% {
-                transform: scale(1.2);
+            60% {
+                transform: scale(1.3);
+                filter: drop-shadow(0 0 50px rgba(255, 215, 0, 0.8));
             }
             100% {
                 transform: scale(1);
+                filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.5));
             }
         }
 
@@ -468,29 +506,40 @@
             font-size: 22px;
             font-weight: 700;
             margin-bottom: 8px;
+            text-shadow: 0 0 15px currentColor;
         }
 
         .result-gift {
             font-size: 14px;
-            color: #c9d1d9;
+            color: #d0daf0;
             margin-bottom: 12px;
+            text-shadow: 0 0 8px rgba(200, 210, 255, 0.2);
         }
 
         .result-details {
-            color: #8b949e;
+            color: #6b7daa;
             font-size: 12px;
             margin-bottom: 20px;
             line-height: 1.5;
+            text-shadow: 0 0 5px rgba(100, 140, 255, 0.2);
         }
 
         .btn-close {
-            background: #21262d;
-            border: 1px solid #30363d;
-            color: #c9d1d9;
+            background: #111827;
+            border: 1px solid #2a3a5c;
+            color: #a0b4e0;
             padding: 10px 20px;
             border-radius: 8px;
             font-weight: 600;
             cursor: pointer;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+            text-shadow: 0 0 5px rgba(160, 180, 224, 0.3);
+            transition: all 0.2s;
+        }
+
+        .btn-close:active {
+            background: #1a2540;
+            box-shadow: 0 0 20px rgba(100, 140, 255, 0.3);
         }
 
         .shop-overlay {
@@ -499,10 +548,10 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: #0d1117;
+            background: #080c14;
             z-index: 150;
             transform: translateY(100%);
-            transition: transform 0.3s ease;
+            transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
             flex-direction: column;
         }
@@ -516,24 +565,27 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid #21262d;
-            background: #161b22;
+            border-bottom: 1px solid #1e2a45;
+            background: #0d111f;
             flex-shrink: 0;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.3);
         }
 
         .shop-title {
-            color: #c9d1d9;
+            color: #d0daf0;
             font-size: 18px;
             font-weight: 600;
+            text-shadow: 0 0 10px rgba(200, 210, 255, 0.2);
         }
 
         .close-btn {
             background: none;
             border: none;
-            color: #8b949e;
+            color: #6b7daa;
             font-size: 22px;
             cursor: pointer;
             padding: 4px 8px;
+            text-shadow: 0 0 8px rgba(100, 140, 255, 0.3);
         }
 
         .shop-items {
@@ -543,44 +595,51 @@
         }
 
         .shop-item {
-            background: #161b22;
-            border: 1px solid #21262d;
+            background: #0d111f;
+            border: 1px solid #1e2a45;
             border-radius: 12px;
             padding: 14px;
             display: flex;
             align-items: center;
             gap: 12px;
             margin-bottom: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            transition: all 0.2s;
+        }
+
+        .shop-item:active {
+            box-shadow: 0 0 20px rgba(100, 140, 255, 0.1);
         }
 
         .shop-item-emoji {
             font-size: 32px;
+            filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.25));
         }
 
         .shop-item-info {
             flex: 1;
         }
-
         .shop-item-info h3 {
-            color: #c9d1d9;
+            color: #d0daf0;
             font-size: 14px;
             margin-bottom: 2px;
+            text-shadow: 0 0 5px rgba(200, 210, 255, 0.2);
         }
-
         .shop-item-info p {
-            color: #8b949e;
+            color: #6b7daa;
             font-size: 11px;
+            text-shadow: 0 0 4px rgba(100, 140, 255, 0.2);
         }
-
         .shop-item-price {
             color: #ffd700;
             font-weight: bold;
             font-size: 14px;
+            text-shadow: 0 0 8px rgba(255, 215, 0, 0.3);
         }
 
         .buy-btn {
-            background: #238636;
-            border: 1px solid #2ea043;
+            background: linear-gradient(135deg, #1a3a2a, #238636);
+            border: 1px solid #2ea04360;
             color: white;
             padding: 8px 16px;
             border-radius: 6px;
@@ -588,15 +647,18 @@
             font-size: 12px;
             cursor: pointer;
             white-space: nowrap;
+            box-shadow: 0 0 12px rgba(46, 160, 67, 0.2);
+            text-shadow: 0 0 4px rgba(255, 255, 255, 0.2);
+            transition: all 0.2s;
         }
-
         .buy-btn:active {
-            background: #2ea043;
+            background: linear-gradient(135deg, #238636, #2ea043);
+            box-shadow: 0 0 22px rgba(46, 160, 67, 0.5);
         }
-
         .buy-btn:disabled {
             opacity: 0.4;
             cursor: not-allowed;
+            box-shadow: none;
         }
 
         .balance-topup-overlay {
@@ -605,7 +667,8 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(13, 17, 23, 0.95);
+            background: rgba(6, 8, 13, 0.95);
+            backdrop-filter: blur(8px);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -614,47 +677,49 @@
             pointer-events: none;
             transition: opacity 0.2s;
         }
-
         .balance-topup-overlay.show {
             opacity: 1;
             pointer-events: all;
         }
 
         .topup-card {
-            background: #161b22;
+            background: #0d111f;
             border-radius: 16px;
             padding: 24px;
             text-align: center;
             max-width: 300px;
-            border: 1px solid #30363d;
+            border: 1px solid #2a3a5c;
+            box-shadow: 0 0 30px rgba(100, 140, 255, 0.1);
         }
-
         .topup-card h3 {
             color: #ffd700;
             margin-bottom: 16px;
             font-size: 18px;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
         }
 
         .topup-option {
-            background: #21262d;
-            border: 1px solid #30363d;
+            background: #111827;
+            border: 1px solid #2a3a5c;
             border-radius: 10px;
             padding: 12px;
             margin-bottom: 10px;
             cursor: pointer;
-            transition: background 0.2s;
-            color: #c9d1d9;
+            transition: all 0.2s;
+            color: #d0daf0;
             font-weight: 600;
+            box-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
+            text-shadow: 0 0 5px rgba(200, 210, 255, 0.2);
         }
-
         .topup-option:active {
-            background: #30363d;
+            background: #1a2540;
+            box-shadow: 0 0 18px rgba(100, 140, 255, 0.25);
         }
-
         .topup-option .emoji {
             font-size: 24px;
             display: block;
             margin-bottom: 4px;
+            filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.3));
         }
     </style>
 </head>
@@ -688,7 +753,7 @@
             </div>
 
             <div class="wheel-container" id="wheelContainer">
-                <canvas class="wheel-canvas" id="wheelCanvas" width="360" height="360"></canvas>
+                <canvas class="wheel-canvas" id="wheelCanvas" width="380" height="380"></canvas>
                 <div class="chance-display">
                     <div class="chance-percent" id="chancePercent">23.8%</div>
                     <div class="chance-label">ШАНС</div>
@@ -696,11 +761,11 @@
             </div>
 
             <div class="quick-chance-buttons" id="quickChanceButtons">
-                <button class="quick-chance-btn" data-fraction="1/2">1/2</button>
-                <button class="quick-chance-btn" data-fraction="1/3">1/3</button>
-                <button class="quick-chance-btn" data-fraction="1/5">1/5</button>
-                <button class="quick-chance-btn" data-fraction="1/10">1/10</button>
-                <button class="quick-chance-btn" data-fraction="1/100">1/100</button>
+                <button class="quick-chance-btn" data-fraction="1/2">50%</button>
+                <button class="quick-chance-btn" data-fraction="1/3">33%</button>
+                <button class="quick-chance-btn" data-fraction="1/5">20%</button>
+                <button class="quick-chance-btn" data-fraction="1/10">10%</button>
+                <button class="quick-chance-btn" data-fraction="1/100">1%</button>
             </div>
 
             <button class="upgrade-btn" id="upgradeBtn">UPGRADE</button>
@@ -753,7 +818,6 @@
 
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script>
-        // Telegram Init
         let tg = null;
         if (window.Telegram && window.Telegram.WebApp) {
             tg = window.Telegram.WebApp;
@@ -762,7 +826,6 @@
             tg.enableClosingConfirmation();
         }
 
-        // ==================== DATA ====================
         const ALL_GIFTS = [
             { id: 'rose', name: 'Роза', emoji: '🌹', price: 50 },
             { id: 'cake', name: 'Торт', emoji: '🎂', price: 100 },
@@ -778,7 +841,6 @@
             { id: 'infinity', name: 'Бесконечность', emoji: '♾️', price: 250000 },
         ];
 
-        // ==================== GAME STATE ====================
         class UpgradeGame {
             constructor() {
                 this.balance = 1000;
@@ -794,757 +856,448 @@
                 this.audioContext = null;
                 this.soundEnabled = false;
                 this.wheelAngle = 0;
-                this.wheelRotationSpeed = 0;
                 this.wheelAnimationId = null;
-
                 this.init();
             }
 
-            get currentGift() {
-                return ALL_GIFTS.find(g => g.id === this.currentGiftId) || ALL_GIFTS[0];
-            }
-
-            get targetGift() {
-                return ALL_GIFTS.find(g => g.id === this.targetGiftId) || ALL_GIFTS[1];
-            }
-
+            get currentGift() { return ALL_GIFTS.find(g => g.id === this.currentGiftId) || ALL_GIFTS[0]; }
+            get targetGift() { return ALL_GIFTS.find(g => g.id === this.targetGiftId) || ALL_GIFTS[1]; }
             get inventoryGifts() {
                 const seen = new Set();
-                return this.inventory
-                    .filter(entry => {
-                        if (seen.has(entry.giftId)) return false;
-                        seen.add(entry.giftId);
-                        return true;
-                    })
-                    .map(entry => ALL_GIFTS.find(g => g.id === entry.giftId))
-                    .filter(Boolean);
+                return this.inventory.filter(e => { if (seen.has(e.giftId)) return false;
+                    seen.add(e.giftId); return true; }).map(e => ALL_GIFTS.find(g => g.id === e.giftId)).filter(Boolean);
             }
 
-            calculateChance(currentPrice, targetPrice) {
-                if (currentPrice >= targetPrice) return 0;
-                const fairChance = currentPrice / targetPrice;
-                const houseEdge = 0.95;
-                return fairChance * houseEdge;
-            }
+            calculateChance(cp, tp) { return cp >= tp ? 0 : (cp / tp) * 0.95; }
+            getPotentialTargets() { return ALL_GIFTS.filter(g => g.price > this.currentGift.price); }
 
-            getPotentialTargets() {
-                const currentPrice = this.currentGift.price;
-                return ALL_GIFTS.filter(g => g.price > currentPrice);
-            }
-
-            findTargetByFraction(fractionStr) {
-                const [num, den] = fractionStr.split('/').map(Number);
-                const targetChance = num / den;
-                const currentPrice = this.currentGift.price;
-                const candidates = ALL_GIFTS.filter(g => g.price > currentPrice);
-                if (candidates.length === 0) return null;
-
-                let best = candidates[0];
-                let bestDiff = Infinity;
-                for (const g of candidates) {
-                    const chance = this.calculateChance(currentPrice, g.price);
-                    const diff = Math.abs(chance - targetChance);
-                    if (diff < bestDiff) {
-                        bestDiff = diff;
-                        best = g;
-                    }
-                }
+            findTargetByFraction(fr) {
+                const [n, d] = fr.split('/').map(Number);
+                const tc = n / d;
+                const cPrice = this.currentGift.price;
+                const cands = ALL_GIFTS.filter(g => g.price > cPrice);
+                if (!cands.length) return null;
+                let best = cands[0],
+                    bd = Infinity;
+                for (const g of cands) { const diff = Math.abs(this.calculateChance(cPrice, g.price) - tc); if (diff <
+                        bd) { bd = diff;
+                        best = g; } }
                 return best;
             }
 
             async init() {
                 this.loadFromStorage();
-                // Deduplicate inventory
                 this.deduplicateInventory();
-                if (!this.inventory.find(e => e.giftId === this.currentGiftId)) {
-                    this.currentGiftId = this.inventory[0]?.giftId || 'rose';
-                }
+                if (!this.inventory.find(e => e.giftId === this.currentGiftId)) this.currentGiftId = this.inventory[0]
+                    ?.giftId || 'rose';
                 this.autoSelectTarget();
                 this.setupEventListeners();
                 this.renderAll();
                 this.renderHistory();
             }
 
-            deduplicateInventory() {
-                const seen = new Set();
-                const unique = [];
-                for (const entry of this.inventory) {
-                    if (!seen.has(entry.giftId)) {
-                        seen.add(entry.giftId);
-                        unique.push(entry);
-                    }
-                }
-                this.inventory = unique;
-            }
+            deduplicateInventory() { const s = new Set(); const u = []; for (const e of this.inventory) { if (!s.has(e
+                    .giftId)) { s.add(e.giftId);
+                    u.push(e); } } this.inventory = u; }
 
-            autoSelectTarget() {
-                const targets = this.getPotentialTargets();
-                if (targets.length > 0 && !targets.find(t => t.id === this.targetGiftId)) {
-                    this.targetGiftId = targets[0].id;
-                }
-                this.currentChance = this.calculateChance(this.currentGift.price, this.targetGift.price);
-            }
+            autoSelectTarget() { const t = this.getPotentialTargets(); if (t.length && !t.find(x => x.id === this
+                    .targetGiftId)) this.targetGiftId = t[0].id;
+                this.currentChance = this.calculateChance(this.currentGift.price, this.targetGift.price); }
 
-            loadFromStorage() {
-                try {
-                    const saved = localStorage.getItem('upgrade_stars_v2');
-                    if (saved) {
-                        const data = JSON.parse(saved);
-                        this.balance = data.balance || 1000;
-                        this.inventory = data.inventory || [{ giftId: 'rose', acquiredAt: Date.now() }];
-                        this.history = data.history || [];
-                        this.currentGiftId = data.currentGiftId || this.inventory[0]?.giftId || 'rose';
-                        this.targetGiftId = data.targetGiftId || 'ring';
-                    }
-                } catch (e) {}
-            }
+            loadFromStorage() { try { const s = localStorage.getItem('upgrade_stars_v3'); if (s) { const d = JSON.parse(s);
+                        this.balance = d.balance || 1000;
+                        this.inventory = d.inventory || [{ giftId: 'rose', acquiredAt: Date.now() }];
+                        this.history = d.history || [];
+                        this.currentGiftId = d.currentGiftId || this.inventory[0]?.giftId || 'rose';
+                        this.targetGiftId = d.targetGiftId || 'ring'; } } catch (e) {} }
 
-            saveToStorage() {
-                try {
-                    localStorage.setItem('upgrade_stars_v2', JSON.stringify({
-                        balance: this.balance,
-                        inventory: this.inventory,
-                        history: this.history.slice(0, 30),
-                        currentGiftId: this.currentGiftId,
-                        targetGiftId: this.targetGiftId,
-                    }));
-                } catch (e) {}
-            }
+            saveToStorage() { try { localStorage.setItem('upgrade_stars_v3', JSON.stringify({ balance: this.balance,
+                        inventory: this.inventory, history: this.history.slice(0, 30), currentGiftId: this.currentGiftId,
+                        targetGiftId: this.targetGiftId })); } catch (e) {} }
 
             setupEventListeners() {
-                // Upgrade button
                 document.getElementById('upgradeBtn').addEventListener('click', () => this.startUpgrade());
-
-                // Quick chance buttons
-                document.querySelectorAll('.quick-chance-btn').forEach(btn => {
-                    btn.addEventListener('click', (e) => {
-                        const fraction = e.target.dataset.fraction;
-                        const bestGift = this.findTargetByFraction(fraction);
-                        if (bestGift) {
-                            this.targetGiftId = bestGift.id;
-                            this.currentChance = this.calculateChance(this.currentGift.price, this
-                                .targetGift.price);
-                            this.renderAll();
-                            this.highlightQuickButton(fraction);
-                        }
-                    });
-                });
-
-                // Current gift card
-                document.getElementById('currentGiftCard').addEventListener('click', () => {
-                    const invGifts = this.inventoryGifts;
-                    if (invGifts.length <= 1) return;
-                    const currentIdx = invGifts.findIndex(g => g.id === this.currentGiftId);
-                    const nextIdx = (currentIdx + 1) % invGifts.length;
-                    this.currentGiftId = invGifts[nextIdx].id;
+                document.querySelectorAll('.quick-chance-btn').forEach(b => b.addEventListener('click', e => { const f = e
+                        .target.dataset.fraction;
+                    const g = this.findTargetByFraction(f); if (g) { this.targetGiftId = g.id;
+                        this.currentChance = this.calculateChance(this.currentGift.price, this.targetGift.price);
+                        this.renderAll();
+                        this.highlightQuickButton(f); } }));
+                document.getElementById('currentGiftCard').addEventListener('click', () => { const ig = this
+                        .inventoryGifts; if (ig.length <= 1) return; const ci = ig.findIndex(g => g.id === this
+                        .currentGiftId);
+                    this.currentGiftId = ig[(ci + 1) % ig.length].id;
                     this.autoSelectTarget();
                     this.currentChance = this.calculateChance(this.currentGift.price, this.targetGift.price);
                     this.renderAll();
-                    this.saveToStorage();
-                });
-
-                // Target gift card
-                document.getElementById('targetGiftCard').addEventListener('click', () => {
-                    const targets = this.getPotentialTargets();
-                    if (targets.length <= 1) return;
-                    const currentIdx = targets.findIndex(g => g.id === this.targetGiftId);
-                    const nextIdx = (currentIdx + 1) % targets.length;
-                    this.targetGiftId = targets[nextIdx].id;
+                    this.saveToStorage(); });
+                document.getElementById('targetGiftCard').addEventListener('click', () => { const t = this
+                        .getPotentialTargets(); if (t.length <= 1) return; const ci = t.findIndex(g => g.id === this
+                        .targetGiftId);
+                    this.targetGiftId = t[(ci + 1) % t.length].id;
                     this.currentChance = this.calculateChance(this.currentGift.price, this.targetGift.price);
                     this.renderAll();
-                    this.saveToStorage();
-                });
-
-                // Balance topup
-                document.getElementById('balanceContainer').addEventListener('click', () => {
-                    document.getElementById('balanceTopupOverlay').classList.add('show');
-                });
-                document.getElementById('closeTopupBtn').addEventListener('click', () => {
-                    document.getElementById('balanceTopupOverlay').classList.remove('show');
-                });
-                document.getElementById('topupGifts').addEventListener('click', () => {
-                    alert('🔜 Функция пополнения подарками Telegram будет доступна с интеграцией бота.');
-                    document.getElementById('balanceTopupOverlay').classList.remove('show');
-                });
-                document.getElementById('topupStars').addEventListener('click', () => {
-                    this.balance += 500;
+                    this.saveToStorage(); });
+                document.getElementById('balanceContainer').addEventListener('click', () => document.getElementById(
+                    'balanceTopupOverlay').classList.add('show'));
+                document.getElementById('closeTopupBtn').addEventListener('click', () => document.getElementById(
+                    'balanceTopupOverlay').classList.remove('show'));
+                document.getElementById('topupGifts').addEventListener('click', () => { alert(
+                        '🔜 Функция пополнения подарками Telegram будет доступна с интеграцией бота.'); document
+                        .getElementById('balanceTopupOverlay').classList.remove('show'); });
+                document.getElementById('topupStars').addEventListener('click', () => { this.balance += 500;
                     this.renderAll();
-                    this.saveToStorage();
-                    document.getElementById('balanceTopupOverlay').classList.remove('show');
-                    if (tg) tg.HapticFeedback.notificationOccurred('success');
-                });
-
-                // Shop
-                document.getElementById('shopBtn').addEventListener('click', () => {
-                    document.getElementById('shopOverlay').classList.add('show');
-                    this.renderShop();
-                });
-                document.getElementById('closeShopBtn').addEventListener('click', () => {
-                    document.getElementById('shopOverlay').classList.remove('show');
-                });
-
-                // Result close
-                document.getElementById('resultCloseBtn').addEventListener('click', () => {
-                    document.getElementById('resultOverlay').classList.remove('show');
-                });
-
-                // Inventory list click
-                document.getElementById('inventoryList').addEventListener('click', (e) => {
-                    const item = e.target.closest('.gift-list-item');
-                    if (!item) return;
-                    const giftId = item.dataset.giftId;
-                    if (giftId && this.inventory.find(entry => entry.giftId === giftId)) {
-                        this.currentGiftId = giftId;
+                    this.saveToStorage(); document.getElementById('balanceTopupOverlay').classList.remove('show'); if (
+                        tg) tg.HapticFeedback.notificationOccurred('success'); });
+                document.getElementById('shopBtn').addEventListener('click', () => { document.getElementById('shopOverlay')
+                        .classList.add('show');
+                    this.renderShop(); });
+                document.getElementById('closeShopBtn').addEventListener('click', () => document.getElementById(
+                    'shopOverlay').classList.remove('show'));
+                document.getElementById('resultCloseBtn').addEventListener('click', () => document.getElementById(
+                    'resultOverlay').classList.remove('show'));
+                document.getElementById('inventoryList').addEventListener('click', e => { const it = e.target.closest(
+                        '.gift-list-item'); if (!it) return; const gid = it.dataset.giftId; if (gid && this.inventory
+                        .find(en => en.giftId === gid)) { this.currentGiftId = gid;
                         this.autoSelectTarget();
-                        this.currentChance = this.calculateChance(this.currentGift.price, this.targetGift
-                            .price);
+                        this.currentChance = this.calculateChance(this.currentGift.price, this.targetGift.price);
                         this.renderAll();
-                        this.saveToStorage();
-                    }
-                });
-
-                // Targets list click
-                document.getElementById('targetsList').addEventListener('click', (e) => {
-                    const item = e.target.closest('.gift-list-item');
-                    if (!item) return;
-                    const giftId = item.dataset.giftId;
-                    const target = ALL_GIFTS.find(g => g.id === giftId);
-                    if (target && target.price > this.currentGift.price) {
-                        this.targetGiftId = giftId;
-                        this.currentChance = this.calculateChance(this.currentGift.price, this.targetGift
-                            .price);
+                        this.saveToStorage(); } });
+                document.getElementById('targetsList').addEventListener('click', e => { const it = e.target.closest(
+                        '.gift-list-item'); if (!it) return; const gid = it.dataset.giftId; const tgt = ALL_GIFTS.find(g =>
+                        g.id === gid); if (tgt && tgt.price > this.currentGift.price) { this.targetGiftId = gid;
+                        this.currentChance = this.calculateChance(this.currentGift.price, this.targetGift.price);
                         this.renderAll();
-                        this.saveToStorage();
-                    }
-                });
-
-                // Audio init on first interaction
-                document.body.addEventListener('click', () => {
-                    if (!this.soundEnabled) this.initAudio();
-                }, { once: true });
+                        this.saveToStorage(); } });
+                document.body.addEventListener('click', () => { if (!this.soundEnabled) this.initAudio(); }, { once: true });
             }
 
-            highlightQuickButton(fraction) {
-                document.querySelectorAll('.quick-chance-btn').forEach(b => b.classList.remove('active'));
-                const btn = document.querySelector(`.quick-chance-btn[data-fraction="${fraction}"]`);
-                if (btn) btn.classList.add('active');
-            }
+            highlightQuickButton(fr) { document.querySelectorAll('.quick-chance-btn').forEach(b => b.classList.remove(
+                    'active')); const btn = document.querySelector(`.quick-chance-btn[data-fraction="${fr}"]`); if (btn)
+                    btn.classList.add('active'); }
 
-            async initAudio() {
-                try {
-                    this.audioContext = new(window.AudioContext || window.webkitAudioContext)();
-                    await this.audioContext.resume();
-                    this.soundEnabled = true;
-                } catch (e) {}
-            }
+            async initAudio() { try { this.audioContext = new(window.AudioContext || window.webkitAudioContext)(); await this
+                    .audioContext.resume();
+                    this.soundEnabled = true; } catch (e) {} }
 
-            playBeep(freq, duration, type = 'sine') {
-                if (!this.audioContext || !this.soundEnabled) return;
-                const osc = this.audioContext.createOscillator();
-                const gain = this.audioContext.createGain();
-                osc.connect(gain);
-                gain.connect(this.audioContext.destination);
-                osc.frequency.value = freq;
-                osc.type = type;
-                gain.gain.setValueAtTime(0.06, this.audioContext.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + duration);
-                osc.start();
-                osc.stop(this.audioContext.currentTime + duration);
-            }
+            playBeep(f, d, ty = 'sine') { if (!this.audioContext || !this.soundEnabled) return; const o = this.audioContext
+                    .createOscillator(); const g = this.audioContext.createGain();
+                o.connect(g);
+                g.connect(this.audioContext.destination);
+                o.frequency.value = f;
+                o.type = ty;
+                g.gain.setValueAtTime(0.05, this.audioContext.currentTime);
+                g.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + d);
+                o.start();
+                o.stop(this.audioContext.currentTime + d); }
 
             startUpgrade() {
-                if (this.isSpinning) return;
-                if (!this.inventory.find(e => e.giftId === this.currentGiftId)) {
-                    alert('У вас нет этого подарка в инвентаре!');
-                    return;
-                }
-                if (this.currentGift.price >= this.targetGift.price) {
-                    alert('Целевой подарок должен быть дороже текущего!');
-                    return;
-                }
-
+                if (this.isSpinning || !this.inventory.find(e => e.giftId === this.currentGiftId) || this.currentGift
+                    .price >= this.targetGift.price) return;
                 this.isSpinning = true;
-                const upgradeBtn = document.getElementById('upgradeBtn');
-                upgradeBtn.disabled = true;
-                upgradeBtn.classList.add('spinning');
-                upgradeBtn.textContent = 'КРУТИМ...';
-
+                const btn = document.getElementById('upgradeBtn');
+                btn.disabled = true;
+                btn.classList.add('spinning');
+                btn.textContent = 'КРУТИМ...';
                 if (tg) tg.HapticFeedback.impactOccurred('heavy');
-
-                // Calculate total rotations + random offset
-                const totalRotations = 5 + Math.floor(Math.random() * 5); // 5-9 full rotations
-                const targetAngle = Math.random() * Math.PI * 2;
-                const totalAngle = totalRotations * Math.PI * 2 + targetAngle;
-                const duration = 4000; // 4 seconds total spin
-                const startTime = Date.now();
-                const startAngle = this.wheelAngle;
-
-                const easeOutCubic = (t) => 1 - Math.pow(1 - t, 3);
-
-                const animate = () => {
-                    const elapsed = Date.now() - startTime;
-                    const progress = Math.min(elapsed / duration, 1);
-                    const easedProgress = easeOutCubic(progress);
-
-                    this.wheelAngle = startAngle + totalAngle * easedProgress;
-                    this.wheelRotationSpeed = (1 - easedProgress) * 15;
-
-                    this.drawWheel();
-
-                    if (this.soundEnabled && progress < 0.9) {
-                        const tickFreq = 200 + (1 - easedProgress) * 800;
-                        if (Math.floor(progress * 40) % 2 === 0) {
-                            this.playBeep(tickFreq, 0.01);
-                        }
-                    }
-
-                    if (progress < 1) {
-                        this.wheelAnimationId = requestAnimationFrame(animate);
-                    } else {
-                        this.onSpinComplete();
-                    }
-                };
-
-                this.wheelAnimationId = requestAnimationFrame(animate);
+                const totalRot = 5 + Math.floor(Math.random() * 5);
+                const ta = Math.random() * Math.PI * 2;
+                const totalAngle = totalRot * Math.PI * 2 + ta;
+                const dur = 4000,
+                    st = Date.now(),
+                    sa = this.wheelAngle;
+                const ease = t => 1 - Math.pow(1 - t, 3);
+                const anim = () => { const el = Date.now() - st,
+                        p = Math.min(el / dur, 1),
+                        ep = ease(p);
+                    this.wheelAngle = sa + totalAngle * ep;
+                    this.drawWheel(); if (this.soundEnabled && p < 0.9 && Math.floor(p * 40) % 2 === 0) this.playBeep(
+                        200 + (1 - ep) * 800, 0.01); if (p < 1) this.wheelAnimationId = requestAnimationFrame(anim);
+                    else this.onSpinComplete(); };
+                this.wheelAnimationId = requestAnimationFrame(anim);
             }
 
-            onSpinComplete() {
-                this.isSpinning = false;
-                const upgradeBtn = document.getElementById('upgradeBtn');
-                upgradeBtn.classList.remove('spinning');
-                upgradeBtn.textContent = 'UPGRADE';
-                upgradeBtn.disabled = false;
+            onSpinComplete() { this.isSpinning = false; const btn = document.getElementById('upgradeBtn');
+                btn.classList.remove('spinning');
+                btn.textContent = 'UPGRADE';
+                btn.disabled = false; const na = ((this.wheelAngle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2); const
+                    se = this.currentChance * Math.PI * 2; const win = na <= se; const sc = this.currentChance; if (win)
+                    this.onUpgradeSuccess(sc); else this.onUpgradeFail(sc); }
 
-                // Determine result
-                const normalizedAngle = ((this.wheelAngle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
-                const successZoneEnd = this.currentChance * Math.PI * 2;
-                const isSuccess = normalizedAngle <= successZoneEnd;
-
-                // Save chance for result display
-                const spinChance = this.currentChance;
-
-                if (isSuccess) {
-                    this.onUpgradeSuccess(spinChance);
-                } else {
-                    this.onUpgradeFail(spinChance);
-                }
-            }
-
-            onUpgradeSuccess(spinChance) {
-                const oldGift = this.currentGift;
-                const newGift = this.targetGift;
-
-                // Remove old gift from inventory
-                const idx = this.inventory.findIndex(e => e.giftId === oldGift.id);
-                if (idx !== -1) this.inventory.splice(idx, 1);
-
-                // Add new gift if not already present
-                if (!this.inventory.find(e => e.giftId === newGift.id)) {
-                    this.inventory.push({ giftId: newGift.id, acquiredAt: Date.now() });
-                }
-
-                // Update current gift
-                this.currentGiftId = newGift.id;
+            onUpgradeSuccess(sc) { const og = this.currentGift,
+                    ng = this.targetGift; const idx = this.inventory.findIndex(e => e.giftId === og.id); if (idx !== -1) this
+                    .inventory.splice(idx, 1); if (!this.inventory.find(e => e.giftId === ng.id)) this.inventory.push({
+                        giftId: ng.id,
+                        acquiredAt: Date.now() });
+                this.currentGiftId = ng.id;
                 this.autoSelectTarget();
-                const newChance = this.calculateChance(this.currentGift.price, this.targetGift.price);
-                this.currentChance = newChance;
-
-                // Add to history
-                this.history.unshift({
-                    from: oldGift.id,
-                    to: newGift.id,
-                    chance: spinChance,
-                    success: true,
-                    time: Date.now(),
-                });
-
+                this.currentChance = this.calculateChance(this.currentGift.price, this.targetGift.price);
+                this.history.unshift({ from: og.id, to: ng.id, chance: sc, success: true, time: Date.now() });
                 this.saveToStorage();
                 this.renderAll();
                 this.renderHistory();
-                this.showResult(true, oldGift, newGift, spinChance);
-
-                if (tg) tg.HapticFeedback.notificationOccurred('success');
+                this.showResult(true, og, ng, sc); if (tg) tg.HapticFeedback.notificationOccurred('success');
                 this.playBeep(1500, 0.2);
-                setTimeout(() => this.playBeep(1800, 0.15), 150);
-            }
+                setTimeout(() => this.playBeep(1800, 0.15), 150); }
 
-            onUpgradeFail(spinChance) {
-                const oldGift = this.currentGift;
-                const targetGift = this.targetGift;
-
-                // Remove old gift from inventory
-                const idx = this.inventory.findIndex(e => e.giftId === oldGift.id);
-                if (idx !== -1) this.inventory.splice(idx, 1);
-
-                // If inventory empty, give a default rose
-                if (this.inventory.length === 0) {
-                    this.inventory.push({ giftId: 'rose', acquiredAt: Date.now() });
-                }
-
-                // Update current gift
+            onUpgradeFail(sc) { const og = this.currentGift,
+                    tgf = this.targetGift; const idx = this.inventory.findIndex(e => e.giftId === og.id); if (idx !== -1) this
+                    .inventory.splice(idx, 1); if (!this.inventory.length) this.inventory.push({ giftId: 'rose',
+                    acquiredAt: Date.now() });
                 this.currentGiftId = this.inventory[0].giftId;
                 this.autoSelectTarget();
-                const newChance = this.calculateChance(this.currentGift.price, this.targetGift.price);
-                this.currentChance = newChance;
-
-                // Add to history
-                this.history.unshift({
-                    from: oldGift.id,
-                    to: targetGift.id,
-                    chance: spinChance,
-                    success: false,
-                    time: Date.now(),
-                });
-
+                this.currentChance = this.calculateChance(this.currentGift.price, this.targetGift.price);
+                this.history.unshift({ from: og.id, to: tgf.id, chance: sc, success: false, time: Date.now() });
                 this.saveToStorage();
                 this.renderAll();
                 this.renderHistory();
-                this.showResult(false, oldGift, targetGift, spinChance);
+                this.showResult(false, og, tgf, sc); if (tg) tg.HapticFeedback.notificationOccurred('error');
+                this.playBeep(200, 0.3, 'sawtooth'); }
 
-                if (tg) tg.HapticFeedback.notificationOccurred('error');
-                this.playBeep(200, 0.3, 'sawtooth');
-            }
-
-            showResult(success, oldGift, targetGift, chance) {
-                const overlay = document.getElementById('resultOverlay');
-                const emoji = document.getElementById('resultEmoji');
-                const title = document.getElementById('resultTitle');
-                const gift = document.getElementById('resultGift');
-                const details = document.getElementById('resultDetails');
-
-                overlay.classList.add('show');
-
-                if (success) {
-                    emoji.textContent = '🎉';
-                    title.textContent = 'УСПЕХ!';
-                    title.style.color = '#3fb950';
-                    gift.innerHTML =
-                        `${oldGift.emoji} ${oldGift.name} ➡️ ${targetGift.emoji} <strong>${targetGift.name}</strong>`;
-                    details.textContent = `Шанс был: ${(chance * 100).toFixed(1)}%\nПодарок улучшен! 🚀`;
-                } else {
-                    emoji.textContent = '💥';
-                    title.textContent = 'ПРОВАЛ!';
-                    title.style.color = '#f85149';
-                    gift.innerHTML =
-                        `${oldGift.emoji} ${oldGift.name} ➡️ ${targetGift.emoji} ${targetGift.name}`;
-                    details.textContent =
-                        `Шанс был: ${(chance * 100).toFixed(1)}%\nПодарок потерян. Попробуйте снова!`;
-                }
-            }
+            showResult(win, og, tg, sc) { const ov = document.getElementById('resultOverlay'); const em = document
+                    .getElementById('resultEmoji'); const ti = document.getElementById('resultTitle'); const gf = document
+                    .getElementById('resultGift'); const de = document.getElementById('resultDetails');
+                ov.classList.add('show'); if (win) { em.textContent = '🎉';
+                    ti.textContent = 'УСПЕХ!';
+                    ti.style.color = '#5ff57a';
+                    gf.innerHTML =
+                        `${og.emoji} ${og.name} ➡️ ${tg.emoji} <strong>${tg.name}</strong>`;
+                    de.textContent = `Шанс был: ${(sc*100).toFixed(1)}%\nПодарок улучшен! 🚀`; } else { em.textContent = '💥';
+                    ti.textContent = 'ПРОВАЛ!';
+                    ti.style.color = '#ff6b6b';
+                    gf.innerHTML = `${og.emoji} ${og.name} ➡️ ${tg.emoji} ${tg.name}`;
+                    de.textContent = `Шанс был: ${(sc*100).toFixed(1)}%\nПодарок потерян. Попробуйте снова!`; } }
 
             renderAll() {
                 document.getElementById('balance').textContent = this.balance.toLocaleString();
-
-                // Current gift card
                 document.getElementById('currentGiftEmoji').textContent = this.currentGift.emoji;
                 document.getElementById('currentGiftName').textContent = this.currentGift.name;
                 document.getElementById('currentGiftPrice').textContent = this.currentGift.price + ' ⭐';
-
-                // Target gift card
                 document.getElementById('targetGiftEmoji').textContent = this.targetGift.emoji;
                 document.getElementById('targetGiftName').textContent = this.targetGift.name;
                 document.getElementById('targetGiftPrice').textContent = this.targetGift.price + ' ⭐';
-
-                // Chance
-                const chancePercent = (this.currentChance * 100).toFixed(1);
-                document.getElementById('chancePercent').textContent = chancePercent + '%';
-                document.getElementById('chancePercent').style.color =
-                    this.currentChance >= 0.4 ? '#3fb950' :
-                    this.currentChance >= 0.15 ? '#f0883e' : '#f85149';
-
-                // Wheel
+                const cp = (this.currentChance * 100).toFixed(1);
+                document.getElementById('chancePercent').textContent = cp + '%';
+                document.getElementById('chancePercent').style.color = this.currentChance >= 0.4 ? '#5ff57a' : this
+                    .currentChance >= 0.15 ? '#f0883e' : '#ff6b6b';
                 this.drawWheel();
-
-                // Inventory list
                 this.renderInventoryList();
-
-                // Targets list
                 this.renderTargetsList();
-
-                // Update upgrade button
-                const upgradeBtn = document.getElementById('upgradeBtn');
-                if (!this.isSpinning) {
-                    upgradeBtn.disabled = false;
-                    upgradeBtn.classList.remove('spinning');
-                    upgradeBtn.textContent = 'UPGRADE';
-                }
+                const ub = document.getElementById('upgradeBtn'); if (!this.isSpinning) { ub.disabled = false;
+                    ub.classList.remove('spinning');
+                    ub.textContent = 'UPGRADE'; }
             }
 
             drawWheel() {
-                const canvas = document.getElementById('wheelCanvas');
-                const ctx = canvas.getContext('2d');
-                const w = canvas.width;
-                const h = canvas.height;
-                const cx = w / 2;
-                const cy = h / 2;
-                const outerRadius = Math.min(w, h) / 2 - 8;
-                const ringWidth = 22;
-                const innerRadius = outerRadius - ringWidth;
-                const centerRadius = innerRadius - 4;
-
+                const c = document.getElementById('wheelCanvas');
+                const ctx = c.getContext('2d');
+                const w = c.width,
+                    h = c.height,
+                    cx = w / 2,
+                    cy = h / 2;
+                const or = Math.min(w, h) / 2 - 10,
+                    rw = 24,
+                    ir = or - rw,
+                    cr = ir - 5;
                 ctx.clearRect(0, 0, w, h);
 
-                // Outer ring background
+                // Outer ring bg
                 ctx.beginPath();
-                ctx.arc(cx, cy, outerRadius, 0, Math.PI * 2);
-                ctx.arc(cx, cy, innerRadius, 0, Math.PI * 2, true);
+                ctx.arc(cx, cy, or, 0, Math.PI * 2);
+                ctx.arc(cx, cy, ir, 0, Math.PI * 2, true);
                 ctx.closePath();
-                ctx.fillStyle = '#21262d';
+                ctx.fillStyle = '#111827';
                 ctx.fill();
-                ctx.strokeStyle = '#30363d';
+                ctx.strokeStyle = '#2a3a5c';
                 ctx.lineWidth = 2;
                 ctx.stroke();
+                ctx.shadowColor = 'rgba(100,140,255,0.3)';
+                ctx.shadowBlur = 15;
+                ctx.stroke();
+                ctx.shadowBlur = 0;
 
-                // Success zone gradient arc on outer ring
+                // Success zone
                 if (this.currentChance > 0) {
-                    const startAngle = -Math.PI / 2;
-                    const endAngle = -Math.PI / 2 + this.currentChance * Math.PI * 2;
-
+                    const sa = -Math.PI / 2,
+                        ea = -Math.PI / 2 + this.currentChance * Math.PI * 2;
                     ctx.beginPath();
-                    ctx.arc(cx, cy, outerRadius - 2, startAngle, endAngle);
-                    ctx.arc(cx, cy, innerRadius + 2, endAngle, startAngle, true);
+                    ctx.arc(cx, cy, or - 2, sa, ea);
+                    ctx.arc(cx, cy, ir + 2, ea, sa, true);
                     ctx.closePath();
-
-                    const gradient = ctx.createConicalGradient ?
-                        ctx.createConicalGradient(cx, cy, startAngle) :
-                        ctx.createLinearGradient(cx - outerRadius, cy - outerRadius, cx + outerRadius, cy +
-                            outerRadius);
-
-                    const chanceRatio = this.currentChance;
-                    if (chanceRatio >= 0.4) {
-                        gradient.addColorStop(0, '#3fb950');
-                        gradient.addColorStop(0.5, '#a5d6a5');
-                        gradient.addColorStop(1, '#3fb950');
-                    } else if (chanceRatio >= 0.15) {
-                        gradient.addColorStop(0, '#f0883e');
-                        gradient.addColorStop(0.5, '#f0e68c');
-                        gradient.addColorStop(1, '#f0883e');
-                    } else {
-                        gradient.addColorStop(0, '#f85149');
-                        gradient.addColorStop(0.5, '#f0883e');
-                        gradient.addColorStop(1, '#f85149');
-                    }
-                    ctx.fillStyle = gradient;
+                    const grad = ctx.createLinearGradient(cx - or, cy - or, cx + or, cy + or);
+                    if (this.currentChance >= 0.4) { grad.addColorStop(0, '#3fb950');
+                        grad.addColorStop(0.5, '#7df58a');
+                        grad.addColorStop(1, '#3fb950'); } else if (this.currentChance >= 0.15) { grad.addColorStop(0,
+                            '#f0883e');
+                        grad.addColorStop(0.5, '#f5c842');
+                        grad.addColorStop(1, '#f0883e'); } else { grad.addColorStop(0, '#f85149');
+                        grad.addColorStop(0.5, '#f0883e');
+                        grad.addColorStop(1, '#f85149'); }
+                    ctx.fillStyle = grad;
                     ctx.fill();
+                    ctx.shadowColor = this.currentChance >= 0.4 ? 'rgba(63,185,80,0.5)' : this.currentChance >= 0.15 ?
+                        'rgba(240,136,62,0.5)' : 'rgba(248,81,73,0.5)';
+                    ctx.shadowBlur = 20;
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
                 }
 
-                // Inner ring edge
+                // Ring edges
                 ctx.beginPath();
-                ctx.arc(cx, cy, innerRadius, 0, Math.PI * 2);
-                ctx.strokeStyle = '#30363d';
+                ctx.arc(cx, cy, ir, 0, Math.PI * 2);
+                ctx.strokeStyle = '#2a3a5c';
                 ctx.lineWidth = 2;
+                ctx.shadowColor = 'rgba(100,140,255,0.2)';
+                ctx.shadowBlur = 8;
                 ctx.stroke();
-
-                // Outer ring edge
+                ctx.shadowBlur = 0;
                 ctx.beginPath();
-                ctx.arc(cx, cy, outerRadius, 0, Math.PI * 2);
-                ctx.strokeStyle = '#30363d';
+                ctx.arc(cx, cy, or, 0, Math.PI * 2);
+                ctx.strokeStyle = '#2a3a5c';
                 ctx.lineWidth = 2;
+                ctx.shadowColor = 'rgba(100,140,255,0.2)';
+                ctx.shadowBlur = 8;
                 ctx.stroke();
+                ctx.shadowBlur = 0;
 
-                // Center circle
+                // Center
                 ctx.beginPath();
-                ctx.arc(cx, cy, centerRadius, 0, Math.PI * 2);
-                ctx.fillStyle = '#0d1117';
+                ctx.arc(cx, cy, cr, 0, Math.PI * 2);
+                ctx.fillStyle = '#080c14';
                 ctx.fill();
-                ctx.strokeStyle = '#30363d';
+                ctx.strokeStyle = '#2a3a5c';
                 ctx.lineWidth = 2;
                 ctx.stroke();
-
-                // Inner subtle ring
                 ctx.beginPath();
-                ctx.arc(cx, cy, centerRadius - 3, 0, Math.PI * 2);
-                ctx.strokeStyle = '#21262d';
+                ctx.arc(cx, cy, cr - 4, 0, Math.PI * 2);
+                ctx.strokeStyle = '#1a2540';
                 ctx.lineWidth = 1;
                 ctx.stroke();
 
-                // Arrow rotating AROUND the ring (not inside it)
+                // Arrow
                 ctx.save();
                 ctx.translate(cx, cy);
                 ctx.rotate(this.wheelAngle);
-
-                const arrowBaseRadius = innerRadius + ringWidth * 0.6;
-                const arrowTipRadius = outerRadius + 10;
-                const arrowBaseX = 0;
-                const arrowBaseY = -arrowBaseRadius;
-                const arrowTipX = 0;
-                const arrowTipY = -arrowTipRadius;
-
-                // Arrow body
+                const abr = ir + rw * 0.55,
+                    atr = or + 10;
+                const abx = 0,
+                    aby = -abr,
+                    atx = 0,
+                    aty = -atr;
                 ctx.beginPath();
-                ctx.moveTo(arrowBaseX, arrowBaseY);
-                ctx.lineTo(arrowTipX, arrowTipY);
+                ctx.moveTo(abx, aby);
+                ctx.lineTo(atx, aty);
                 ctx.strokeStyle = '#ffd700';
                 ctx.lineWidth = 3;
                 ctx.lineCap = 'round';
+                ctx.shadowColor = '#ffd700';
+                ctx.shadowBlur = 15;
                 ctx.stroke();
-
-                // Arrow head
+                ctx.shadowBlur = 0;
                 ctx.beginPath();
-                ctx.moveTo(arrowTipX, arrowTipY);
-                ctx.lineTo(-8, arrowTipY + 12);
-                ctx.lineTo(8, arrowTipY + 12);
+                ctx.moveTo(atx, aty);
+                ctx.lineTo(-8, aty + 12);
+                ctx.lineTo(8, aty + 12);
                 ctx.closePath();
                 ctx.fillStyle = '#ffd700';
                 ctx.fill();
-                ctx.strokeStyle = '#b8960c';
-                ctx.lineWidth = 1;
-                ctx.stroke();
-
-                // Glow dot at tip
                 ctx.shadowColor = '#ffd700';
-                ctx.shadowBlur = 12;
-                ctx.beginPath();
-                ctx.arc(arrowTipX, arrowTipY, 3, 0, Math.PI * 2);
-                ctx.fillStyle = '#ffffff';
+                ctx.shadowBlur = 15;
                 ctx.fill();
                 ctx.shadowBlur = 0;
-
-                // Base dot on ring
                 ctx.beginPath();
-                ctx.arc(arrowBaseX, arrowBaseY, 4, 0, Math.PI * 2);
+                ctx.arc(atx, aty, 3.5, 0, Math.PI * 2);
+                ctx.fillStyle = '#ffffff';
+                ctx.fill();
+                ctx.shadowColor = '#ffffff';
+                ctx.shadowBlur = 20;
+                ctx.fill();
+                ctx.shadowBlur = 0;
+                ctx.beginPath();
+                ctx.arc(abx, aby, 4.5, 0, Math.PI * 2);
                 ctx.fillStyle = '#ffd700';
                 ctx.fill();
-                ctx.strokeStyle = '#b8960c';
-                ctx.lineWidth = 1.5;
-                ctx.stroke();
-
+                ctx.shadowColor = '#ffd700';
+                ctx.shadowBlur = 12;
+                ctx.fill();
+                ctx.shadowBlur = 0;
                 ctx.restore();
 
-                // Glass reflection
-                const reflectionGradient = ctx.createRadialGradient(
-                    cx - outerRadius * 0.25, cy - outerRadius * 0.25, outerRadius * 0.05,
-                    cx, cy, outerRadius
-                );
-                reflectionGradient.addColorStop(0, 'rgba(255,255,255,0.06)');
-                reflectionGradient.addColorStop(0.4, 'rgba(255,255,255,0.01)');
-                reflectionGradient.addColorStop(1, 'rgba(0,0,0,0.15)');
+                // Glass
+                const rg = ctx.createRadialGradient(cx - or * 0.2, cy - or * 0.2, or * 0.04, cx, cy, or);
+                rg.addColorStop(0, 'rgba(255,255,255,0.05)');
+                rg.addColorStop(0.5, 'rgba(255,255,255,0.01)');
+                rg.addColorStop(1, 'rgba(0,0,0,0.2)');
                 ctx.beginPath();
-                ctx.arc(cx, cy, outerRadius, 0, Math.PI * 2);
-                ctx.arc(cx, cy, innerRadius, 0, Math.PI * 2, true);
+                ctx.arc(cx, cy, or, 0, Math.PI * 2);
+                ctx.arc(cx, cy, ir, 0, Math.PI * 2, true);
                 ctx.closePath();
-                ctx.fillStyle = reflectionGradient;
+                ctx.fillStyle = rg;
                 ctx.fill();
             }
 
             renderInventoryList() {
-                const container = document.getElementById('inventoryList');
-                const invGifts = this.inventoryGifts;
-
-                if (invGifts.length === 0) {
-                    container.innerHTML =
-                        '<div style="padding:20px;text-align:center;color:#8b949e;font-size:12px;">Пусто</div>';
-                    return;
-                }
-
-                container.innerHTML = invGifts.map(g => `
-                    <div class="gift-list-item" data-gift-id="${g.id}" style="${g.id === this.currentGiftId ? 'background:#21262d;border-left:3px solid #ffd700;' : ''}">
+                const c = document.getElementById('inventoryList');
+                const ig = this.inventoryGifts;
+                if (!ig.length) { c.innerHTML =
+                        '<div style="padding:20px;text-align:center;color:#6b7daa;font-size:12px;">Пусто</div>'; return; }
+                c.innerHTML = ig.map(g => `
+                    <div class="gift-list-item" data-gift-id="${g.id}" style="${g.id===this.currentGiftId?'background:#111827;border-left:3px solid #ffd700;box-shadow:inset 0 0 15px rgba(255,215,0,0.05);':''}">
                         <span class="gift-emoji-small">${g.emoji}</span>
-                        <div class="gift-list-item-info">
-                            <div class="gift-list-item-name">${g.name}</div>
-                            <div class="gift-list-item-price">${g.price} ⭐</div>
-                        </div>
-                        ${g.id === this.currentGiftId ? '<span style="color:#ffd700;font-size:10px;">◀ выбран</span>' : ''}
-                    </div>
-                `).join('');
+                        <div class="gift-list-item-info"><div class="gift-list-item-name">${g.name}</div><div class="gift-list-item-price">${g.price} ⭐</div></div>
+                        ${g.id===this.currentGiftId?'<span style="color:#ffd700;font-size:10px;text-shadow:0 0 6px #ffd700;">◀ выбран</span>':''}
+                    </div>`).join('');
             }
 
             renderTargetsList() {
-                const container = document.getElementById('targetsList');
-                const targets = this.getPotentialTargets();
-
-                if (targets.length === 0) {
-                    container.innerHTML =
-                        '<div style="padding:20px;text-align:center;color:#8b949e;font-size:12px;">Нет целей</div>';
-                    return;
-                }
-
-                container.innerHTML = targets.map(g => {
-                    const chance = this.calculateChance(this.currentGift.price, g.price);
-                    const chanceColor = chance >= 0.4 ? '#3fb950' : chance >= 0.15 ? '#f0883e' : '#f85149';
-                    return `
-                    <div class="gift-list-item" data-gift-id="${g.id}" style="${g.id === this.targetGiftId ? 'background:#21262d;border-left:3px solid #f0883e;' : ''}">
+                const c = document.getElementById('targetsList');
+                const t = this.getPotentialTargets();
+                if (!t.length) { c.innerHTML =
+                        '<div style="padding:20px;text-align:center;color:#6b7daa;font-size:12px;">Нет целей</div>'; return; }
+                c.innerHTML = t.map(g => { const ch = this.calculateChance(this.currentGift.price, g.price); const cc = ch >=
+                        0.4 ? '#5ff57a' : ch >= 0.15 ? '#f0883e' : '#ff6b6b'; return `
+                    <div class="gift-list-item" data-gift-id="${g.id}" style="${g.id===this.targetGiftId?'background:#111827;border-left:3px solid #f0883e;box-shadow:inset 0 0 15px rgba(240,136,62,0.05);':''}">
                         <span class="gift-emoji-small">${g.emoji}</span>
-                        <div class="gift-list-item-info">
-                            <div class="gift-list-item-name">${g.name}</div>
-                            <div class="gift-list-item-price">${g.price} ⭐ • <span style="color:${chanceColor}">${(chance*100).toFixed(1)}%</span></div>
-                        </div>
-                        ${g.id === this.targetGiftId ? '<span style="color:#f0883e;font-size:10px;">🎯 цель</span>' : ''}
-                    </div>
-                `;
-                }).join('');
+                        <div class="gift-list-item-info"><div class="gift-list-item-name">${g.name}</div><div class="gift-list-item-price">${g.price} ⭐ • <span style="color:${cc};text-shadow:0 0 6px ${cc};">${(ch*100).toFixed(1)}%</span></div></div>
+                        ${g.id===this.targetGiftId?'<span style="color:#f0883e;font-size:10px;text-shadow:0 0 6px #f0883e;">🎯 цель</span>':''}
+                    </div>`; }).join('');
             }
 
             renderShop() {
-                const container = document.getElementById('shopItems');
-                container.innerHTML = ALL_GIFTS.map(g => {
-                    const canBuy = this.balance >= g.price;
-                    return `
+                const c = document.getElementById('shopItems');
+                c.innerHTML = ALL_GIFTS.map(g => `
                     <div class="shop-item">
                         <span class="shop-item-emoji">${g.emoji}</span>
-                        <div class="shop-item-info">
-                            <h3>${g.name}</h3>
-                            <p>Подарок для апгрейда</p>
-                        </div>
-                        <div style="text-align:right;">
-                            <div class="shop-item-price">${g.price} ⭐</div>
-                            <button class="buy-btn" data-gift-id="${g.id}" ${!canBuy ? 'disabled' : ''}>Купить</button>
-                        </div>
-                    </div>
-                `;
-                }).join('');
-
-                // Add buy event listeners
-                container.querySelectorAll('.buy-btn').forEach(btn => {
-                    btn.addEventListener('click', (e) => {
-                        const giftId = e.target.dataset.giftId;
-                        const gift = ALL_GIFTS.find(g => g.id === giftId);
-                        if (gift && this.balance >= gift.price) {
-                            this.balance -= gift.price;
-                            // Check for duplicate before adding
-                            if (!this.inventory.find(entry => entry.giftId === gift.id)) {
-                                this.inventory.push({ giftId: gift.id, acquiredAt: Date.now() });
-                            }
-                            this.deduplicateInventory();
-                            this.saveToStorage();
-                            this.renderAll();
-                            this.renderShop();
-                            if (tg) tg.HapticFeedback.notificationOccurred('success');
-                        }
-                    });
-                });
+                        <div class="shop-item-info"><h3>${g.name}</h3><p>Подарок для апгрейда</p></div>
+                        <div style="text-align:right;"><div class="shop-item-price">${g.price} ⭐</div>
+                        <button class="buy-btn" data-gift-id="${g.id}" ${this.balance<g.price?'disabled':''}>Купить</button></div>
+                    </div>`).join('');
+                c.querySelectorAll('.buy-btn').forEach(b => b.addEventListener('click', e => { const gid = e.target.dataset
+                        .giftId; const g = ALL_GIFTS.find(x => x.id === gid); if (g && this.balance >= g.price) { this
+                        .balance -= g.price; if (!this.inventory.find(en => en.giftId === g.id)) this.inventory.push({
+                        giftId: g.id,
+                        acquiredAt: Date.now() });
+                    this.deduplicateInventory();
+                    this.saveToStorage();
+                    this.renderAll();
+                    this.renderShop(); if (tg) tg.HapticFeedback.notificationOccurred('success'); } }));
             }
 
             renderHistory() {
-                const historyDiv = document.getElementById('history');
-                if (this.history.length === 0) {
-                    historyDiv.innerHTML =
-                        '<div style="color:#8b949e;padding:0 8px;font-size:11px;">Нет истории апгрейдов</div>';
-                    return;
-                }
-
-                historyDiv.innerHTML = this.history.slice(0, 10).map(h => {
-                    const fromGift = ALL_GIFTS.find(g => g.id === h.from) || { emoji: '❓', name: '?' };
-                    const toGift = ALL_GIFTS.find(g => g.id === h.to) || { emoji: '❓', name: '?' };
-                    const cls = h.success ? 'win' : 'lose';
-                    const icon = h.success ? '✅' : '❌';
-                    return `
-                    <div class="history-item ${cls}">
-                        ${icon} ${fromGift.emoji}→${toGift.emoji}
-                    </div>
-                `;
-                }).join('');
+                const hd = document.getElementById('history'); if (!this.history.length) { hd.innerHTML =
+                        '<div style="color:#6b7daa;padding:0 8px;font-size:11px;">Нет истории апгрейдов</div>'; return; }
+                hd.innerHTML = this.history.slice(0, 10).map(h => { const fg = ALL_GIFTS.find(g => g.id === h.from) || {
+                        emoji: '❓',
+                        name: '?' }; const tgf = ALL_GIFTS.find(g => g.id === h.to) || { emoji: '❓',
+                        name: '?' }; const cls = h.success ? 'win' : 'lose'; const ic = h.success ? '✅' : '❌'; return `
+                    <div class="history-item ${cls}">${ic} ${fg.emoji}→${tgf.emoji}</div>`; }).join('');
             }
         }
 
-        // ==================== INIT ====================
         const game = new UpgradeGame();
 
-        // Handle viewport for mobile
-        function setVH() {
-            const vh = window.innerHeight * 0.01;
-            document.documentElement.style.setProperty('--vh', `${vh}px`);
-        }
+        function setVH() { const vh = window.innerHeight * 0.01;
+            document.documentElement.style.setProperty('--vh', `${vh}px`); }
         setVH();
         window.addEventListener('resize', setVH);
     </script>
