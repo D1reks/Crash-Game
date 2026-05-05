@@ -253,6 +253,63 @@
             height: 100%;
         }
 
+        .spark-canvas {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 250px;
+            height: 250px;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        .center-result {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            pointer-events: none;
+            z-index: 6;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .center-result.show {
+            opacity: 1;
+        }
+
+        .center-result-text {
+            font-size: 18px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            animation: result-pop 0.4s ease-out;
+        }
+
+        @keyframes result-pop {
+            0% {
+                transform: scale(0.3);
+                opacity: 0;
+            }
+            60% {
+                transform: scale(1.2);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .center-result-chance {
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 2px;
+            opacity: 0.8;
+        }
+
         .chance-display {
             position: absolute;
             top: 50%;
@@ -260,6 +317,12 @@
             transform: translate(-50%, -50%);
             text-align: center;
             pointer-events: none;
+            z-index: 4;
+            transition: opacity 0.3s ease;
+        }
+
+        .chance-display.hidden-temp {
+            opacity: 0;
         }
 
         .chance-percent {
@@ -440,106 +503,6 @@
             color: #ffd700;
             font-size: 10px;
             text-shadow: 0 0 5px rgba(255, 215, 0, 0.25);
-        }
-
-        .result-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(6, 8, 13, 0.95);
-            backdrop-filter: blur(12px);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 100;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.25s;
-        }
-
-        .result-overlay.show {
-            opacity: 1;
-            pointer-events: all;
-        }
-
-        .result-card {
-            background: #0d111f;
-            border-radius: 16px;
-            padding: 30px 25px;
-            text-align: center;
-            max-width: 300px;
-            border: 1px solid #2a3a5c;
-            transform: scale(0.95);
-            transition: transform 0.25s;
-            box-shadow: 0 0 40px rgba(100, 140, 255, 0.15);
-        }
-
-        .result-overlay.show .result-card {
-            transform: scale(1);
-        }
-
-        .result-emoji {
-            font-size: 48px;
-            margin-bottom: 12px;
-            animation: neon-pop 0.4s ease-out;
-            filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.5));
-        }
-
-        @keyframes neon-pop {
-            0% {
-                transform: scale(0);
-                filter: drop-shadow(0 0 30px rgba(255, 215, 0, 1));
-            }
-            60% {
-                transform: scale(1.3);
-                filter: drop-shadow(0 0 50px rgba(255, 215, 0, 0.8));
-            }
-            100% {
-                transform: scale(1);
-                filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.5));
-            }
-        }
-
-        .result-title {
-            font-size: 22px;
-            font-weight: 700;
-            margin-bottom: 8px;
-            text-shadow: 0 0 15px currentColor;
-        }
-
-        .result-gift {
-            font-size: 14px;
-            color: #d0daf0;
-            margin-bottom: 12px;
-            text-shadow: 0 0 8px rgba(200, 210, 255, 0.2);
-        }
-
-        .result-details {
-            color: #6b7daa;
-            font-size: 12px;
-            margin-bottom: 20px;
-            line-height: 1.5;
-            text-shadow: 0 0 5px rgba(100, 140, 255, 0.2);
-        }
-
-        .btn-close {
-            background: #111827;
-            border: 1px solid #2a3a5c;
-            color: #a0b4e0;
-            padding: 10px 20px;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
-            text-shadow: 0 0 5px rgba(160, 180, 224, 0.3);
-            transition: all 0.2s;
-        }
-
-        .btn-close:active {
-            background: #1a2540;
-            box-shadow: 0 0 20px rgba(100, 140, 255, 0.3);
         }
 
         .shop-overlay {
@@ -754,9 +717,14 @@
 
             <div class="wheel-container" id="wheelContainer">
                 <canvas class="wheel-canvas" id="wheelCanvas" width="380" height="380"></canvas>
-                <div class="chance-display">
+                <canvas class="spark-canvas" id="sparkCanvas" width="500" height="500"></canvas>
+                <div class="chance-display" id="chanceDisplay">
                     <div class="chance-percent" id="chancePercent">23.8%</div>
                     <div class="chance-label">ШАНС</div>
+                </div>
+                <div class="center-result" id="centerResult">
+                    <div class="center-result-text" id="centerResultText">УСПЕХ</div>
+                    <div class="center-result-chance" id="centerResultChance"></div>
                 </div>
             </div>
 
@@ -779,16 +747,6 @@
                     <div class="gift-list-title">🎯 Возможные цели</div>
                     <div id="targetsList"></div>
                 </div>
-            </div>
-        </div>
-
-        <div class="result-overlay" id="resultOverlay">
-            <div class="result-card">
-                <div class="result-emoji" id="resultEmoji">🎉</div>
-                <div class="result-title" id="resultTitle">УСПЕХ!</div>
-                <div class="result-gift" id="resultGift"></div>
-                <div class="result-details" id="resultDetails"></div>
-                <button class="btn-close" id="resultCloseBtn">Понятно</button>
             </div>
         </div>
 
@@ -841,6 +799,86 @@
             { id: 'infinity', name: 'Бесконечность', emoji: '♾️', price: 250000 },
         ];
 
+        class SparkParticle {
+            constructor(x, y, vx, vy, life, color, size) {
+                this.x = x;
+                this.y = y;
+                this.vx = vx;
+                this.vy = vy;
+                this.life = life;
+                this.maxLife = life;
+                this.color = color;
+                this.size = size;
+                this.gravity = 0.04;
+                this.friction = 0.98;
+            }
+            update() {
+                this.vx *= this.friction;
+                this.vy *= this.friction;
+                this.vy += this.gravity;
+                this.x += this.vx;
+                this.y += this.vy;
+                this.life--;
+                this.size *= 0.985;
+            }
+            draw(ctx) {
+                const alpha = this.life / this.maxLife;
+                ctx.save();
+                ctx.globalAlpha = alpha;
+                ctx.fillStyle = this.color;
+                ctx.shadowColor = this.color;
+                ctx.shadowBlur = this.size * 3;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+            get dead() { return this.life <= 0; }
+        }
+
+        class SparkSystem {
+            constructor(canvas) {
+                this.canvas = canvas;
+                this.ctx = canvas.getContext('2d');
+                this.particles = [];
+                this.animId = null;
+            }
+            emit(x, y, count, colors) {
+                for (let i = 0; i < count; i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const speed = 0.8 + Math.random() * 4;
+                    const vx = Math.cos(angle) * speed;
+                    const vy = Math.sin(angle) * speed - 2;
+                    const life = 40 + Math.floor(Math.random() * 50);
+                    const color = colors[Math.floor(Math.random() * colors.length)];
+                    const size = 1.2 + Math.random() * 1.8;
+                    this.particles.push(new SparkParticle(x, y, vx, vy, life, color, size));
+                }
+                if (!this.animId) this.animate();
+            }
+            animate() {
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                this.particles = this.particles.filter(p => !p.dead);
+                for (const p of this.particles) {
+                    p.update();
+                    p.draw(this.ctx);
+                }
+                if (this.particles.length > 0) {
+                    this.animId = requestAnimationFrame(() => this.animate());
+                } else {
+                    this.animId = null;
+                }
+            }
+            clear() {
+                this.particles = [];
+                if (this.animId) {
+                    cancelAnimationFrame(this.animId);
+                    this.animId = null;
+                }
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+            }
+        }
+
         class UpgradeGame {
             constructor() {
                 this.balance = 1000;
@@ -857,6 +895,8 @@
                 this.soundEnabled = false;
                 this.wheelAngle = 0;
                 this.wheelAnimationId = null;
+                this.resultTimeout = null;
+                this.sparkSystem = null;
                 this.init();
             }
 
@@ -891,6 +931,7 @@
                 if (!this.inventory.find(e => e.giftId === this.currentGiftId)) this.currentGiftId = this.inventory[0]
                     ?.giftId || 'rose';
                 this.autoSelectTarget();
+                this.sparkSystem = new SparkSystem(document.getElementById('sparkCanvas'));
                 this.setupEventListeners();
                 this.renderAll();
                 this.renderHistory();
@@ -904,14 +945,13 @@
                     .targetGiftId)) this.targetGiftId = t[0].id;
                 this.currentChance = this.calculateChance(this.currentGift.price, this.targetGift.price); }
 
-            loadFromStorage() { try { const s = localStorage.getItem('upgrade_stars_v3'); if (s) { const d = JSON.parse(s);
+            loadFromStorage() { try { const s = localStorage.getItem('upgrade_stars_v4'); if (s) { const d = JSON.parse(s);
                         this.balance = d.balance || 1000;
                         this.inventory = d.inventory || [{ giftId: 'rose', acquiredAt: Date.now() }];
                         this.history = d.history || [];
                         this.currentGiftId = d.currentGiftId || this.inventory[0]?.giftId || 'rose';
                         this.targetGiftId = d.targetGiftId || 'ring'; } } catch (e) {} }
-
-            saveToStorage() { try { localStorage.setItem('upgrade_stars_v3', JSON.stringify({ balance: this.balance,
+            saveToStorage() { try { localStorage.setItem('upgrade_stars_v4', JSON.stringify({ balance: this.balance,
                         inventory: this.inventory, history: this.history.slice(0, 30), currentGiftId: this.currentGiftId,
                         targetGiftId: this.targetGiftId })); } catch (e) {} }
 
@@ -954,8 +994,6 @@
                     this.renderShop(); });
                 document.getElementById('closeShopBtn').addEventListener('click', () => document.getElementById(
                     'shopOverlay').classList.remove('show'));
-                document.getElementById('resultCloseBtn').addEventListener('click', () => document.getElementById(
-                    'resultOverlay').classList.remove('show'));
                 document.getElementById('inventoryList').addEventListener('click', e => { const it = e.target.closest(
                         '.gift-list-item'); if (!it) return; const gid = it.dataset.giftId; if (gid && this.inventory
                         .find(en => en.giftId === gid)) { this.currentGiftId = gid;
@@ -979,7 +1017,6 @@
             async initAudio() { try { this.audioContext = new(window.AudioContext || window.webkitAudioContext)(); await this
                     .audioContext.resume();
                     this.soundEnabled = true; } catch (e) {} }
-
             playBeep(f, d, ty = 'sine') { if (!this.audioContext || !this.soundEnabled) return; const o = this.audioContext
                     .createOscillator(); const g = this.audioContext.createGain();
                 o.connect(g);
@@ -990,6 +1027,55 @@
                 g.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + d);
                 o.start();
                 o.stop(this.audioContext.currentTime + d); }
+
+            showResultText(success, chance) {
+                const chanceDisplay = document.getElementById('chanceDisplay');
+                const centerResult = document.getElementById('centerResult');
+                const resultText = document.getElementById('centerResultText');
+                const resultChance = document.getElementById('centerResultChance');
+
+                // Hide chance display
+                chanceDisplay.classList.add('hidden-temp');
+
+                // Set result text
+                if (success) {
+                    resultText.textContent = 'УСПЕХ!';
+                    resultText.style.color = '#5ff57a';
+                    resultText.style.textShadow = '0 0 20px #5ff57a, 0 0 40px #3fb950';
+                    resultChance.textContent = `Шанс: ${(chance*100).toFixed(1)}%`;
+                    resultChance.style.color = '#5ff57a';
+                } else {
+                    resultText.textContent = 'ПРОВАЛ!';
+                    resultText.style.color = '#ff6b6b';
+                    resultText.style.textShadow = '0 0 20px #ff6b6b, 0 0 40px #f85149';
+                    resultChance.textContent = `Шанс: ${(chance*100).toFixed(1)}%`;
+                    resultChance.style.color = '#ff6b6b';
+                }
+
+                // Reset animation
+                resultText.style.animation = 'none';
+                resultText.offsetHeight;
+                resultText.style.animation = 'result-pop 0.4s ease-out';
+
+                // Show
+                centerResult.classList.add('show');
+
+                // Emit sparks
+                const sc = document.getElementById('sparkCanvas');
+                const cx = sc.width / 2;
+                const cy = sc.height / 2;
+                const colors = success ?
+                    ['#5ff57a', '#3fb950', '#a5f5b0', '#ffffff', '#7dff90'] :
+                    ['#ff6b6b', '#f85149', '#ff9999', '#ffffff', '#ff4444'];
+                this.sparkSystem.emit(cx, cy, 50, colors);
+
+                // Hide after 2 seconds
+                if (this.resultTimeout) clearTimeout(this.resultTimeout);
+                this.resultTimeout = setTimeout(() => {
+                    centerResult.classList.remove('show');
+                    chanceDisplay.classList.remove('hidden-temp');
+                }, 2000);
+            }
 
             startUpgrade() {
                 if (this.isSpinning || !this.inventory.find(e => e.giftId === this.currentGiftId) || this.currentGift
@@ -1036,7 +1122,7 @@
                 this.saveToStorage();
                 this.renderAll();
                 this.renderHistory();
-                this.showResult(true, og, ng, sc); if (tg) tg.HapticFeedback.notificationOccurred('success');
+                this.showResultText(true, sc); if (tg) tg.HapticFeedback.notificationOccurred('success');
                 this.playBeep(1500, 0.2);
                 setTimeout(() => this.playBeep(1800, 0.15), 150); }
 
@@ -1051,22 +1137,8 @@
                 this.saveToStorage();
                 this.renderAll();
                 this.renderHistory();
-                this.showResult(false, og, tgf, sc); if (tg) tg.HapticFeedback.notificationOccurred('error');
+                this.showResultText(false, sc); if (tg) tg.HapticFeedback.notificationOccurred('error');
                 this.playBeep(200, 0.3, 'sawtooth'); }
-
-            showResult(win, og, tg, sc) { const ov = document.getElementById('resultOverlay'); const em = document
-                    .getElementById('resultEmoji'); const ti = document.getElementById('resultTitle'); const gf = document
-                    .getElementById('resultGift'); const de = document.getElementById('resultDetails');
-                ov.classList.add('show'); if (win) { em.textContent = '🎉';
-                    ti.textContent = 'УСПЕХ!';
-                    ti.style.color = '#5ff57a';
-                    gf.innerHTML =
-                        `${og.emoji} ${og.name} ➡️ ${tg.emoji} <strong>${tg.name}</strong>`;
-                    de.textContent = `Шанс был: ${(sc*100).toFixed(1)}%\nПодарок улучшен! 🚀`; } else { em.textContent = '💥';
-                    ti.textContent = 'ПРОВАЛ!';
-                    ti.style.color = '#ff6b6b';
-                    gf.innerHTML = `${og.emoji} ${og.name} ➡️ ${tg.emoji} ${tg.name}`;
-                    de.textContent = `Шанс был: ${(sc*100).toFixed(1)}%\nПодарок потерян. Попробуйте снова!`; } }
 
             renderAll() {
                 document.getElementById('balance').textContent = this.balance.toLocaleString();
