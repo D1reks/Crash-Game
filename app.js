@@ -326,38 +326,38 @@ class UpgradeGame {
     }
 
     renderGiftCard(cardId, gift, isCurrent) {
-        const card = document.getElementById(cardId);
-        card.innerHTML = '';
-        card.className = 'gift-card';
+    const card = document.getElementById(cardId);
+    card.innerHTML = '';
+    card.className = 'gift-card';
 
-        if (gift) {
-            if (isCurrent) card.classList.add('current-gift');
-            else card.classList.add('target-gift');
-            const emoji = document.createElement('div');
-            emoji.className = 'gift-emoji';
-            emoji.textContent = gift.emoji;
-            const name = document.createElement('div');
-            name.className = 'gift-name';
-            name.textContent = gift.name;
-            const price = document.createElement('div');
-            price.className = 'gift-price';
-            price.textContent = gift.price + ' ⭐';
-            card.appendChild(emoji);
-            card.appendChild(name);
-            card.appendChild(price);
-        } else {
-            card.classList.add('empty-card');
-            const arrows = document.createElement('div');
-            arrows.className = 'placeholder-arrows';
-            for (let i = 0; i < 3; i++) {
-                const arrow = document.createElement('span');
-                arrow.className = 'placeholder-arrow';
-                arrow.textContent = isCurrent ? '❱' : '❰';
-                arrows.appendChild(arrow);
-            }
-            card.appendChild(arrows);
+    if (gift) {
+        if (isCurrent) card.classList.add('current-gift');
+        else card.classList.add('target-gift');
+        const emoji = document.createElement('div');
+        emoji.className = 'gift-emoji';
+        emoji.textContent = gift.emoji;
+        const name = document.createElement('div');
+        name.className = 'gift-name';
+        name.textContent = gift.name;
+        const price = document.createElement('div');
+        price.className = 'gift-price';
+        price.textContent = gift.price + ' ⭐';
+        card.appendChild(emoji);
+        card.appendChild(name);
+        card.appendChild(price);
+    } else {
+        card.classList.add('empty-card');
+        const arrows = document.createElement('div');
+        arrows.className = 'placeholder-arrows ' + (isCurrent ? 'left-arrows' : 'right-arrows');
+        for (let i = 0; i < 3; i++) {
+            const arrow = document.createElement('span');
+            arrow.className = 'placeholder-arrow';
+            arrow.textContent = '❱';
+            arrows.appendChild(arrow);
         }
+        card.appendChild(arrows);
     }
+}
 
     drawWheel() {
         const c = document.getElementById('wheelCanvas');
