@@ -162,46 +162,34 @@
             filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.3));
         }
 
-        .gift-placeholder {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background: #1a2540;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.4);
-        }
-
-        .gift-placeholder-icon {
-            font-size: 20px;
-            color: #2a3a5c;
-            opacity: 0.6;
-        }
-
         .placeholder-arrows {
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            gap: 6px;
+            align-items: center;
+            justify-content: center;
             position: absolute;
             top: 50%;
             transform: translateY(-50%);
         }
 
         .placeholder-arrows.left-arrows {
-            left: 8px;
+            left: 10px;
         }
         .placeholder-arrows.right-arrows {
-            right: 8px;
+            right: 10px;
         }
 
         .placeholder-arrow {
             color: #ffd700;
-            font-size: 14px;
-            opacity: 0.7;
+            font-size: 20px;
+            font-weight: bold;
+            opacity: 0.8;
             animation: arrow-wave 1.5s ease-in-out infinite;
-            text-shadow: 0 0 8px rgba(255, 215, 0, 0.4);
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.6);
+            line-height: 0.8;
+            letter-spacing: -2px;
+            transform: scaleX(1.8);
         }
 
         .placeholder-arrow:nth-child(1) { animation-delay: 0s; }
@@ -210,15 +198,15 @@
 
         @keyframes arrow-wave {
             0%, 100% {
-                transform: scale(1);
+                transform: scaleX(1.8) scale(1);
                 opacity: 0.4;
             }
             15% {
-                transform: scale(1.5);
+                transform: scaleX(1.8) scale(1.5);
                 opacity: 1;
             }
             30% {
-                transform: scale(1);
+                transform: scaleX(1.8) scale(1);
                 opacity: 0.4;
             }
         }
@@ -804,12 +792,8 @@
 
         <div class="main-content" id="mainContent">
             <div class="gift-selection-row">
-                <div class="gift-card current-gift" id="currentGiftCard">
-                    <!-- dynamically filled -->
-                </div>
-                <div class="gift-card target-gift" id="targetGiftCard">
-                    <!-- dynamically filled -->
-                </div>
+                <div class="gift-card current-gift" id="currentGiftCard"></div>
+                <div class="gift-card target-gift" id="targetGiftCard"></div>
             </div>
 
             <div class="wheel-container" id="wheelContainer">
@@ -1038,9 +1022,6 @@
                 if (this.inventory.length > 0 && !this.inventory.find(e => e.giftId === this.currentGiftId)) {
                     this.currentGiftId = this.inventory[0].giftId;
                 }
-                if (!this.currentGift && this.inventory.length > 0) {
-                    this.currentGiftId = this.inventory[0].giftId;
-                }
                 this.autoSelectTarget();
                 this.sparkSystem = new SparkSystem(document.getElementById('sparkCanvas'));
                 this.setupEventListeners();
@@ -1068,13 +1049,13 @@
                 }
             }
 
-            loadFromStorage() { try { const s = localStorage.getItem('upgrade_stars_v7'); if (s) { const d = JSON.parse(s);
+            loadFromStorage() { try { const s = localStorage.getItem('upgrade_stars_v8'); if (s) { const d = JSON.parse(s);
                         this.balance = d.balance || 1000;
                         this.inventory = d.inventory || [];
                         this.history = d.history || [];
                         this.currentGiftId = d.currentGiftId || null;
                         this.targetGiftId = d.targetGiftId || null; } } catch (e) {} }
-            saveToStorage() { try { localStorage.setItem('upgrade_stars_v7', JSON.stringify({ balance: this.balance,
+            saveToStorage() { try { localStorage.setItem('upgrade_stars_v8', JSON.stringify({ balance: this.balance,
                         inventory: this.inventory, history: this.history.slice(0, 30), currentGiftId: this.currentGiftId,
                         targetGiftId: this.targetGiftId })); } catch (e) {} }
 
@@ -1136,10 +1117,6 @@
             openSellOverlay(giftId) {
                 const gift = ALL_GIFTS.find(g => g.id === giftId);
                 if (!gift || !this.inventory.find(e => e.giftId === giftId)) return;
-                if (this.inventory.length <= 1) {
-                    alert('Нельзя продать последний подарок!');
-                    return;
-                }
                 this.sellTargetGiftId = giftId;
                 document.getElementById('sellEmoji').textContent = gift.emoji;
                 document.getElementById('sellName').textContent = gift.name;
@@ -1158,15 +1135,10 @@
                 if (!gift) return;
                 const idx = this.inventory.findIndex(e => e.giftId === this.sellTargetGiftId);
                 if (idx === -1) return;
-                if (this.inventory.length <= 1) {
-                    alert('Нельзя продать последний подарок!');
-                    this.closeSellOverlay();
-                    return;
-                }
                 this.inventory.splice(idx, 1);
                 this.balance += gift.price;
                 if (this.currentGiftId === this.sellTargetGiftId) {
-                    this.currentGiftId = this.inventory[0]?.giftId || null;
+                    this.currentGiftId = this.inventory.length > 0 ? this.inventory[0].giftId : null;
                     this.autoSelectTarget();
                     this.updateChance();
                 }
@@ -1264,10 +1236,9 @@
                 this.playBeep(1500, 0.2);
                 setTimeout(() => this.playBeep(1800, 0.15), 150); }
 
-            onUpgradeFail(sc) { const og = this.currentGift, tgf = this.targetGift; const idx = this.inventory.findIndex(e => e.giftId === og.id); if (idx !== -1) this.inventory.splice(idx, 1); if (!this.inventory.length) { this.inventory.push({ giftId: 'rose',
-                        acquiredAt: Date.now() });
-                    this.currentGiftId = 'rose'; } else { this.currentGiftId = this.inventory[0].giftId; }
-                this.autoSelectTarget();
+            onUpgradeFail(sc) { const og = this.currentGift, tgf = this.targetGift; const idx = this.inventory.findIndex(e => e.giftId === og.id); if (idx !== -1) this.inventory.splice(idx, 1); if (!this.inventory.length) { this.currentGiftId = null;
+                    this.targetGiftId = null; } else { this.currentGiftId = this.inventory[0].giftId;
+                    this.autoSelectTarget(); }
                 this.updateChance();
                 this.history.unshift({ from: og.id, to: tgf.id, chance: sc, success: false, time: Date.now() });
                 this.saveToStorage();
@@ -1277,11 +1248,8 @@
 
             renderAll() {
                 document.getElementById('balance').textContent = this.balance.toLocaleString();
-
-                // Render gift cards
                 this.renderGiftCard('currentGiftCard', this.currentGift, true);
                 this.renderGiftCard('targetGiftCard', this.targetGift, false);
-
                 const cp = (this.currentChance * 100).toFixed(1);
                 document.getElementById('chancePercent').textContent = cp + '%';
                 this.drawWheel();
@@ -1320,13 +1288,6 @@
                     card.appendChild(price);
                 } else {
                     card.classList.add('empty-card');
-                    const placeholder = document.createElement('div');
-                    placeholder.className = 'gift-placeholder';
-
-                    const icon = document.createElement('div');
-                    icon.className = 'gift-placeholder-icon';
-                    icon.textContent = '🎁';
-                    placeholder.appendChild(icon);
 
                     const arrows = document.createElement('div');
                     arrows.className = 'placeholder-arrows ' + (isCurrent ? 'left-arrows' : 'right-arrows');
@@ -1336,13 +1297,11 @@
                         arrow.textContent = isCurrent ? '▼' : '▲';
                         arrows.appendChild(arrow);
                     }
-                    placeholder.appendChild(arrows);
+                    card.appendChild(arrows);
 
                     const label = document.createElement('div');
                     label.className = 'empty-label';
                     label.textContent = isCurrent ? 'Нет подарка' : 'Цель не выбрана';
-
-                    card.appendChild(placeholder);
                     card.appendChild(label);
                 }
             }
