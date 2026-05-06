@@ -405,6 +405,10 @@ body {
     box-shadow: 0 0 25px rgba(240, 136, 62, 0.4), 0 0 50px rgba(255, 215, 0, 0.2);
     text-shadow: none;
     font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
 }
 
 .upgrade-btn:active {
@@ -435,6 +439,24 @@ body {
     50% {
         box-shadow: 0 0 50px rgba(240, 136, 62, 0.7), 0 0 90px rgba(240, 136, 62, 0.3);
     }
+}
+
+.upgrade-arrows {
+    display: inline-flex;
+    flex-direction: column;
+    gap: 0px;
+    align-items: center;
+}
+
+.upgrade-arrow {
+    color: #0a0f1a;
+    font-size: 12px;
+    line-height: 0.7;
+    text-shadow: none;
+}
+
+.upgrade-btn.spinning .upgrade-arrow {
+    color: white;
 }
 
 .lists-row {
@@ -477,6 +499,34 @@ body {
     background: #0d111f;
     z-index: 1;
     text-shadow: 0 0 8px rgba(100, 140, 255, 0.2);
+    display: flex;
+    align-items: center;
+}
+
+.title-arrows {
+    display: inline-flex;
+    flex-direction: column;
+    gap: 0px;
+    align-items: center;
+    margin-right: 6px;
+    vertical-align: middle;
+}
+
+.title-arrow {
+    color: #ffd700;
+    font-size: 10px;
+    line-height: 0.7;
+    text-shadow: 0 0 5px rgba(255, 215, 0, 0.4);
+}
+
+.title-arrow-top {
+    opacity: 0.9;
+}
+
+.title-arrow-bottom {
+    opacity: 0.45;
+    font-size: 8px;
+    margin-top: -1px;
 }
 
 .gift-list-item {
