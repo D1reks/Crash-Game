@@ -149,6 +149,11 @@ body {
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
 }
 
+.gift-card.spinning-disabled {
+    pointer-events: none;
+    opacity: 0.7;
+}
+
 .gift-emoji {
     font-size: 36px;
     line-height: 1;
@@ -188,7 +193,7 @@ body {
 
 .placeholder-arrow {
     color: #ffd700;
-    font-size: 22px;
+    font-size: 28px;
     font-weight: bold;
     opacity: 0.8;
     text-shadow: 0 0 10px rgba(255, 215, 0, 0.6);
@@ -375,6 +380,12 @@ body {
     background: #1a2540;
     box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
     text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
+
+.quick-bet-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    box-shadow: none;
 }
 
 .upgrade-btn {

@@ -128,7 +128,17 @@ class UpgradeGame {
     }
 
     calculateChance(cp, tp) { return cp >= tp ? 0 : (cp / tp) * 0.95; }
-    getPotentialTargets() { return this.currentGift ? ALL_GIFTS.filter(g => g.price > this.currentGift.price) : []; }
+    
+    // Возвращает ВСЕ подарки для списка целей — всегда показываем полный список
+    getAllTargets() {
+        return ALL_GIFTS;
+    }
+    
+    // Проверяет, можно ли подарок выбрать целью
+    canBeTarget(gift) {
+        if (!this.currentGift) return true; // если ничего не выбрано — всё можно
+        return gift.price > this.currentGift.price;
+    }
 
     findTargetByFraction(fr) {
         if (!this.currentGift) return null;
@@ -148,7 +158,8 @@ class UpgradeGame {
         if (this.inventory.length > 0 && !this.inventory.find(e => e.giftId === this.currentGiftId)) {
             this.currentGiftId = this.inventory[0].giftId;
         }
-        this.autoSelectTarget();
+        // НЕ авто-выбираем цель — оставляем targetGiftId = null если не было в storage
+        this.updateChance();
         this.sparkSystem = new SparkSystem(document.getElementById('sparkCanvas'));
         this.setupEventListeners();
         this.renderAll();
@@ -156,44 +167,38 @@ class UpgradeGame {
 
     deduplicateInventory() { const s = new Set(); const u = []; for (const e of this.inventory) { if (!s.has(e.giftId)) { s.add(e.giftId); u.push(e); } } this.inventory = u; }
 
-    autoSelectTarget() {
-        const t = this.getPotentialTargets();
-        if (t.length > 0 && !t.find(x => x.id === this.targetGiftId)) {
-            this.targetGiftId = t[0].id;
-        } else if (t.length === 0) {
-            this.targetGiftId = null;
-        }
-        this.updateChance();
-    }
-
     updateChance() {
-        if (this.currentGift && this.targetGift) {
+        if (this.currentGift && this.targetGift && this.targetGift.price > this.currentGift.price) {
             this.currentChance = this.calculateChance(this.currentGift.price, this.targetGift.price);
         } else {
             this.currentChance = 0;
         }
     }
 
-    loadFromStorage() { try { const s = localStorage.getItem('upgrade_stars_v9'); if (s) { const d = JSON.parse(s); this.balance = d.balance || 1000; this.inventory = d.inventory || []; this.history = d.history || []; this.currentGiftId = d.currentGiftId || null; this.targetGiftId = d.targetGiftId || null; } } catch (e) {} }
-    saveToStorage() { try { localStorage.setItem('upgrade_stars_v9', JSON.stringify({ balance: this.balance, inventory: this.inventory, history: this.history.slice(0, 30), currentGiftId: this.currentGiftId, targetGiftId: this.targetGiftId })); } catch (e) {} }
+    loadFromStorage() { try { const s = localStorage.getItem('upgrade_stars_v10'); if (s) { const d = JSON.parse(s); this.balance = d.balance || 1000; this.inventory = d.inventory || []; this.history = d.history || []; this.currentGiftId = d.currentGiftId || null; this.targetGiftId = d.targetGiftId || null; } } catch (e) {} }
+    saveToStorage() { try { localStorage.setItem('upgrade_stars_v10', JSON.stringify({ balance: this.balance, inventory: this.inventory, history: this.history.slice(0, 30), currentGiftId: this.currentGiftId, targetGiftId: this.targetGiftId })); } catch (e) {} }
 
     setupEventListeners() {
         document.getElementById('upgradeBtn').addEventListener('click', () => this.startUpgrade());
         document.querySelectorAll('.quick-bet-btn').forEach(b => b.addEventListener('click', e => {
+            if (this.isSpinning) return;
             if (!this.currentGift) return;
             const f = e.target.dataset.fraction;
             const g = this.findTargetByFraction(f); if (g) { this.targetGiftId = g.id; this.updateChance(); this.renderAll(); this.highlightQuickButton(f); }
         }));
         document.getElementById('currentGiftCard').addEventListener('click', () => {
+            if (this.isSpinning) return;
             const ig = this.inventoryGifts; if (ig.length === 0) return;
             if (!this.currentGift) { this.currentGiftId = ig[0].id; } else { const ci = ig.findIndex(g => g.id === this.currentGiftId); this.currentGiftId = ig[(ci + 1) % ig.length].id; }
-            this.autoSelectTarget();
+            // При выборе своего подарка НЕ сбрасываем цель — оставляем как есть
             this.updateChance();
             this.renderAll();
             this.saveToStorage();
         });
         document.getElementById('targetGiftCard').addEventListener('click', () => {
-            const t = this.getPotentialTargets(); if (t.length === 0) return;
+            if (this.isSpinning) return;
+            const t = this.getAllTargets();
+            if (t.length === 0) return;
             if (!this.targetGift) { this.targetGiftId = t[0].id; } else { const ci = t.findIndex(g => g.id === this.targetGiftId); this.targetGiftId = t[(ci + 1) % t.length].id; }
             this.updateChance();
             this.renderAll();
@@ -205,8 +210,14 @@ class UpgradeGame {
         document.getElementById('topupStars').addEventListener('click', () => { this.balance += 500; this.renderAll(); this.saveToStorage(); document.getElementById('balanceTopupOverlay').classList.remove('show'); if (tg) tg.HapticFeedback.notificationOccurred('success'); });
         document.getElementById('shopBtn').addEventListener('click', () => { document.getElementById('shopOverlay').classList.add('show'); this.renderShop(); });
         document.getElementById('closeShopBtn').addEventListener('click', () => document.getElementById('shopOverlay').classList.remove('show'));
-        document.getElementById('inventoryList').addEventListener('click', e => { const it = e.target.closest('.gift-list-item'); if (!it) return; const gid = it.dataset.giftId; if (gid && this.inventory.find(en => en.giftId === gid)) { this.currentGiftId = gid; this.autoSelectTarget(); this.updateChance(); this.renderAll(); this.saveToStorage(); } });
-        document.getElementById('targetsList').addEventListener('click', e => { const it = e.target.closest('.gift-list-item'); if (!it) return; const gid = it.dataset.giftId; const tgt = ALL_GIFTS.find(g => g.id === gid); if (tgt && this.currentGift && tgt.price > this.currentGift.price) { this.targetGiftId = gid; this.updateChance(); this.renderAll(); this.saveToStorage(); } });
+        document.getElementById('inventoryList').addEventListener('click', e => {
+            if (this.isSpinning) return;
+            const it = e.target.closest('.gift-list-item'); if (!it) return; const gid = it.dataset.giftId; if (gid && this.inventory.find(en => en.giftId === gid)) { this.currentGiftId = gid; this.updateChance(); this.renderAll(); this.saveToStorage(); }
+        });
+        document.getElementById('targetsList').addEventListener('click', e => {
+            if (this.isSpinning) return;
+            const it = e.target.closest('.gift-list-item'); if (!it) return; const gid = it.dataset.giftId; const tgt = ALL_GIFTS.find(g => g.id === gid); if (tgt) { this.targetGiftId = gid; this.updateChance(); this.renderAll(); this.saveToStorage(); }
+        });
         document.getElementById('sellConfirmBtn').addEventListener('click', () => this.confirmSell());
         document.getElementById('sellCancelBtn').addEventListener('click', () => this.closeSellOverlay());
         document.getElementById('sellOverlay').addEventListener('click', e => { if (e.target === document.getElementById('sellOverlay')) this.closeSellOverlay(); });
@@ -238,7 +249,6 @@ class UpgradeGame {
         this.balance += gift.price;
         if (this.currentGiftId === this.sellTargetGiftId) {
             this.currentGiftId = this.inventory.length > 0 ? this.inventory[0].giftId : null;
-            this.autoSelectTarget();
             this.updateChance();
         }
         this.saveToStorage();
@@ -294,6 +304,7 @@ class UpgradeGame {
         btn.disabled = true;
         btn.classList.add('spinning');
         btn.textContent = 'КРУТИМ...';
+        this.setSpinningState(true);
         if (tg) tg.HapticFeedback.impactOccurred('heavy');
         const totalRot = 5 + Math.floor(Math.random() * 5);
         const ta = Math.random() * Math.PI * 2;
@@ -304,11 +315,29 @@ class UpgradeGame {
         this.wheelAnimationId = requestAnimationFrame(anim);
     }
 
-    onSpinComplete() { this.isSpinning = false; const btn = document.getElementById('upgradeBtn'); btn.classList.remove('spinning'); btn.textContent = 'UPGRADE'; btn.disabled = false; const na = ((this.wheelAngle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2); const se = this.currentChance * Math.PI * 2; const win = na <= se; const sc = this.currentChance; if (win) this.onUpgradeSuccess(sc); else this.onUpgradeFail(sc); }
+    onSpinComplete() {
+        this.isSpinning = false;
+        const btn = document.getElementById('upgradeBtn');
+        btn.classList.remove('spinning');
+        btn.textContent = 'UPGRADE';
+        btn.disabled = false;
+        this.setSpinningState(false);
+        const na = ((this.wheelAngle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2); const se = this.currentChance * Math.PI * 2; const win = na <= se; const sc = this.currentChance; if (win) this.onUpgradeSuccess(sc); else this.onUpgradeFail(sc);
+    }
 
-    onUpgradeSuccess(sc) { const og = this.currentGift, ng = this.targetGift; const idx = this.inventory.findIndex(e => e.giftId === og.id); if (idx !== -1) this.inventory.splice(idx, 1); if (!this.inventory.find(e => e.giftId === ng.id)) this.inventory.push({ giftId: ng.id, acquiredAt: Date.now() }); this.currentGiftId = ng.id; this.autoSelectTarget(); this.updateChance(); this.history.unshift({ from: og.id, to: ng.id, chance: sc, success: true, time: Date.now() }); this.saveToStorage(); this.renderAll(); this.showResultText(true, sc); if (tg) tg.HapticFeedback.notificationOccurred('success'); this.playBeep(1500, 0.2); setTimeout(() => this.playBeep(1800, 0.15), 150); }
+    setSpinningState(spinning) {
+        document.querySelectorAll('.quick-bet-btn').forEach(b => { b.disabled = spinning; });
+        document.getElementById('currentGiftCard').classList.toggle('spinning-disabled', spinning);
+        document.getElementById('targetGiftCard').classList.toggle('spinning-disabled', spinning);
+        document.getElementById('inventoryList').style.pointerEvents = spinning ? 'none' : 'auto';
+        document.getElementById('targetsList').style.pointerEvents = spinning ? 'none' : 'auto';
+        document.getElementById('inventoryList').style.opacity = spinning ? '0.6' : '1';
+        document.getElementById('targetsList').style.opacity = spinning ? '0.6' : '1';
+    }
 
-    onUpgradeFail(sc) { const og = this.currentGift, tgf = this.targetGift; const idx = this.inventory.findIndex(e => e.giftId === og.id); if (idx !== -1) this.inventory.splice(idx, 1); if (!this.inventory.length) { this.currentGiftId = null; this.targetGiftId = null; } else { this.currentGiftId = this.inventory[0].giftId; this.autoSelectTarget(); } this.updateChance(); this.history.unshift({ from: og.id, to: tgf.id, chance: sc, success: false, time: Date.now() }); this.saveToStorage(); this.renderAll(); this.showResultText(false, sc); if (tg) tg.HapticFeedback.notificationOccurred('error'); this.playBeep(200, 0.3, 'sawtooth'); }
+    onUpgradeSuccess(sc) { const og = this.currentGift, ng = this.targetGift; const idx = this.inventory.findIndex(e => e.giftId === og.id); if (idx !== -1) this.inventory.splice(idx, 1); if (!this.inventory.find(e => e.giftId === ng.id)) this.inventory.push({ giftId: ng.id, acquiredAt: Date.now() }); this.currentGiftId = ng.id; this.updateChance(); this.history.unshift({ from: og.id, to: ng.id, chance: sc, success: true, time: Date.now() }); this.saveToStorage(); this.renderAll(); this.showResultText(true, sc); if (tg) tg.HapticFeedback.notificationOccurred('success'); this.playBeep(1500, 0.2); setTimeout(() => this.playBeep(1800, 0.15), 150); }
+
+    onUpgradeFail(sc) { const og = this.currentGift, tgf = this.targetGift; const idx = this.inventory.findIndex(e => e.giftId === og.id); if (idx !== -1) this.inventory.splice(idx, 1); if (!this.inventory.length) { this.currentGiftId = null; } else { this.currentGiftId = this.inventory[0].giftId; } this.updateChance(); this.history.unshift({ from: og.id, to: tgf.id, chance: sc, success: false, time: Date.now() }); this.saveToStorage(); this.renderAll(); this.showResultText(false, sc); if (tg) tg.HapticFeedback.notificationOccurred('error'); this.playBeep(200, 0.3, 'sawtooth'); }
 
     renderAll() {
         document.getElementById('balance').textContent = this.balance.toLocaleString();
@@ -320,44 +349,45 @@ class UpgradeGame {
         this.renderInventoryList();
         this.renderTargetsList();
         const ub = document.getElementById('upgradeBtn');
-        const canUpgrade = !this.isSpinning && this.currentGift && this.targetGift && this.inventory.find(e => e.giftId === this.currentGiftId) && this.currentGift.price < this.targetGift.price;
+        const canUpgrade = !this.isSpinning && this.currentGift && this.targetGift && this.inventory.find(e => e.giftId === this.currentGiftId) && this.targetGift.price > this.currentGift.price;
         ub.disabled = !canUpgrade;
         if (!this.isSpinning) { ub.classList.remove('spinning'); ub.textContent = 'UPGRADE'; }
+        if (this.isSpinning) { this.setSpinningState(true); ub.disabled = true; }
     }
 
     renderGiftCard(cardId, gift, isCurrent) {
-    const card = document.getElementById(cardId);
-    card.innerHTML = '';
-    card.className = 'gift-card';
+        const card = document.getElementById(cardId);
+        card.innerHTML = '';
+        card.className = 'gift-card';
 
-    if (gift) {
-        if (isCurrent) card.classList.add('current-gift');
-        else card.classList.add('target-gift');
-        const emoji = document.createElement('div');
-        emoji.className = 'gift-emoji';
-        emoji.textContent = gift.emoji;
-        const name = document.createElement('div');
-        name.className = 'gift-name';
-        name.textContent = gift.name;
-        const price = document.createElement('div');
-        price.className = 'gift-price';
-        price.textContent = gift.price + ' ⭐';
-        card.appendChild(emoji);
-        card.appendChild(name);
-        card.appendChild(price);
-    } else {
-        card.classList.add('empty-card');
-        const arrows = document.createElement('div');
-        arrows.className = 'placeholder-arrows ' + (isCurrent ? 'left-arrows' : 'right-arrows');
-        for (let i = 0; i < 3; i++) {
-            const arrow = document.createElement('span');
-            arrow.className = 'placeholder-arrow';
-            arrow.textContent = '❱';
-            arrows.appendChild(arrow);
+        if (gift) {
+            if (isCurrent) card.classList.add('current-gift');
+            else card.classList.add('target-gift');
+            const emoji = document.createElement('div');
+            emoji.className = 'gift-emoji';
+            emoji.textContent = gift.emoji;
+            const name = document.createElement('div');
+            name.className = 'gift-name';
+            name.textContent = gift.name;
+            const price = document.createElement('div');
+            price.className = 'gift-price';
+            price.textContent = gift.price + ' ⭐';
+            card.appendChild(emoji);
+            card.appendChild(name);
+            card.appendChild(price);
+        } else {
+            card.classList.add('empty-card');
+            const arrows = document.createElement('div');
+            arrows.className = 'placeholder-arrows ' + (isCurrent ? 'left-arrows' : 'right-arrows');
+            for (let i = 0; i < 3; i++) {
+                const arrow = document.createElement('span');
+                arrow.className = 'placeholder-arrow';
+                arrow.textContent = '❱';
+                arrows.appendChild(arrow);
+            }
+            card.appendChild(arrows);
         }
-        card.appendChild(arrows);
     }
-}
 
     drawWheel() {
         const c = document.getElementById('wheelCanvas');
@@ -428,7 +458,6 @@ class UpgradeGame {
         ctx.rotate(this.wheelAngle);
         const abr = ir + rw * 0.55, atr = or + 10;
         const abx = 0, aby = -abr, atx = 0, aty = -atr;
-        // Arrow pointing inward — flip: tip at inner radius, base at outer
         const tipRadius = ir + 2;
         const baseRadius = or + 10;
         const tipX = 0, tipY = -tipRadius;
@@ -443,7 +472,6 @@ class UpgradeGame {
         ctx.shadowBlur = 15;
         ctx.stroke();
         ctx.shadowBlur = 0;
-        // Arrow head at tip (inner side)
         ctx.beginPath();
         ctx.moveTo(tipX, tipY);
         ctx.lineTo(-8, tipY - 12);
@@ -455,7 +483,6 @@ class UpgradeGame {
         ctx.shadowBlur = 15;
         ctx.fill();
         ctx.shadowBlur = 0;
-        // White dot at tip
         ctx.beginPath();
         ctx.arc(tipX, tipY, 3.5, 0, Math.PI * 2);
         ctx.fillStyle = '#ffffff';
@@ -464,7 +491,6 @@ class UpgradeGame {
         ctx.shadowBlur = 20;
         ctx.fill();
         ctx.shadowBlur = 0;
-        // Base dot
         ctx.beginPath();
         ctx.arc(baseX, baseY, 4.5, 0, Math.PI * 2);
         ctx.fillStyle = '#ffd700';
@@ -503,13 +529,19 @@ class UpgradeGame {
 
     renderTargetsList() {
         const c = document.getElementById('targetsList');
-        const t = this.getPotentialTargets();
-        if (!t.length) { c.innerHTML = '<div style="padding:20px;text-align:center;color:#6b7daa;font-size:12px;">Нет целей</div>'; return; }
-        c.innerHTML = t.map(g => `
-            <div class="gift-list-item" data-gift-id="${g.id}" style="${g.id===this.targetGiftId?'background:#111827;border-left:3px solid #f0883e;box-shadow:inset 0 0 15px rgba(240,136,62,0.05);':''}">
+        const t = this.getAllTargets();
+        if (!t.length) { c.innerHTML = '<div style="padding:20px;text-align:center;color:#6b7daa;font-size:12px;">Нет подарков</div>'; return; }
+        c.innerHTML = t.map(g => {
+            const canBeTarget = this.canBeTarget(g);
+            const isSelected = g.id === this.targetGiftId;
+            const opacityStyle = canBeTarget ? '' : 'opacity:0.4;';
+            return `
+            <div class="gift-list-item" data-gift-id="${g.id}" style="${isSelected?'background:#111827;border-left:3px solid #f0883e;box-shadow:inset 0 0 15px rgba(240,136,62,0.05);':''} ${opacityStyle}">
                 <span class="gift-emoji-small">${g.emoji}</span>
                 <div class="gift-list-item-info"><div class="gift-list-item-name">${g.name}</div><div class="gift-list-item-price">${g.price} ⭐</div></div>
-            </div>`).join('');
+                ${!canBeTarget ? '<span style="color:#f85149;font-size:10px;">🔒</span>' : ''}
+            </div>`;
+        }).join('');
     }
 
     renderShop() {
@@ -521,7 +553,7 @@ class UpgradeGame {
                 <div style="text-align:right;"><div class="shop-item-price">${g.price} ⭐</div>
                 <button class="buy-btn" data-gift-id="${g.id}" ${this.balance<g.price?'disabled':''}>Купить</button></div>
             </div>`).join('');
-        c.querySelectorAll('.buy-btn').forEach(b => b.addEventListener('click', e => { const gid = e.target.dataset.giftId; const g = ALL_GIFTS.find(x => x.id === gid); if (g && this.balance >= g.price) { this.balance -= g.price; if (!this.inventory.find(en => en.giftId === g.id)) this.inventory.push({ giftId: g.id, acquiredAt: Date.now() }); this.deduplicateInventory(); if (!this.currentGift) { this.currentGiftId = g.id; this.autoSelectTarget(); this.updateChance(); } this.saveToStorage(); this.renderAll(); this.renderShop(); if (tg) tg.HapticFeedback.notificationOccurred('success'); } }));
+        c.querySelectorAll('.buy-btn').forEach(b => b.addEventListener('click', e => { const gid = e.target.dataset.giftId; const g = ALL_GIFTS.find(x => x.id === gid); if (g && this.balance >= g.price) { this.balance -= g.price; if (!this.inventory.find(en => en.giftId === g.id)) this.inventory.push({ giftId: g.id, acquiredAt: Date.now() }); this.deduplicateInventory(); if (!this.currentGift) { this.currentGiftId = g.id; this.updateChance(); } this.saveToStorage(); this.renderAll(); this.renderShop(); if (tg) tg.HapticFeedback.notificationOccurred('success'); } }));
     }
 }
 
