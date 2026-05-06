@@ -203,12 +203,12 @@ body {
 
 .left-arrows .placeholder-arrow {
     transform: scaleX(2.5) rotate(-90deg);
-    animation: arrow-wave-left 1.5s ease-in-out infinite;
+    animation: arrow-wave-left 2.5s ease-in-out infinite;
 }
 
 .right-arrows .placeholder-arrow {
     transform: scaleX(2.5) rotate(90deg);
-    animation: arrow-wave-right 1.5s ease-in-out infinite;
+    animation: arrow-wave-right 2.5s ease-in-out infinite;
 }
 
 .left-arrows .placeholder-arrow:nth-child(1),
