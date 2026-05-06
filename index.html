@@ -10,10 +10,17 @@
     <div id="app">
         <div class="header">
             <div class="balance-container" id="balanceContainer">
+                <span class="star-icon">⭐</span>
                 <span class="balance" id="balance">1,000</span>
-				                <span class="star-icon">⭐</span>
             </div>
-            <button class="inventory-btn" id="shopBtn">🛒</button>
+            <div class="header-buttons">
+                <button class="icon-btn" id="infoBtn">
+                    <img src="images/info-icon.png" alt="Info" class="icon-img">
+                </button>
+                <button class="icon-btn" id="shopBtn">
+                    <img src="images/shop_icon.png" alt="Shop" class="icon-img">
+                </button>
+            </div>
         </div>
 
         <div class="main-content" id="mainContent">
@@ -45,12 +52,12 @@
             </div>
 
             <button class="upgrade-btn" id="upgradeBtn" disabled>
-    <span class="upgrade-arrows">
-        <span class="upgrade-arrow">▲</span>
-        <span class="upgrade-arrow">▲</span>
-    </span>
-    Прокачать
-</button>
+                <span class="upgrade-arrows">
+                    <span class="upgrade-arrow">▲</span>
+                    <span class="upgrade-arrow">▲</span>
+                </span>
+                Прокачать
+            </button>
 
             <div class="lists-row">
                 <div class="gift-list-panel" id="inventoryPanel">
@@ -58,19 +65,21 @@
                     <div id="inventoryList"></div>
                 </div>
                 <div class="gift-list-panel" id="targetsPanel">
-    <div class="gift-list-title" id="targetsTitle">
-        <span class="title-arrows">
-            <span class="title-arrow title-arrow-top">▲</span>
-            <span class="title-arrow title-arrow-bottom">▲</span>
-        </span>
-        Прокачать до
-    </div>
-    <div id="targetsList"></div>
-</div>
+                    <div class="gift-list-title" id="targetsTitle">
+                        <span class="title-arrows">
+                            <span class="title-arrow title-arrow-top">▲</span>
+                            <span class="title-arrow title-arrow-bottom">▲</span>
+                        </span>
+                        Прокачать до
+                    </div>
+                    <div id="targetsList"></div>
+                </div>
+            </div>
+        </div>
 
         <div class="shop-overlay" id="shopOverlay">
             <div class="shop-header">
-                <span class="shop-title">Магазин подарков</span>
+                <span class="shop-title">🎁 Магазин подарков</span>
                 <button class="close-btn" id="closeShopBtn">✕</button>
             </div>
             <div class="shop-items" id="shopItems"></div>
@@ -100,6 +109,16 @@
                     <button class="sell-btn-confirm" id="sellConfirmBtn">Продать</button>
                     <button class="sell-btn-cancel" id="sellCancelBtn">Отмена</button>
                 </div>
+            </div>
+        </div>
+
+        <div class="info-overlay" id="infoOverlay">
+            <div class="info-card">
+                <h3>О боте</h3>
+                <p>🎁 <strong>Upgrade Stars</strong> — демо-версия игры для апгрейда подарков Telegram.</p>
+                <p>Выбирайте подарок из инвентаря, цель для апгрейда и испытывайте удачу!</p>
+                <p>Шанс рассчитывается как отношение стоимости вашего подарка к целевому с коэффициентом 0.95.</p>
+                <button class="close-btn" id="closeInfoBtn" style="margin-top:12px; width:100%;">Понятно</button>
             </div>
         </div>
     </div>

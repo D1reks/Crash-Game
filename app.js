@@ -129,15 +129,9 @@ class UpgradeGame {
 
     calculateChance(cp, tp) { return cp >= tp ? 0 : (cp / tp) * 0.95; }
     
-    // Возвращает ВСЕ подарки для списка целей — всегда показываем полный список
     getAllTargets() {
-        return ALL_GIFTS;
-    }
-    
-    // Проверяет, можно ли подарок выбрать целью
-    canBeTarget(gift) {
-        if (!this.currentGift) return true; // если ничего не выбрано — всё можно
-        return gift.price > this.currentGift.price;
+        if (!this.currentGift) return ALL_GIFTS;
+        return ALL_GIFTS.filter(g => g.price > this.currentGift.price);
     }
 
     findTargetByFraction(fr) {
@@ -158,7 +152,6 @@ class UpgradeGame {
         if (this.inventory.length > 0 && !this.inventory.find(e => e.giftId === this.currentGiftId)) {
             this.currentGiftId = this.inventory[0].giftId;
         }
-        // НЕ авто-выбираем цель — оставляем targetGiftId = null если не было в storage
         this.updateChance();
         this.sparkSystem = new SparkSystem(document.getElementById('sparkCanvas'));
         this.setupEventListeners();
@@ -175,8 +168,8 @@ class UpgradeGame {
         }
     }
 
-    loadFromStorage() { try { const s = localStorage.getItem('upgrade_stars_v10'); if (s) { const d = JSON.parse(s); this.balance = d.balance || 1000; this.inventory = d.inventory || []; this.history = d.history || []; this.currentGiftId = d.currentGiftId || null; this.targetGiftId = d.targetGiftId || null; } } catch (e) {} }
-    saveToStorage() { try { localStorage.setItem('upgrade_stars_v10', JSON.stringify({ balance: this.balance, inventory: this.inventory, history: this.history.slice(0, 30), currentGiftId: this.currentGiftId, targetGiftId: this.targetGiftId })); } catch (e) {} }
+    loadFromStorage() { try { const s = localStorage.getItem('upgrade_stars_v11'); if (s) { const d = JSON.parse(s); this.balance = d.balance || 1000; this.inventory = d.inventory || []; this.history = d.history || []; this.currentGiftId = d.currentGiftId || null; this.targetGiftId = d.targetGiftId || null; } } catch (e) {} }
+    saveToStorage() { try { localStorage.setItem('upgrade_stars_v11', JSON.stringify({ balance: this.balance, inventory: this.inventory, history: this.history.slice(0, 30), currentGiftId: this.currentGiftId, targetGiftId: this.targetGiftId })); } catch (e) {} }
 
     setupEventListeners() {
         document.getElementById('upgradeBtn').addEventListener('click', () => this.startUpgrade());
@@ -190,7 +183,6 @@ class UpgradeGame {
             if (this.isSpinning) return;
             const ig = this.inventoryGifts; if (ig.length === 0) return;
             if (!this.currentGift) { this.currentGiftId = ig[0].id; } else { const ci = ig.findIndex(g => g.id === this.currentGiftId); this.currentGiftId = ig[(ci + 1) % ig.length].id; }
-            // При выборе своего подарка НЕ сбрасываем цель — оставляем как есть
             this.updateChance();
             this.renderAll();
             this.saveToStorage();
@@ -210,13 +202,15 @@ class UpgradeGame {
         document.getElementById('topupStars').addEventListener('click', () => { this.balance += 500; this.renderAll(); this.saveToStorage(); document.getElementById('balanceTopupOverlay').classList.remove('show'); if (tg) tg.HapticFeedback.notificationOccurred('success'); });
         document.getElementById('shopBtn').addEventListener('click', () => { document.getElementById('shopOverlay').classList.add('show'); this.renderShop(); });
         document.getElementById('closeShopBtn').addEventListener('click', () => document.getElementById('shopOverlay').classList.remove('show'));
+        document.getElementById('infoBtn').addEventListener('click', () => { document.getElementById('infoOverlay').classList.add('show'); });
+        document.getElementById('closeInfoBtn').addEventListener('click', () => { document.getElementById('infoOverlay').classList.remove('show'); });
         document.getElementById('inventoryList').addEventListener('click', e => {
             if (this.isSpinning) return;
             const it = e.target.closest('.gift-list-item'); if (!it) return; const gid = it.dataset.giftId; if (gid && this.inventory.find(en => en.giftId === gid)) { this.currentGiftId = gid; this.updateChance(); this.renderAll(); this.saveToStorage(); }
         });
         document.getElementById('targetsList').addEventListener('click', e => {
             if (this.isSpinning) return;
-            const it = e.target.closest('.gift-list-item'); if (!it) return; const gid = it.dataset.giftId; const tgt = ALL_GIFTS.find(g => g.id === gid); if (tgt) { this.targetGiftId = gid; this.updateChance(); this.renderAll(); this.saveToStorage(); }
+            const it = e.target.closest('.gift-list-item'); if (!it) return; const gid = it.dataset.giftId; const tgt = ALL_GIFTS.find(g => g.id === gid); if (tgt && (!this.currentGift || tgt.price > this.currentGift.price)) { this.targetGiftId = gid; this.updateChance(); this.renderAll(); this.saveToStorage(); }
         });
         document.getElementById('sellConfirmBtn').addEventListener('click', () => this.confirmSell());
         document.getElementById('sellCancelBtn').addEventListener('click', () => this.closeSellOverlay());
@@ -319,7 +313,7 @@ class UpgradeGame {
         this.isSpinning = false;
         const btn = document.getElementById('upgradeBtn');
         btn.classList.remove('spinning');
-        btn.textContent = 'UPGRADE';
+        btn.textContent = 'Прокачать';
         btn.disabled = false;
         this.setSpinningState(false);
         const na = ((this.wheelAngle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2); const se = this.currentChance * Math.PI * 2; const win = na <= se; const sc = this.currentChance; if (win) this.onUpgradeSuccess(sc); else this.onUpgradeFail(sc);
@@ -351,7 +345,7 @@ class UpgradeGame {
         const ub = document.getElementById('upgradeBtn');
         const canUpgrade = !this.isSpinning && this.currentGift && this.targetGift && this.inventory.find(e => e.giftId === this.currentGiftId) && this.targetGift.price > this.currentGift.price;
         ub.disabled = !canUpgrade;
-        if (!this.isSpinning) { ub.classList.remove('spinning'); ub.textContent = 'UPGRADE'; }
+        if (!this.isSpinning) { ub.classList.remove('spinning'); ub.innerHTML = '<span class="upgrade-arrows"><span class="upgrade-arrow">▲</span><span class="upgrade-arrow">▲</span></span> Прокачать'; }
         if (this.isSpinning) { this.setSpinningState(true); ub.disabled = true; }
     }
 
@@ -390,191 +384,168 @@ class UpgradeGame {
     }
 
     drawWheel() {
-    const c = document.getElementById('wheelCanvas');
-    const ctx = c.getContext('2d');
-    const w = c.width, h = c.height, cx = w / 2, cy = h / 2;
-    const or = Math.min(w, h) / 2 - 10, rw = 24, ir = or - rw, cr = ir - 5;
-    
-    // Новый внешний тонкий круг
-    const outerRingInner = or + 4;
-    const outerRingOuter = or + 10;
-    const arrowBaseRadius = outerRingInner + 3;
-    
-    ctx.clearRect(0, 0, w, h);
-    
-    // Внешний тонкий круг (закрашенный)
-    if (this.currentChance > 0) {
-        const sa = -Math.PI / 2, ea = -Math.PI / 2 + this.currentChance * Math.PI * 2;
+        const c = document.getElementById('wheelCanvas');
+        const ctx = c.getContext('2d');
+        const w = c.width, h = c.height, cx = w / 2, cy = h / 2;
+        const or = Math.min(w, h) / 2 - 12, rw = 24, ir = or - rw, cr = ir - 5;
+        const outerRingInner = or + 4;
+        const outerRingOuter = or + 10;
+        const arrowBaseRadius = outerRingInner + 3;
+        
+        ctx.clearRect(0, 0, w, h);
+        
+        if (this.currentChance > 0) {
+            const sa = -Math.PI / 2, ea = -Math.PI / 2 + this.currentChance * Math.PI * 2;
+            ctx.beginPath();
+            ctx.arc(cx, cy, outerRingOuter, sa, ea);
+            ctx.arc(cx, cy, outerRingInner, ea, sa, true);
+            ctx.closePath();
+            const grad = ctx.createLinearGradient(cx - or, cy - or, cx + or, cy + or);
+            grad.addColorStop(0, '#f0883e');
+            grad.addColorStop(0.5, '#f5c842');
+            grad.addColorStop(1, '#ffd700');
+            ctx.fillStyle = grad;
+            ctx.fill();
+            ctx.shadowColor = 'rgba(240,136,62,0.5)';
+            ctx.shadowBlur = 20;
+            ctx.fill();
+            ctx.shadowBlur = 0;
+        }
+        
         ctx.beginPath();
-        ctx.arc(cx, cy, outerRingOuter, sa, ea);
-        ctx.arc(cx, cy, outerRingInner, ea, sa, true);
+        ctx.arc(cx, cy, outerRingOuter, 0, Math.PI * 2);
+        ctx.arc(cx, cy, outerRingInner, 0, Math.PI * 2, true);
         ctx.closePath();
-        const grad = ctx.createLinearGradient(cx - or, cy - or, cx + or, cy + or);
-        grad.addColorStop(0, '#f0883e');
-        grad.addColorStop(0.5, '#f5c842');
-        grad.addColorStop(1, '#ffd700');
-        ctx.fillStyle = grad;
+        ctx.fillStyle = '#111827';
         ctx.fill();
-        ctx.shadowColor = 'rgba(240,136,62,0.5)';
-        ctx.shadowBlur = 20;
+        ctx.strokeStyle = '#2a3a5c';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+        
+        ctx.beginPath();
+        ctx.arc(cx, cy, or, 0, Math.PI * 2);
+        ctx.arc(cx, cy, ir, 0, Math.PI * 2, true);
+        ctx.closePath();
+        ctx.fillStyle = '#111827';
+        ctx.fill();
+        ctx.strokeStyle = '#2a3a5c';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.shadowColor = 'rgba(100,140,255,0.3)';
+        ctx.shadowBlur = 15;
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+        
+        if (this.currentChance > 0) {
+            const sa = -Math.PI / 2, ea = -Math.PI / 2 + this.currentChance * Math.PI * 2;
+            ctx.beginPath();
+            ctx.arc(cx, cy, or - 2, sa, ea);
+            ctx.arc(cx, cy, ir + 2, ea, sa, true);
+            ctx.closePath();
+            const grad = ctx.createLinearGradient(cx - or, cy - or, cx + or, cy + or);
+            grad.addColorStop(0, '#f0883e');
+            grad.addColorStop(0.5, '#f5c842');
+            grad.addColorStop(1, '#ffd700');
+            ctx.fillStyle = grad;
+            ctx.fill();
+            ctx.shadowColor = 'rgba(240,136,62,0.5)';
+            ctx.shadowBlur = 20;
+            ctx.fill();
+            ctx.shadowBlur = 0;
+        }
+        
+        ctx.beginPath();
+        ctx.arc(cx, cy, ir, 0, Math.PI * 2);
+        ctx.strokeStyle = '#2a3a5c';
+        ctx.lineWidth = 2;
+        ctx.shadowColor = 'rgba(100,140,255,0.2)';
+        ctx.shadowBlur = 8;
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+        ctx.beginPath();
+        ctx.arc(cx, cy, or, 0, Math.PI * 2);
+        ctx.strokeStyle = '#2a3a5c';
+        ctx.lineWidth = 2;
+        ctx.shadowColor = 'rgba(100,140,255,0.2)';
+        ctx.shadowBlur = 8;
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+        
+        ctx.beginPath();
+        ctx.arc(cx, cy, outerRingOuter, 0, Math.PI * 2);
+        ctx.strokeStyle = '#2a3a5c';
+        ctx.lineWidth = 1.5;
+        ctx.shadowColor = 'rgba(100,140,255,0.2)';
+        ctx.shadowBlur = 6;
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+        
+        ctx.beginPath();
+        ctx.arc(cx, cy, cr, 0, Math.PI * 2);
+        ctx.fillStyle = '#080c14';
+        ctx.fill();
+        ctx.strokeStyle = '#2a3a5c';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(cx, cy, cr - 4, 0, Math.PI * 2);
+        ctx.strokeStyle = '#1a2540';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+        
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.rotate(this.wheelAngle);
+        
+        const tipRadius = ir + 2;
+        const tipX = 0, tipY = -tipRadius;
+        const baseX = 0, baseY = -arrowBaseRadius;
+        
+        ctx.beginPath();
+        ctx.moveTo(baseX, baseY);
+        ctx.lineTo(tipX, tipY);
+        ctx.strokeStyle = '#ffd700';
+        ctx.lineWidth = 3;
+        ctx.lineCap = 'round';
+        ctx.shadowColor = '#ffd700';
+        ctx.shadowBlur = 15;
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+        
+        ctx.beginPath();
+        ctx.moveTo(tipX, tipY);
+        ctx.lineTo(-8, tipY - 12);
+        ctx.lineTo(8, tipY - 12);
+        ctx.closePath();
+        ctx.fillStyle = '#ffd700';
+        ctx.fill();
+        ctx.shadowColor = '#ffd700';
+        ctx.shadowBlur = 15;
         ctx.fill();
         ctx.shadowBlur = 0;
-    }
-    
-    // Фон внешнего кольца (незакрашенная часть)
-    ctx.beginPath();
-    ctx.arc(cx, cy, outerRingOuter, 0, Math.PI * 2);
-    ctx.arc(cx, cy, outerRingInner, 0, Math.PI * 2, true);
-    ctx.closePath();
-    ctx.fillStyle = '#111827';
-    ctx.fill();
-    ctx.strokeStyle = '#2a3a5c';
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
-    
-    // Основной круг
-    ctx.beginPath();
-    ctx.arc(cx, cy, or, 0, Math.PI * 2);
-    ctx.arc(cx, cy, ir, 0, Math.PI * 2, true);
-    ctx.closePath();
-    ctx.fillStyle = '#111827';
-    ctx.fill();
-    ctx.strokeStyle = '#2a3a5c';
-    ctx.lineWidth = 2;
-    ctx.stroke();
-    ctx.shadowColor = 'rgba(100,140,255,0.3)';
-    ctx.shadowBlur = 15;
-    ctx.stroke();
-    ctx.shadowBlur = 0;
-    
-    // Зона успеха в основном круге
-    if (this.currentChance > 0) {
-        const sa = -Math.PI / 2, ea = -Math.PI / 2 + this.currentChance * Math.PI * 2;
+        
         ctx.beginPath();
-        ctx.arc(cx, cy, or - 2, sa, ea);
-        ctx.arc(cx, cy, ir + 2, ea, sa, true);
-        ctx.closePath();
-        const grad = ctx.createLinearGradient(cx - or, cy - or, cx + or, cy + or);
-        grad.addColorStop(0, '#f0883e');
-        grad.addColorStop(0.5, '#f5c842');
-        grad.addColorStop(1, '#ffd700');
-        ctx.fillStyle = grad;
+        ctx.arc(baseX, baseY, 4.5, 0, Math.PI * 2);
+        ctx.fillStyle = '#ffd700';
         ctx.fill();
-        ctx.shadowColor = 'rgba(240,136,62,0.5)';
-        ctx.shadowBlur = 20;
+        ctx.shadowColor = '#ffd700';
+        ctx.shadowBlur = 12;
         ctx.fill();
         ctx.shadowBlur = 0;
+        
+        ctx.restore();
+        
+        const rg = ctx.createRadialGradient(cx - or * 0.2, cy - or * 0.2, or * 0.04, cx, cy, or);
+        rg.addColorStop(0, 'rgba(255,255,255,0.05)');
+        rg.addColorStop(0.5, 'rgba(255,255,255,0.01)');
+        rg.addColorStop(1, 'rgba(0,0,0,0.2)');
+        ctx.beginPath();
+        ctx.arc(cx, cy, or, 0, Math.PI * 2);
+        ctx.arc(cx, cy, ir, 0, Math.PI * 2, true);
+        ctx.closePath();
+        ctx.fillStyle = rg;
+        ctx.fill();
     }
-    
-    // Внутренние обводки
-    ctx.beginPath();
-    ctx.arc(cx, cy, ir, 0, Math.PI * 2);
-    ctx.strokeStyle = '#2a3a5c';
-    ctx.lineWidth = 2;
-    ctx.shadowColor = 'rgba(100,140,255,0.2)';
-    ctx.shadowBlur = 8;
-    ctx.stroke();
-    ctx.shadowBlur = 0;
-    ctx.beginPath();
-    ctx.arc(cx, cy, or, 0, Math.PI * 2);
-    ctx.strokeStyle = '#2a3a5c';
-    ctx.lineWidth = 2;
-    ctx.shadowColor = 'rgba(100,140,255,0.2)';
-    ctx.shadowBlur = 8;
-    ctx.stroke();
-    ctx.shadowBlur = 0;
-    
-    // Обводка внешнего кольца
-    ctx.beginPath();
-    ctx.arc(cx, cy, outerRingOuter, 0, Math.PI * 2);
-    ctx.strokeStyle = '#2a3a5c';
-    ctx.lineWidth = 1.5;
-    ctx.shadowColor = 'rgba(100,140,255,0.2)';
-    ctx.shadowBlur = 6;
-    ctx.stroke();
-    ctx.shadowBlur = 0;
-    
-    // Центр
-    ctx.beginPath();
-    ctx.arc(cx, cy, cr, 0, Math.PI * 2);
-    ctx.fillStyle = '#080c14';
-    ctx.fill();
-    ctx.strokeStyle = '#2a3a5c';
-    ctx.lineWidth = 2;
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.arc(cx, cy, cr - 4, 0, Math.PI * 2);
-    ctx.strokeStyle = '#1a2540';
-    ctx.lineWidth = 1;
-    ctx.stroke();
-    
-    // Стрелка (исходит из внешнего кольца внутрь)
-    ctx.save();
-    ctx.translate(cx, cy);
-    ctx.rotate(this.wheelAngle);
-    
-    const tipRadius = ir + 2;
-    const tipX = 0, tipY = -tipRadius;
-    const baseX = 0, baseY = -arrowBaseRadius;
-    
-    ctx.beginPath();
-    ctx.moveTo(baseX, baseY);
-    ctx.lineTo(tipX, tipY);
-    ctx.strokeStyle = '#ffd700';
-    ctx.lineWidth = 3;
-    ctx.lineCap = 'round';
-    ctx.shadowColor = '#ffd700';
-    ctx.shadowBlur = 15;
-    ctx.stroke();
-    ctx.shadowBlur = 0;
-    
-    // Наконечник стрелки (внутри)
-    ctx.beginPath();
-    ctx.moveTo(tipX, tipY);
-    ctx.lineTo(-8, tipY - 12);
-    ctx.lineTo(8, tipY - 12);
-    ctx.closePath();
-    ctx.fillStyle = '#ffd700';
-    ctx.fill();
-    ctx.shadowColor = '#ffd700';
-    ctx.shadowBlur = 15;
-    ctx.fill();
-    ctx.shadowBlur = 0;
-    
-    // Белая точка на конце
-    ctx.beginPath();
-    ctx.arc(tipX, tipY, 3.5, 0, Math.PI * 2);
-    ctx.fillStyle = '#ffffff';
-    ctx.fill();
-    ctx.shadowColor = '#ffffff';
-    ctx.shadowBlur = 20;
-    ctx.fill();
-    ctx.shadowBlur = 0;
-    
-    // Точка у основания
-    ctx.beginPath();
-    ctx.arc(baseX, baseY, 4.5, 0, Math.PI * 2);
-    ctx.fillStyle = '#ffd700';
-    ctx.fill();
-    ctx.shadowColor = '#ffd700';
-    ctx.shadowBlur = 12;
-    ctx.fill();
-    ctx.shadowBlur = 0;
-    
-    ctx.restore();
-    
-    // Стеклянный блик на основном кольце
-    const rg = ctx.createRadialGradient(cx - or * 0.2, cy - or * 0.2, or * 0.04, cx, cy, or);
-    rg.addColorStop(0, 'rgba(255,255,255,0.05)');
-    rg.addColorStop(0.5, 'rgba(255,255,255,0.01)');
-    rg.addColorStop(1, 'rgba(0,0,0,0.2)');
-    ctx.beginPath();
-    ctx.arc(cx, cy, or, 0, Math.PI * 2);
-    ctx.arc(cx, cy, ir, 0, Math.PI * 2, true);
-    ctx.closePath();
-    ctx.fillStyle = rg;
-    ctx.fill();
-}
 
     renderInventoryList() {
         const c = document.getElementById('inventoryList');
@@ -596,14 +567,11 @@ class UpgradeGame {
         const t = this.getAllTargets();
         if (!t.length) { c.innerHTML = '<div style="padding:20px;text-align:center;color:#6b7daa;font-size:12px;">Нет подарков</div>'; return; }
         c.innerHTML = t.map(g => {
-            const canBeTarget = this.canBeTarget(g);
             const isSelected = g.id === this.targetGiftId;
-            const opacityStyle = canBeTarget ? '' : 'opacity:0.4;';
             return `
-            <div class="gift-list-item" data-gift-id="${g.id}" style="${isSelected?'background:#111827;border-left:3px solid #f0883e;box-shadow:inset 0 0 15px rgba(240,136,62,0.05);':''} ${opacityStyle}">
+            <div class="gift-list-item" data-gift-id="${g.id}" style="${isSelected?'background:#111827;border-left:3px solid #f0883e;box-shadow:inset 0 0 15px rgba(240,136,62,0.05);':''}">
                 <span class="gift-emoji-small">${g.emoji}</span>
                 <div class="gift-list-item-info"><div class="gift-list-item-name">${g.name}</div><div class="gift-list-item-price">${g.price} ⭐</div></div>
-                ${!canBeTarget ? '<span style="color:#f85149;font-size:10px;">🔒</span>' : ''}
             </div>`;
         }).join('');
     }
