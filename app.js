@@ -345,7 +345,7 @@ class UpgradeGame {
         const ub = document.getElementById('upgradeBtn');
         const canUpgrade = !this.isSpinning && this.currentGift && this.targetGift && this.inventory.find(e => e.giftId === this.currentGiftId) && this.targetGift.price > this.currentGift.price;
         ub.disabled = !canUpgrade;
-        if (!this.isSpinning) { ub.classList.remove('spinning'); ub.innerHTML = '<span class="upgrade-arrows"><span class="upgrade-arrow">▲</span><span class="upgrade-arrow">▲</span></span> Прокачать'; }
+        if (!this.isSpinning) { ub.classList.remove('spinning'); ub.textContent = 'Прокачать'; }
         if (this.isSpinning) { this.setSpinningState(true); ub.disabled = true; }
     }
 
