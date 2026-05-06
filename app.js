@@ -174,8 +174,8 @@ class UpgradeGame {
         }
     }
 
-    loadFromStorage() { try { const s = localStorage.getItem('upgrade_stars_v8'); if (s) { const d = JSON.parse(s); this.balance = d.balance || 1000; this.inventory = d.inventory || []; this.history = d.history || []; this.currentGiftId = d.currentGiftId || null; this.targetGiftId = d.targetGiftId || null; } } catch (e) {} }
-    saveToStorage() { try { localStorage.setItem('upgrade_stars_v8', JSON.stringify({ balance: this.balance, inventory: this.inventory, history: this.history.slice(0, 30), currentGiftId: this.currentGiftId, targetGiftId: this.targetGiftId })); } catch (e) {} }
+    loadFromStorage() { try { const s = localStorage.getItem('upgrade_stars_v9'); if (s) { const d = JSON.parse(s); this.balance = d.balance || 1000; this.inventory = d.inventory || []; this.history = d.history || []; this.currentGiftId = d.currentGiftId || null; this.targetGiftId = d.targetGiftId || null; } } catch (e) {} }
+    saveToStorage() { try { localStorage.setItem('upgrade_stars_v9', JSON.stringify({ balance: this.balance, inventory: this.inventory, history: this.history.slice(0, 30), currentGiftId: this.currentGiftId, targetGiftId: this.targetGiftId })); } catch (e) {} }
 
     setupEventListeners() {
         document.getElementById('upgradeBtn').addEventListener('click', () => this.startUpgrade());
@@ -352,7 +352,7 @@ class UpgradeGame {
             for (let i = 0; i < 3; i++) {
                 const arrow = document.createElement('span');
                 arrow.className = 'placeholder-arrow';
-                arrow.textContent = isCurrent ? '▼' : '▲';
+                arrow.textContent = isCurrent ? '❱' : '❰';
                 arrows.appendChild(arrow);
             }
             card.appendChild(arrows);
@@ -428,9 +428,14 @@ class UpgradeGame {
         ctx.rotate(this.wheelAngle);
         const abr = ir + rw * 0.55, atr = or + 10;
         const abx = 0, aby = -abr, atx = 0, aty = -atr;
+        // Arrow pointing inward — flip: tip at inner radius, base at outer
+        const tipRadius = ir + 2;
+        const baseRadius = or + 10;
+        const tipX = 0, tipY = -tipRadius;
+        const baseX = 0, baseY = -baseRadius;
         ctx.beginPath();
-        ctx.moveTo(abx, aby);
-        ctx.lineTo(atx, aty);
+        ctx.moveTo(baseX, baseY);
+        ctx.lineTo(tipX, tipY);
         ctx.strokeStyle = '#ffd700';
         ctx.lineWidth = 3;
         ctx.lineCap = 'round';
@@ -438,10 +443,11 @@ class UpgradeGame {
         ctx.shadowBlur = 15;
         ctx.stroke();
         ctx.shadowBlur = 0;
+        // Arrow head at tip (inner side)
         ctx.beginPath();
-        ctx.moveTo(atx, aty);
-        ctx.lineTo(-8, aty + 12);
-        ctx.lineTo(8, aty + 12);
+        ctx.moveTo(tipX, tipY);
+        ctx.lineTo(-8, tipY - 12);
+        ctx.lineTo(8, tipY - 12);
         ctx.closePath();
         ctx.fillStyle = '#ffd700';
         ctx.fill();
@@ -449,16 +455,18 @@ class UpgradeGame {
         ctx.shadowBlur = 15;
         ctx.fill();
         ctx.shadowBlur = 0;
+        // White dot at tip
         ctx.beginPath();
-        ctx.arc(atx, aty, 3.5, 0, Math.PI * 2);
+        ctx.arc(tipX, tipY, 3.5, 0, Math.PI * 2);
         ctx.fillStyle = '#ffffff';
         ctx.fill();
         ctx.shadowColor = '#ffffff';
         ctx.shadowBlur = 20;
         ctx.fill();
         ctx.shadowBlur = 0;
+        // Base dot
         ctx.beginPath();
-        ctx.arc(abx, aby, 4.5, 0, Math.PI * 2);
+        ctx.arc(baseX, baseY, 4.5, 0, Math.PI * 2);
         ctx.fillStyle = '#ffd700';
         ctx.fill();
         ctx.shadowColor = '#ffd700';

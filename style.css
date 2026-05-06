@@ -177,7 +177,7 @@ body {
 .placeholder-arrows {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 4px;
     align-items: center;
     justify-content: center;
     position: absolute;
@@ -193,8 +193,7 @@ body {
     opacity: 0.8;
     animation: arrow-wave 1.5s ease-in-out infinite;
     text-shadow: 0 0 10px rgba(255, 215, 0, 0.6);
-    line-height: 0.6;
-    letter-spacing: -4px;
+    line-height: 0.8;
     transform: scaleX(2.5);
 }
 
@@ -361,30 +360,32 @@ body {
     cursor: pointer;
     text-transform: uppercase;
     letter-spacing: 2px;
-    background: linear-gradient(135deg, #1a3a2a, #238636);
-    color: white;
-    border: 1px solid #2ea04380;
+    background: linear-gradient(135deg, #f0883e, #f5c842, #ffd700);
+    color: #0a0f1a;
+    border: 1px solid #f5c84260;
     transition: all 0.25s;
-    box-shadow: 0 0 25px rgba(46, 160, 67, 0.3), 0 0 50px rgba(46, 160, 67, 0.1);
-    text-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+    box-shadow: 0 0 25px rgba(240, 136, 62, 0.4), 0 0 50px rgba(255, 215, 0, 0.2);
+    text-shadow: none;
+    font-weight: 800;
 }
 
 .upgrade-btn:active {
-    background: linear-gradient(135deg, #238636, #2ea043);
+    background: linear-gradient(135deg, #f5c842, #ffd700, #f0883e);
     transform: scale(0.98);
-    box-shadow: 0 0 40px rgba(46, 160, 67, 0.5);
+    box-shadow: 0 0 40px rgba(255, 215, 0, 0.6);
 }
 
 .upgrade-btn:disabled {
-    opacity: 0.5;
+    opacity: 0.4;
     cursor: not-allowed;
     transform: none;
-    box-shadow: 0 0 15px rgba(46, 160, 67, 0.1);
+    box-shadow: 0 0 15px rgba(240, 136, 62, 0.1);
 }
 
 .upgrade-btn.spinning {
     background: linear-gradient(135deg, #5a2a10, #c0501e);
     border-color: #f0883e;
+    color: white;
     animation: neon-pulse 0.6s ease-in-out infinite;
     text-shadow: 0 0 8px rgba(255, 200, 100, 0.5);
 }
