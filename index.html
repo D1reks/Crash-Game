@@ -33,7 +33,7 @@
             display: flex;
             flex-direction: column;
             position: relative;
-            background: #080c14;
+            background: #0a0f1a;
             box-shadow: 0 0 60px rgba(100, 100, 255, 0.15), 0 0 120px rgba(100, 100, 255, 0.05);
             overflow: hidden;
         }
@@ -109,7 +109,7 @@
             align-items: center;
             justify-content: center;
             padding: 12px;
-            gap: 12px;
+            gap: 10px;
             min-height: 0;
             overflow-y: auto;
         }
@@ -271,7 +271,7 @@
             text-shadow: 0 0 8px rgba(100, 140, 255, 0.3);
         }
 
-        .quick-chance-buttons {
+        .quick-bet-buttons {
             display: flex;
             gap: 6px;
             flex-wrap: wrap;
@@ -279,7 +279,7 @@
             width: 100%;
         }
 
-        .quick-chance-btn {
+        .quick-bet-btn {
             background: #111827;
             border: 1px solid #2a3a5c;
             color: #a0b4e0;
@@ -293,12 +293,12 @@
             text-shadow: 0 0 6px rgba(160, 180, 224, 0.3);
         }
 
-        .quick-chance-btn:active {
+        .quick-bet-btn:active {
             background: #1a2540;
             box-shadow: 0 0 18px rgba(100, 140, 255, 0.3);
         }
 
-        .quick-chance-btn.active {
+        .quick-bet-btn.active {
             border-color: #ffd700;
             color: #ffd700;
             background: #1a2540;
@@ -435,6 +435,23 @@
             color: #ffd700;
             font-size: 10px;
             text-shadow: 0 0 5px rgba(255, 215, 0, 0.25);
+        }
+
+        .sell-icon-btn {
+            background: #3f1a1a;
+            border: 1px solid #f8514960;
+            color: #f85149;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+        }
+        .sell-icon-btn:active {
+            background: #5a2020;
+            box-shadow: 0 0 10px rgba(248, 81, 73, 0.3);
         }
 
         .shop-overlay {
@@ -736,12 +753,13 @@
                 </div>
             </div>
 
-            <div class="quick-chance-buttons" id="quickChanceButtons">
-                <button class="quick-chance-btn" data-fraction="1/2">50%</button>
-                <button class="quick-chance-btn" data-fraction="1/3">33%</button>
-                <button class="quick-chance-btn" data-fraction="1/5">20%</button>
-                <button class="quick-chance-btn" data-fraction="1/10">10%</button>
-                <button class="quick-chance-btn" data-fraction="1/100">1%</button>
+            <div class="quick-bet-buttons" id="quickBetButtons">
+                <button class="quick-bet-btn" data-fraction="1/2">x2</button>
+                <button class="quick-bet-btn" data-fraction="1/4">x4</button>
+                <button class="quick-bet-btn" data-fraction="1/8">x8</button>
+                <button class="quick-bet-btn" data-fraction="35/100">35%</button>
+                <button class="quick-bet-btn" data-fraction="75/100">75%</button>
+                <button class="quick-bet-btn" data-fraction="85/100">85%</button>
             </div>
 
             <button class="upgrade-btn" id="upgradeBtn">UPGRADE</button>
@@ -768,7 +786,7 @@
 
         <div class="balance-topup-overlay" id="balanceTopupOverlay">
             <div class="topup-card">
-                <h3>⭐ Пополнить баланс</h3>
+                <h3>Пополнить баланс</h3>
                 <div class="topup-option" id="topupGifts">
                     <span class="emoji">🎁</span>
                     Подарками в Telegram
@@ -960,19 +978,19 @@
             autoSelectTarget() { const t = this.getPotentialTargets(); if (t.length && !t.find(x => x.id === this.targetGiftId)) this.targetGiftId = t[0].id;
                 this.currentChance = this.calculateChance(this.currentGift.price, this.targetGift.price); }
 
-            loadFromStorage() { try { const s = localStorage.getItem('upgrade_stars_v5'); if (s) { const d = JSON.parse(s);
+            loadFromStorage() { try { const s = localStorage.getItem('upgrade_stars_v6'); if (s) { const d = JSON.parse(s);
                         this.balance = d.balance || 1000;
                         this.inventory = d.inventory || [{ giftId: 'rose', acquiredAt: Date.now() }];
                         this.history = d.history || [];
                         this.currentGiftId = d.currentGiftId || this.inventory[0]?.giftId || 'rose';
                         this.targetGiftId = d.targetGiftId || 'ring'; } } catch (e) {} }
-            saveToStorage() { try { localStorage.setItem('upgrade_stars_v5', JSON.stringify({ balance: this.balance,
+            saveToStorage() { try { localStorage.setItem('upgrade_stars_v6', JSON.stringify({ balance: this.balance,
                         inventory: this.inventory, history: this.history.slice(0, 30), currentGiftId: this.currentGiftId,
                         targetGiftId: this.targetGiftId })); } catch (e) {} }
 
             setupEventListeners() {
                 document.getElementById('upgradeBtn').addEventListener('click', () => this.startUpgrade());
-                document.querySelectorAll('.quick-chance-btn').forEach(b => b.addEventListener('click', e => { const f = e.target.dataset.fraction;
+                document.querySelectorAll('.quick-bet-btn').forEach(b => b.addEventListener('click', e => { const f = e.target.dataset.fraction;
                     const g = this.findTargetByFraction(f); if (g) { this.targetGiftId = g.id;
                         this.currentChance = this.calculateChance(this.currentGift.price, this.targetGift.price);
                         this.renderAll();
@@ -997,34 +1015,11 @@
                 document.getElementById('shopBtn').addEventListener('click', () => { document.getElementById('shopOverlay').classList.add('show');
                     this.renderShop(); });
                 document.getElementById('closeShopBtn').addEventListener('click', () => document.getElementById('shopOverlay').classList.remove('show'));
-                document.getElementById('inventoryList').addEventListener('click', e => { const it = e.target.closest('.gift-list-item'); if (!it) return; const gid = it.dataset.giftId;
-                    // Long press or double-click detection for sell
-                    if (it.dataset.longPress === 'pending') return;
-                    it.dataset.longPress = 'pending';
-                    const pressTime = Date.now();
-                    const releaseHandler = () => {
-                        const duration = Date.now() - pressTime;
-                        if (duration < 600) {
-                            // Short click - select gift
-                            if (gid && this.inventory.find(en => en.giftId === gid)) {
-                                this.currentGiftId = gid;
-                                this.autoSelectTarget();
-                                this.currentChance = this.calculateChance(this.currentGift.price, this.targetGift.price);
-                                this.renderAll();
-                                this.saveToStorage();
-                            }
-                        } else {
-                            // Long press - sell
-                            this.openSellOverlay(gid);
-                        }
-                        it.dataset.longPress = '';
-                        document.removeEventListener('mouseup', releaseHandler);
-                        document.removeEventListener('touchend', releaseHandler);
-                    };
-                    document.addEventListener('mouseup', releaseHandler, { once: true });
-                    document.addEventListener('touchend', releaseHandler, { once: true });
-                });
-                // Also allow sell via single click if we want a simpler approach - let's do click for sell, but add a small sell icon
+                document.getElementById('inventoryList').addEventListener('click', e => { const it = e.target.closest('.gift-list-item'); if (!it) return; const gid = it.dataset.giftId; if (gid && this.inventory.find(en => en.giftId === gid)) { this.currentGiftId = gid;
+                        this.autoSelectTarget();
+                        this.currentChance = this.calculateChance(this.currentGift.price, this.targetGift.price);
+                        this.renderAll();
+                        this.saveToStorage(); } });
                 document.getElementById('targetsList').addEventListener('click', e => { const it = e.target.closest('.gift-list-item'); if (!it) return; const gid = it.dataset.giftId; const tgt = ALL_GIFTS.find(g => g.id === gid); if (tgt && tgt.price > this.currentGift.price) { this.targetGiftId = gid;
                         this.currentChance = this.calculateChance(this.currentGift.price, this.targetGift.price);
                         this.renderAll();
@@ -1078,7 +1073,7 @@
                 if (tg) tg.HapticFeedback.notificationOccurred('success');
             }
 
-            highlightQuickButton(fr) { document.querySelectorAll('.quick-chance-btn').forEach(b => b.classList.remove('active')); const btn = document.querySelector(`.quick-chance-btn[data-fraction="${fr}"]`); if (btn) btn.classList.add('active'); }
+            highlightQuickButton(fr) { document.querySelectorAll('.quick-bet-btn').forEach(b => b.classList.remove('active')); const btn = document.querySelector(`.quick-bet-btn[data-fraction="${fr}"]`); if (btn) btn.classList.add('active'); }
 
             async initAudio() { try { this.audioContext = new(window.AudioContext || window.webkitAudioContext)(); await this.audioContext.resume();
                     this.soundEnabled = true; } catch (e) {} }
@@ -1187,7 +1182,6 @@
                 document.getElementById('targetGiftPrice').textContent = this.targetGift.price + ' ⭐';
                 const cp = (this.currentChance * 100).toFixed(1);
                 document.getElementById('chancePercent').textContent = cp + '%';
-                document.getElementById('chancePercent').style.color = this.currentChance >= 0.4 ? '#5ff57a' : this.currentChance >= 0.15 ? '#f0883e' : '#ff6b6b';
                 this.drawWheel();
                 this.renderInventoryList();
                 this.renderTargetsList();
@@ -1222,16 +1216,12 @@
                     ctx.arc(cx, cy, ir + 2, ea, sa, true);
                     ctx.closePath();
                     const grad = ctx.createLinearGradient(cx - or, cy - or, cx + or, cy + or);
-                    if (this.currentChance >= 0.4) { grad.addColorStop(0, '#3fb950');
-                        grad.addColorStop(0.5, '#7df58a');
-                        grad.addColorStop(1, '#3fb950'); } else if (this.currentChance >= 0.15) { grad.addColorStop(0, '#f0883e');
-                        grad.addColorStop(0.5, '#f5c842');
-                        grad.addColorStop(1, '#f0883e'); } else { grad.addColorStop(0, '#f85149');
-                        grad.addColorStop(0.5, '#f0883e');
-                        grad.addColorStop(1, '#f85149'); }
+                    grad.addColorStop(0, '#f0883e');
+                    grad.addColorStop(0.5, '#f5c842');
+                    grad.addColorStop(1, '#ffd700');
                     ctx.fillStyle = grad;
                     ctx.fill();
-                    ctx.shadowColor = this.currentChance >= 0.4 ? 'rgba(63,185,80,0.5)' : this.currentChance >= 0.15 ? 'rgba(240,136,62,0.5)' : 'rgba(248,81,73,0.5)';
+                    ctx.shadowColor = 'rgba(240,136,62,0.5)';
                     ctx.shadowBlur = 20;
                     ctx.fill();
                     ctx.shadowBlur = 0;
@@ -1327,14 +1317,12 @@
                     <div class="gift-list-item" data-gift-id="${g.id}" style="${g.id===this.currentGiftId?'background:#111827;border-left:3px solid #ffd700;box-shadow:inset 0 0 15px rgba(255,215,0,0.05);':''}">
                         <span class="gift-emoji-small">${g.emoji}</span>
                         <div class="gift-list-item-info"><div class="gift-list-item-name">${g.name}</div><div class="gift-list-item-price">${g.price} ⭐</div></div>
-                        ${g.id===this.currentGiftId?'<span style="color:#ffd700;font-size:10px;text-shadow:0 0 6px #ffd700;">◀</span>':''}
-                        <span style="color:#f85149;font-size:14px;cursor:pointer;padding:0 4px;" class="sell-icon" data-gift-id="${g.id}">💰</span>
+                        <button class="sell-icon-btn" data-gift-id="${g.id}">Sell</button>
                     </div>`).join('');
-                // Sell icon handlers
-                c.querySelectorAll('.sell-icon').forEach(icon => {
-                    icon.addEventListener('click', e => {
+                c.querySelectorAll('.sell-icon-btn').forEach(btn => {
+                    btn.addEventListener('click', e => {
                         e.stopPropagation();
-                        const gid = icon.dataset.giftId;
+                        const gid = btn.dataset.giftId;
                         this.openSellOverlay(gid);
                     });
                 });
@@ -1344,12 +1332,13 @@
                 const c = document.getElementById('targetsList');
                 const t = this.getPotentialTargets();
                 if (!t.length) { c.innerHTML = '<div style="padding:20px;text-align:center;color:#6b7daa;font-size:12px;">Нет целей</div>'; return; }
-                c.innerHTML = t.map(g => { const ch = this.calculateChance(this.currentGift.price, g.price); const cc = ch >= 0.4 ? '#5ff57a' : ch >= 0.15 ? '#f0883e' : '#ff6b6b'; return `
+                c.innerHTML = t.map(g => {
+                    return `
                     <div class="gift-list-item" data-gift-id="${g.id}" style="${g.id===this.targetGiftId?'background:#111827;border-left:3px solid #f0883e;box-shadow:inset 0 0 15px rgba(240,136,62,0.05);':''}">
                         <span class="gift-emoji-small">${g.emoji}</span>
-                        <div class="gift-list-item-info"><div class="gift-list-item-name">${g.name}</div><div class="gift-list-item-price">${g.price} ⭐ • <span style="color:${cc};text-shadow:0 0 6px ${cc};">${(ch*100).toFixed(1)}%</span></div></div>
-                        ${g.id===this.targetGiftId?'<span style="color:#f0883e;font-size:10px;text-shadow:0 0 6px #f0883e;">🎯</span>':''}
-                    </div>`; }).join('');
+                        <div class="gift-list-item-info"><div class="gift-list-item-name">${g.name}</div><div class="gift-list-item-price">${g.price} ⭐</div></div>
+                    </div>`;
+                }).join('');
             }
 
             renderShop() {
