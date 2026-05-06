@@ -310,14 +310,26 @@ class UpgradeGame {
     }
 
     onSpinComplete() {
-        this.isSpinning = false;
-        const btn = document.getElementById('upgradeBtn');
-        btn.classList.remove('spinning');
-        btn.textContent = 'Прокачать';
-        btn.disabled = false;
-        this.setSpinningState(false);
-        const na = ((this.wheelAngle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2); const se = this.currentChance * Math.PI * 2; const win = na <= se; const sc = this.currentChance; if (win) this.onUpgradeSuccess(sc); else this.onUpgradeFail(sc);
-    }
+    this.isSpinning = false;
+    const btn = document.getElementById('upgradeBtn');
+    btn.classList.remove('spinning');
+    btn.textContent = 'Прокачать';
+    btn.disabled = false;
+    this.setSpinningState(false);
+    
+    // Сохраняем результат до сброса
+    const na = ((this.wheelAngle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+    const se = this.currentChance * Math.PI * 2;
+    const win = na <= se;
+    const sc = this.currentChance;
+    
+    // Сброс стрелки в изначальное положение
+    this.wheelAngle = 0;
+    this.drawWheel();
+    
+    if (win) this.onUpgradeSuccess(sc);
+    else this.onUpgradeFail(sc);
+}
 
     setSpinningState(spinning) {
         document.querySelectorAll('.quick-bet-btn').forEach(b => { b.disabled = spinning; });
