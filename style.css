@@ -117,6 +117,7 @@ body {
     gap: 10px;
     width: 100%;
     align-items: stretch;
+    margin-bottom: 4px;
 }
 
 .gift-card-wrapper {
@@ -133,7 +134,7 @@ body {
     background: #0d111f;
     border: 1px solid #1e2a45;
     border-radius: 12px;
-    padding: 8px;
+    padding: 6px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -141,7 +142,7 @@ body {
     cursor: pointer;
     transition: all 0.25s;
     box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
-    min-height: 100px;
+    min-height: 80px;
     position: relative;
     overflow: hidden;
 }
@@ -169,7 +170,7 @@ body {
 .gift-icon {
     width: 100%;
     height: 100%;
-    max-height: 90px;
+    max-height: 70px;
     object-fit: contain;
     filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.3));
 }
@@ -178,9 +179,9 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 1px;
+    gap: 0px;
     text-align: center;
-    min-height: 32px;
+    min-height: 28px;
 }
 
 .gift-name-outside {
@@ -205,7 +206,7 @@ body {
 .placeholder-arrows {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 3px;
     align-items: center;
     justify-content: center;
     position: absolute;
@@ -273,11 +274,11 @@ body {
 
 .wheel-container {
     position: relative;
-    width: 190px;
-    height: 190px;
+    width: 180px;
+    height: 180px;
     flex-shrink: 0;
     filter: drop-shadow(0 0 30px rgba(100, 140, 255, 0.2));
-    margin: 0 auto;
+    margin: 0 auto 4px auto;
 }
 
 .wheel-canvas {
@@ -377,6 +378,7 @@ body {
     flex-wrap: wrap;
     justify-content: center;
     width: 100%;
+    margin-bottom: 8px;
 }
 
 .quick-bet-btn {
@@ -432,6 +434,8 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
+    margin-top: 6px;
+    margin-bottom: 6px;
 }
 
 .upgrade-btn:active {
