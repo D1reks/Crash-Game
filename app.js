@@ -224,7 +224,7 @@ class UpgradeGame {
         this.sellTargetGiftId = giftId;
         document.getElementById('sellEmoji').innerHTML = `<img src="${gift.icon}" alt="${gift.name}" class="sell-icon">`;
         document.getElementById('sellName').textContent = gift.name;
-        document.getElementById('sellPrice').textContent = gift.price + ' ⭐';
+        document.getElementById('sellPrice').innerHTML = gift.price + ' <span class="star-icon-small"></span>';
         document.getElementById('sellOverlay').classList.add('show');
     }
 
@@ -372,7 +372,7 @@ class UpgradeGame {
             img.alt = gift.name;
             card.appendChild(img);
             nameOutside.textContent = gift.name;
-            priceOutside.textContent = gift.price + ' ⭐';
+            priceOutside.innerHTML = gift.price + ' <span class="star-icon-small"></span>';
         } else {
             card.classList.add('empty-card');
             const arrows = document.createElement('div');
@@ -560,7 +560,7 @@ class UpgradeGame {
         c.innerHTML = ig.map(g => `
             <div class="gift-list-item" data-gift-id="${g.id}" style="${g.id===this.currentGiftId?'background:#111827;border-left:3px solid #ffd700;box-shadow:inset 0 0 15px rgba(255,215,0,0.05);':''}">
                 <img src="${g.icon}" alt="${g.name}" class="gift-icon-small">
-                <div class="gift-list-item-info"><div class="gift-list-item-name">${g.name}</div><div class="gift-list-item-price">${g.price} ⭐</div></div>
+                <div class="gift-list-item-info"><div class="gift-list-item-name">${g.name}</div><div class="gift-list-item-price">${g.price} <span class="star-icon-small"></span></div></div>
                 <button class="sell-icon-btn" data-gift-id="${g.id}">Sell</button>
             </div>`).join('');
         c.querySelectorAll('.sell-icon-btn').forEach(btn => {
@@ -577,7 +577,7 @@ class UpgradeGame {
             return `
             <div class="gift-list-item" data-gift-id="${g.id}" style="${isSelected?'background:#111827;border-left:3px solid #f0883e;box-shadow:inset 0 0 15px rgba(240,136,62,0.05);':''}">
                 <img src="${g.icon}" alt="${g.name}" class="gift-icon-small">
-                <div class="gift-list-item-info"><div class="gift-list-item-name">${g.name}</div><div class="gift-list-item-price">${g.price} ⭐</div></div>
+                <div class="gift-list-item-info"><div class="gift-list-item-name">${g.name}</div><div class="gift-list-item-price">${g.price} <span class="star-icon-small"></span></div></div>
             </div>`;
         }).join('');
     }
@@ -588,7 +588,7 @@ class UpgradeGame {
             <div class="shop-item">
                 <img src="${g.icon}" alt="${g.name}" class="shop-item-icon">
                 <div class="shop-item-info"><h3>${g.name}</h3><p>Подарок для апгрейда</p></div>
-                <div style="text-align:right;"><div class="shop-item-price">${g.price} ⭐</div>
+                <div style="text-align:right;"><div class="shop-item-price">${g.price} <span class="star-icon-small"></span></div>
                 <button class="buy-btn" data-gift-id="${g.id}" ${this.balance<g.price?'disabled':''}>Купить</button></div>
             </div>`).join('');
         c.querySelectorAll('.buy-btn').forEach(b => b.addEventListener('click', e => { const gid = e.target.dataset.giftId; const g = ALL_GIFTS.find(x => x.id === gid); if (g && this.balance >= g.price) { this.balance -= g.price; if (!this.inventory.find(en => en.giftId === g.id)) this.inventory.push({ giftId: g.id, acquiredAt: Date.now() }); this.deduplicateInventory(); if (!this.currentGift) { this.currentGiftId = g.id; this.updateChance(); } this.saveToStorage(); this.renderAll(); this.renderShop(); if (tg) tg.HapticFeedback.notificationOccurred('success'); } }));
