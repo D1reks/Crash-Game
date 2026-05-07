@@ -129,20 +129,19 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 6px;
+    gap: 2px;
 }
 
 .gift-card {
     width: 100%;
+    flex: 1;
     background: #0d111f;
     border: 1px solid #1e2a45;
     border-radius: 12px;
-    padding: 10px;
+    padding: 8px;
     display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 6px;
     min-width: 0;
     cursor: pointer;
     transition: all 0.25s;
@@ -174,23 +173,31 @@ body {
 
 .gift-icon {
     width: 100%;
-    max-width: 80px;
-    height: auto;
-    max-height: 64px;
+    height: 100%;
+    max-height: 90px;
     object-fit: contain;
     filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.3));
 }
 
-.gift-name {
+.gift-info-outside {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1px;
+    text-align: center;
+    min-height: 32px;
+}
+
+.gift-name-outside {
     color: #d0daf0;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 600;
     text-align: center;
+    text-shadow: 0 0 8px rgba(200, 210, 255, 0.2);
+    max-width: 100%;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 100%;
-    text-shadow: 0 0 8px rgba(200, 210, 255, 0.2);
 }
 
 .gift-price-outside {
@@ -198,8 +205,6 @@ body {
     font-size: 12px;
     font-weight: bold;
     text-shadow: 0 0 8px rgba(255, 215, 0, 0.3);
-    text-align: center;
-    min-height: 18px;
 }
 
 .placeholder-arrows {
@@ -273,10 +278,11 @@ body {
 
 .wheel-container {
     position: relative;
-    width: 210px;
-    height: 210px;
+    width: 190px;
+    height: 190px;
     flex-shrink: 0;
     filter: drop-shadow(0 0 30px rgba(100, 140, 255, 0.2));
+    margin: 0 auto;
 }
 
 .wheel-canvas {
@@ -431,7 +437,6 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
 }
 
 .upgrade-btn:active {

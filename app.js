@@ -168,8 +168,8 @@ class UpgradeGame {
         }
     }
 
-    loadFromStorage() { try { const s = localStorage.getItem('upgrade_stars_v11'); if (s) { const d = JSON.parse(s); this.balance = d.balance || 1000; this.inventory = d.inventory || []; this.history = d.history || []; this.currentGiftId = d.currentGiftId || null; this.targetGiftId = d.targetGiftId || null; } } catch (e) {} }
-    saveToStorage() { try { localStorage.setItem('upgrade_stars_v11', JSON.stringify({ balance: this.balance, inventory: this.inventory, history: this.history.slice(0, 30), currentGiftId: this.currentGiftId, targetGiftId: this.targetGiftId })); } catch (e) {} }
+    loadFromStorage() { try { const s = localStorage.getItem('upgrade_stars_v12'); if (s) { const d = JSON.parse(s); this.balance = d.balance || 1000; this.inventory = d.inventory || []; this.history = d.history || []; this.currentGiftId = d.currentGiftId || null; this.targetGiftId = d.targetGiftId || null; } } catch (e) {} }
+    saveToStorage() { try { localStorage.setItem('upgrade_stars_v12', JSON.stringify({ balance: this.balance, inventory: this.inventory, history: this.history.slice(0, 30), currentGiftId: this.currentGiftId, targetGiftId: this.targetGiftId })); } catch (e) {} }
 
     setupEventListeners() {
         document.getElementById('upgradeBtn').addEventListener('click', () => this.startUpgrade());
@@ -219,14 +219,14 @@ class UpgradeGame {
     }
 
     openSellOverlay(giftId) {
-    const gift = ALL_GIFTS.find(g => g.id === giftId);
-    if (!gift || !this.inventory.find(e => e.giftId === giftId)) return;
-    this.sellTargetGiftId = giftId;
-    document.getElementById('sellEmoji').innerHTML = `<img src="${gift.icon}" alt="${gift.name}" style="width:56px;height:56px;object-fit:contain;filter:drop-shadow(0 0 15px rgba(255,255,255,0.4));">`;
-    document.getElementById('sellName').textContent = gift.name;
-    document.getElementById('sellPrice').textContent = gift.price + ' ⭐';
-    document.getElementById('sellOverlay').classList.add('show');
-}
+        const gift = ALL_GIFTS.find(g => g.id === giftId);
+        if (!gift || !this.inventory.find(e => e.giftId === giftId)) return;
+        this.sellTargetGiftId = giftId;
+        document.getElementById('sellEmoji').innerHTML = `<img src="${gift.icon}" alt="${gift.name}" class="sell-icon">`;
+        document.getElementById('sellName').textContent = gift.name;
+        document.getElementById('sellPrice').textContent = gift.price + ' ⭐';
+        document.getElementById('sellOverlay').classList.add('show');
+    }
 
     closeSellOverlay() {
         document.getElementById('sellOverlay').classList.remove('show');
@@ -309,27 +309,22 @@ class UpgradeGame {
         this.wheelAnimationId = requestAnimationFrame(anim);
     }
 
-        onSpinComplete() {
-    this.isSpinning = false;
-    const btn = document.getElementById('upgradeBtn');
-    btn.classList.remove('spinning');
-    btn.textContent = 'Прокачать';
-    btn.disabled = false;
-    this.setSpinningState(false);
-    
-    // Сохраняем результат до сброса
-    const na = ((this.wheelAngle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
-    const se = this.currentChance * Math.PI * 2;
-    const win = na <= se;
-    const sc = this.currentChance;
-    
-    // Сброс стрелки в изначальное положение
-    this.wheelAngle = 0;
-    this.drawWheel();
-    
-    if (win) this.onUpgradeSuccess(sc);
-    else this.onUpgradeFail(sc);
-}
+    onSpinComplete() {
+        this.isSpinning = false;
+        const btn = document.getElementById('upgradeBtn');
+        btn.classList.remove('spinning');
+        btn.textContent = 'Прокачать';
+        btn.disabled = false;
+        this.setSpinningState(false);
+        const na = ((this.wheelAngle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+        const se = this.currentChance * Math.PI * 2;
+        const win = na <= se;
+        const sc = this.currentChance;
+        this.wheelAngle = 0;
+        this.drawWheel();
+        if (win) this.onUpgradeSuccess(sc);
+        else this.onUpgradeFail(sc);
+    }
 
     setSpinningState(spinning) {
         document.querySelectorAll('.quick-bet-btn').forEach(b => { b.disabled = spinning; });
@@ -346,54 +341,53 @@ class UpgradeGame {
     onUpgradeFail(sc) { const og = this.currentGift, tgf = this.targetGift; const idx = this.inventory.findIndex(e => e.giftId === og.id); if (idx !== -1) this.inventory.splice(idx, 1); if (!this.inventory.length) { this.currentGiftId = null; } else { this.currentGiftId = this.inventory[0].giftId; } this.updateChance(); this.history.unshift({ from: og.id, to: tgf.id, chance: sc, success: false, time: Date.now() }); this.saveToStorage(); this.renderAll(); this.showResultText(false, sc); if (tg) tg.HapticFeedback.notificationOccurred('error'); this.playBeep(200, 0.3, 'sawtooth'); }
 
     renderAll() {
-    document.getElementById('balance').textContent = this.balance.toLocaleString();
-    this.renderGiftCard('currentGiftCard', this.currentGift, true);
-    this.renderGiftCard('targetGiftCard', this.targetGift, false);
-    const cp = (this.currentChance * 100).toFixed(1);
-    document.getElementById('chancePercent').textContent = cp + '%';
-    this.drawWheel();
-    this.renderInventoryList();
-    this.renderTargetsList();
-    const ub = document.getElementById('upgradeBtn');
-    const canUpgrade = !this.isSpinning && this.currentGift && this.targetGift && this.inventory.find(e => e.giftId === this.currentGiftId) && this.targetGift.price > this.currentGift.price;
-    ub.disabled = !canUpgrade;
-    if (!this.isSpinning) { ub.classList.remove('spinning'); ub.textContent = 'Прокачать'; }
-    if (this.isSpinning) { this.setSpinningState(true); ub.disabled = true; }
-}
+        document.getElementById('balance').textContent = this.balance.toLocaleString();
+        this.renderGiftCard('currentGiftCard', this.currentGift, true);
+        this.renderGiftCard('targetGiftCard', this.targetGift, false);
+        const cp = (this.currentChance * 100).toFixed(1);
+        document.getElementById('chancePercent').textContent = cp + '%';
+        this.drawWheel();
+        this.renderInventoryList();
+        this.renderTargetsList();
+        const ub = document.getElementById('upgradeBtn');
+        const canUpgrade = !this.isSpinning && this.currentGift && this.targetGift && this.inventory.find(e => e.giftId === this.currentGiftId) && this.targetGift.price > this.currentGift.price;
+        ub.disabled = !canUpgrade;
+        if (!this.isSpinning) { ub.classList.remove('spinning'); ub.textContent = 'Прокачать'; }
+        if (this.isSpinning) { this.setSpinningState(true); ub.disabled = true; }
+    }
 
     renderGiftCard(cardId, gift, isCurrent) {
-    const card = document.getElementById(cardId);
-    const priceOutside = document.getElementById(isCurrent ? 'currentGiftPriceOutside' : 'targetGiftPriceOutside');
-    card.innerHTML = '';
-    card.className = 'gift-card';
+        const card = document.getElementById(cardId);
+        const nameOutside = document.getElementById(isCurrent ? 'currentGiftNameOutside' : 'targetGiftNameOutside');
+        const priceOutside = document.getElementById(isCurrent ? 'currentGiftPriceOutside' : 'targetGiftPriceOutside');
+        card.innerHTML = '';
+        card.className = 'gift-card';
 
-    if (gift) {
-        if (isCurrent) card.classList.add('current-gift');
-        else card.classList.add('target-gift');
-        const img = document.createElement('img');
-        img.className = 'gift-icon';
-        img.src = gift.icon;
-        img.alt = gift.name;
-        const name = document.createElement('div');
-        name.className = 'gift-name';
-        name.textContent = gift.name;
-        card.appendChild(img);
-        card.appendChild(name);
-        priceOutside.textContent = gift.price + ' ⭐';
-    } else {
-        card.classList.add('empty-card');
-        const arrows = document.createElement('div');
-        arrows.className = 'placeholder-arrows ' + (isCurrent ? 'left-arrows' : 'right-arrows');
-        for (let i = 0; i < 3; i++) {
-            const arrow = document.createElement('span');
-            arrow.className = 'placeholder-arrow';
-            arrow.textContent = '❱';
-            arrows.appendChild(arrow);
+        if (gift) {
+            if (isCurrent) card.classList.add('current-gift');
+            else card.classList.add('target-gift');
+            const img = document.createElement('img');
+            img.className = 'gift-icon';
+            img.src = gift.icon;
+            img.alt = gift.name;
+            card.appendChild(img);
+            nameOutside.textContent = gift.name;
+            priceOutside.textContent = gift.price + ' ⭐';
+        } else {
+            card.classList.add('empty-card');
+            const arrows = document.createElement('div');
+            arrows.className = 'placeholder-arrows ' + (isCurrent ? 'left-arrows' : 'right-arrows');
+            for (let i = 0; i < 3; i++) {
+                const arrow = document.createElement('span');
+                arrow.className = 'placeholder-arrow';
+                arrow.textContent = '❱';
+                arrows.appendChild(arrow);
+            }
+            card.appendChild(arrows);
+            nameOutside.textContent = '';
+            priceOutside.textContent = '';
         }
-        card.appendChild(arrows);
-        priceOutside.textContent = '';
     }
-}
 
     drawWheel() {
         const c = document.getElementById('wheelCanvas');
@@ -560,45 +554,45 @@ class UpgradeGame {
     }
 
     renderInventoryList() {
-    const c = document.getElementById('inventoryList');
-    const ig = this.inventoryGifts;
-    if (!ig.length) { c.innerHTML = '<div style="padding:20px;text-align:center;color:#6b7daa;font-size:12px;">Пусто</div>'; return; }
-    c.innerHTML = ig.map(g => `
-        <div class="gift-list-item" data-gift-id="${g.id}" style="${g.id===this.currentGiftId?'background:#111827;border-left:3px solid #ffd700;box-shadow:inset 0 0 15px rgba(255,215,0,0.05);':''}">
-            <img src="${g.icon}" alt="${g.name}" class="gift-icon-small">
-            <div class="gift-list-item-info"><div class="gift-list-item-name">${g.name}</div><div class="gift-list-item-price">${g.price} ⭐</div></div>
-            <button class="sell-icon-btn" data-gift-id="${g.id}">Sell</button>
-        </div>`).join('');
-    c.querySelectorAll('.sell-icon-btn').forEach(btn => {
-        btn.addEventListener('click', e => { e.stopPropagation(); const gid = btn.dataset.giftId; this.openSellOverlay(gid); });
-    });
-}
+        const c = document.getElementById('inventoryList');
+        const ig = this.inventoryGifts;
+        if (!ig.length) { c.innerHTML = '<div style="padding:20px;text-align:center;color:#6b7daa;font-size:12px;">Пусто</div>'; return; }
+        c.innerHTML = ig.map(g => `
+            <div class="gift-list-item" data-gift-id="${g.id}" style="${g.id===this.currentGiftId?'background:#111827;border-left:3px solid #ffd700;box-shadow:inset 0 0 15px rgba(255,215,0,0.05);':''}">
+                <img src="${g.icon}" alt="${g.name}" class="gift-icon-small">
+                <div class="gift-list-item-info"><div class="gift-list-item-name">${g.name}</div><div class="gift-list-item-price">${g.price} ⭐</div></div>
+                <button class="sell-icon-btn" data-gift-id="${g.id}">Sell</button>
+            </div>`).join('');
+        c.querySelectorAll('.sell-icon-btn').forEach(btn => {
+            btn.addEventListener('click', e => { e.stopPropagation(); const gid = btn.dataset.giftId; this.openSellOverlay(gid); });
+        });
+    }
 
     renderTargetsList() {
-    const c = document.getElementById('targetsList');
-    const t = this.getAllTargets();
-    if (!t.length) { c.innerHTML = '<div style="padding:20px;text-align:center;color:#6b7daa;font-size:12px;">Нет подарков</div>'; return; }
-    c.innerHTML = t.map(g => {
-        const isSelected = g.id === this.targetGiftId;
-        return `
-        <div class="gift-list-item" data-gift-id="${g.id}" style="${isSelected?'background:#111827;border-left:3px solid #f0883e;box-shadow:inset 0 0 15px rgba(240,136,62,0.05);':''}">
-            <img src="${g.icon}" alt="${g.name}" class="gift-icon-small">
-            <div class="gift-list-item-info"><div class="gift-list-item-name">${g.name}</div><div class="gift-list-item-price">${g.price} ⭐</div></div>
-        </div>`;
-    }).join('');
-}
+        const c = document.getElementById('targetsList');
+        const t = this.getAllTargets();
+        if (!t.length) { c.innerHTML = '<div style="padding:20px;text-align:center;color:#6b7daa;font-size:12px;">Нет подарков</div>'; return; }
+        c.innerHTML = t.map(g => {
+            const isSelected = g.id === this.targetGiftId;
+            return `
+            <div class="gift-list-item" data-gift-id="${g.id}" style="${isSelected?'background:#111827;border-left:3px solid #f0883e;box-shadow:inset 0 0 15px rgba(240,136,62,0.05);':''}">
+                <img src="${g.icon}" alt="${g.name}" class="gift-icon-small">
+                <div class="gift-list-item-info"><div class="gift-list-item-name">${g.name}</div><div class="gift-list-item-price">${g.price} ⭐</div></div>
+            </div>`;
+        }).join('');
+    }
 
     renderShop() {
-    const c = document.getElementById('shopItems');
-    c.innerHTML = ALL_GIFTS.map(g => `
-        <div class="shop-item">
-            <img src="${g.icon}" alt="${g.name}" class="shop-item-icon">
-            <div class="shop-item-info"><h3>${g.name}</h3><p>Подарок для апгрейда</p></div>
-            <div style="text-align:right;"><div class="shop-item-price">${g.price} ⭐</div>
-            <button class="buy-btn" data-gift-id="${g.id}" ${this.balance<g.price?'disabled':''}>Купить</button></div>
-        </div>`).join('');
-    c.querySelectorAll('.buy-btn').forEach(b => b.addEventListener('click', e => { const gid = e.target.dataset.giftId; const g = ALL_GIFTS.find(x => x.id === gid); if (g && this.balance >= g.price) { this.balance -= g.price; if (!this.inventory.find(en => en.giftId === g.id)) this.inventory.push({ giftId: g.id, acquiredAt: Date.now() }); this.deduplicateInventory(); if (!this.currentGift) { this.currentGiftId = g.id; this.updateChance(); } this.saveToStorage(); this.renderAll(); this.renderShop(); if (tg) tg.HapticFeedback.notificationOccurred('success'); } }));
-}
+        const c = document.getElementById('shopItems');
+        c.innerHTML = ALL_GIFTS.map(g => `
+            <div class="shop-item">
+                <img src="${g.icon}" alt="${g.name}" class="shop-item-icon">
+                <div class="shop-item-info"><h3>${g.name}</h3><p>Подарок для апгрейда</p></div>
+                <div style="text-align:right;"><div class="shop-item-price">${g.price} ⭐</div>
+                <button class="buy-btn" data-gift-id="${g.id}" ${this.balance<g.price?'disabled':''}>Купить</button></div>
+            </div>`).join('');
+        c.querySelectorAll('.buy-btn').forEach(b => b.addEventListener('click', e => { const gid = e.target.dataset.giftId; const g = ALL_GIFTS.find(x => x.id === gid); if (g && this.balance >= g.price) { this.balance -= g.price; if (!this.inventory.find(en => en.giftId === g.id)) this.inventory.push({ giftId: g.id, acquiredAt: Date.now() }); this.deduplicateInventory(); if (!this.currentGift) { this.currentGiftId = g.id; this.updateChance(); } this.saveToStorage(); this.renderAll(); this.renderShop(); if (tg) tg.HapticFeedback.notificationOccurred('success'); } }));
+    }
 }
 
 const game = new UpgradeGame();
