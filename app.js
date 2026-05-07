@@ -7,18 +7,18 @@ if (window.Telegram && window.Telegram.WebApp) {
 }
 
 const ALL_GIFTS = [
-    { id: 'rose', name: 'Роза', icon: 'images/gifts icons/Precious Peach.png', price: 50 },
-    { id: 'cake', name: 'Торт', icon: 'images/gifts icons/Desk Calendar.png', price: 100 },
-    { id: 'ring', name: 'Кольцо', icon: 'images/gifts icons/Bonded Ring.png', price: 200 },
-    { id: 'crown', name: 'Корона', icon: 'images/gifts icons/Durov\'s Cap.png', price: 500 },
-    { id: 'diamond', name: 'Алмаз', icon: 'images/gifts icons/Swiss Watch.png', price: 1000 },
-    { id: 'rocket', name: 'Ракета', icon: 'images/gifts icons/Chill Flame.png', price: 2500 },
-    { id: 'star_gift', name: 'Звездный дар', icon: 'images/gifts icons/Heart Locket.png', price: 5000 },
-    { id: 'unicorn', name: 'Единорог', icon: 'images/gifts icons/Plush Pepe.png', price: 10000 },
-    { id: 'dragon', name: 'Дракон', icon: 'images/gifts icons/Scared Cat.png', price: 25000 },
-    { id: 'phoenix', name: 'Феникс', icon: 'images/gifts icons/Witch Hat.png', price: 50000 },
-    { id: 'galaxy', name: 'Галактика', icon: 'images/gifts icons/Toy Bear.png', price: 100000 },
-    { id: 'infinity', name: 'Бесконечность', icon: 'images/gifts icons/Loot Bag.png', price: 250000 },
+    { id: 'precious_peach', name: 'Precious Peach', icon: 'images/gifts icons/Precious Peach.png', price: 50 },
+    { id: 'desk_calendar', name: 'Desk Calendar', icon: 'images/gifts icons/Desk Calendar.png', price: 100 },
+    { id: 'bonded_ring', name: 'Bonded Ring', icon: 'images/gifts icons/Bonded Ring.png', price: 200 },
+    { id: 'durovs_cap', name: "Durov's Cap", icon: "images/gifts icons/Durov's Cap.png", price: 500 },
+    { id: 'swiss_watch', name: 'Swiss Watch', icon: 'images/gifts icons/Swiss Watch.png', price: 1000 },
+    { id: 'chill_flame', name: 'Chill Flame', icon: 'images/gifts icons/Chill Flame.png', price: 2500 },
+    { id: 'heart_locket', name: 'Heart Locket', icon: 'images/gifts icons/Heart Locket.png', price: 5000 },
+    { id: 'plush_pepe', name: 'Plush Pepe', icon: 'images/gifts icons/Plush Pepe.png', price: 10000 },
+    { id: 'scared_cat', name: 'Scared Cat', icon: 'images/gifts icons/Scared Cat.png', price: 25000 },
+    { id: 'witch_hat', name: 'Witch Hat', icon: 'images/gifts icons/Witch Hat.png', price: 50000 },
+    { id: 'toy_bear', name: 'Toy Bear', icon: 'images/gifts icons/Toy Bear.png', price: 100000 },
+    { id: 'loot_bag', name: 'Loot Bag', icon: 'images/gifts icons/Loot Bag.png', price: 250000 },
 ];
 
 class SparkParticle {
@@ -346,23 +346,24 @@ class UpgradeGame {
     onUpgradeFail(sc) { const og = this.currentGift, tgf = this.targetGift; const idx = this.inventory.findIndex(e => e.giftId === og.id); if (idx !== -1) this.inventory.splice(idx, 1); if (!this.inventory.length) { this.currentGiftId = null; } else { this.currentGiftId = this.inventory[0].giftId; } this.updateChance(); this.history.unshift({ from: og.id, to: tgf.id, chance: sc, success: false, time: Date.now() }); this.saveToStorage(); this.renderAll(); this.showResultText(false, sc); if (tg) tg.HapticFeedback.notificationOccurred('error'); this.playBeep(200, 0.3, 'sawtooth'); }
 
     renderAll() {
-        document.getElementById('balance').textContent = this.balance.toLocaleString();
-        this.renderGiftCard('currentGiftCard', this.currentGift, true);
-        this.renderGiftCard('targetGiftCard', this.targetGift, false);
-        const cp = (this.currentChance * 100).toFixed(1);
-        document.getElementById('chancePercent').textContent = cp + '%';
-        this.drawWheel();
-        this.renderInventoryList();
-        this.renderTargetsList();
-        const ub = document.getElementById('upgradeBtn');
-        const canUpgrade = !this.isSpinning && this.currentGift && this.targetGift && this.inventory.find(e => e.giftId === this.currentGiftId) && this.targetGift.price > this.currentGift.price;
-        ub.disabled = !canUpgrade;
-        if (!this.isSpinning) { ub.classList.remove('spinning'); ub.textContent = 'Прокачать'; }
-        if (this.isSpinning) { this.setSpinningState(true); ub.disabled = true; }
-    }
+    document.getElementById('balance').textContent = this.balance.toLocaleString();
+    this.renderGiftCard('currentGiftCard', this.currentGift, true);
+    this.renderGiftCard('targetGiftCard', this.targetGift, false);
+    const cp = (this.currentChance * 100).toFixed(1);
+    document.getElementById('chancePercent').textContent = cp + '%';
+    this.drawWheel();
+    this.renderInventoryList();
+    this.renderTargetsList();
+    const ub = document.getElementById('upgradeBtn');
+    const canUpgrade = !this.isSpinning && this.currentGift && this.targetGift && this.inventory.find(e => e.giftId === this.currentGiftId) && this.targetGift.price > this.currentGift.price;
+    ub.disabled = !canUpgrade;
+    if (!this.isSpinning) { ub.classList.remove('spinning'); ub.textContent = 'Прокачать'; }
+    if (this.isSpinning) { this.setSpinningState(true); ub.disabled = true; }
+}
 
     renderGiftCard(cardId, gift, isCurrent) {
     const card = document.getElementById(cardId);
+    const priceOutside = document.getElementById(isCurrent ? 'currentGiftPriceOutside' : 'targetGiftPriceOutside');
     card.innerHTML = '';
     card.className = 'gift-card';
 
@@ -376,12 +377,9 @@ class UpgradeGame {
         const name = document.createElement('div');
         name.className = 'gift-name';
         name.textContent = gift.name;
-        const price = document.createElement('div');
-        price.className = 'gift-price';
-        price.textContent = gift.price + ' ⭐';
         card.appendChild(img);
         card.appendChild(name);
-        card.appendChild(price);
+        priceOutside.textContent = gift.price + ' ⭐';
     } else {
         card.classList.add('empty-card');
         const arrows = document.createElement('div');
@@ -393,6 +391,7 @@ class UpgradeGame {
             arrows.appendChild(arrow);
         }
         card.appendChild(arrows);
+        priceOutside.textContent = '';
     }
 }
 

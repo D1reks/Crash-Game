@@ -124,8 +124,16 @@ body {
     align-items: stretch;
 }
 
-.gift-card {
+.gift-card-wrapper {
     flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+}
+
+.gift-card {
+    width: 100%;
     background: #0d111f;
     border: 1px solid #1e2a45;
     border-radius: 12px;
@@ -165,8 +173,10 @@ body {
 }
 
 .gift-icon {
-    width: 48px;
-    height: 48px;
+    width: 100%;
+    max-width: 80px;
+    height: auto;
+    max-height: 64px;
     object-fit: contain;
     filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.3));
 }
@@ -183,11 +193,13 @@ body {
     text-shadow: 0 0 8px rgba(200, 210, 255, 0.2);
 }
 
-.gift-price {
+.gift-price-outside {
     color: #ffd700;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: bold;
     text-shadow: 0 0 8px rgba(255, 215, 0, 0.3);
+    text-align: center;
+    min-height: 18px;
 }
 
 .placeholder-arrows {
