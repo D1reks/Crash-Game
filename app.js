@@ -7,18 +7,18 @@ if (window.Telegram && window.Telegram.WebApp) {
 }
 
 const ALL_GIFTS = [
-    { id: 'rose', name: 'Роза', emoji: '🌹', price: 50 },
-    { id: 'cake', name: 'Торт', emoji: '🎂', price: 100 },
-    { id: 'ring', name: 'Кольцо', emoji: '💍', price: 200 },
-    { id: 'crown', name: 'Корона', emoji: '👑', price: 500 },
-    { id: 'diamond', name: 'Алмаз', emoji: '💎', price: 1000 },
-    { id: 'rocket', name: 'Ракета', emoji: '🚀', price: 2500 },
-    { id: 'star_gift', name: 'Звездный дар', emoji: '🌟', price: 5000 },
-    { id: 'unicorn', name: 'Единорог', emoji: '🦄', price: 10000 },
-    { id: 'dragon', name: 'Дракон', emoji: '🐉', price: 25000 },
-    { id: 'phoenix', name: 'Феникс', emoji: '🔥', price: 50000 },
-    { id: 'galaxy', name: 'Галактика', emoji: '🌌', price: 100000 },
-    { id: 'infinity', name: 'Бесконечность', emoji: '♾️', price: 250000 },
+    { id: 'rose', name: 'Роза', icon: 'images/gifts icons/Precious Peach.png', price: 50 },
+    { id: 'cake', name: 'Торт', icon: 'images/gifts icons/Desk Calendar.png', price: 100 },
+    { id: 'ring', name: 'Кольцо', icon: 'images/gifts icons/Bonded Ring.png', price: 200 },
+    { id: 'crown', name: 'Корона', icon: 'images/gifts icons/Durov\'s Cap.png', price: 500 },
+    { id: 'diamond', name: 'Алмаз', icon: 'images/gifts icons/Swiss Watch.png', price: 1000 },
+    { id: 'rocket', name: 'Ракета', icon: 'images/gifts icons/Chill Flame.png', price: 2500 },
+    { id: 'star_gift', name: 'Звездный дар', icon: 'images/gifts icons/Heart Locket.png', price: 5000 },
+    { id: 'unicorn', name: 'Единорог', icon: 'images/gifts icons/Plush Pepe.png', price: 10000 },
+    { id: 'dragon', name: 'Дракон', icon: 'images/gifts icons/Scared Cat.png', price: 25000 },
+    { id: 'phoenix', name: 'Феникс', icon: 'images/gifts icons/Witch Hat.png', price: 50000 },
+    { id: 'galaxy', name: 'Галактика', icon: 'images/gifts icons/Toy Bear.png', price: 100000 },
+    { id: 'infinity', name: 'Бесконечность', icon: 'images/gifts icons/Loot Bag.png', price: 250000 },
 ];
 
 class SparkParticle {
@@ -219,14 +219,14 @@ class UpgradeGame {
     }
 
     openSellOverlay(giftId) {
-        const gift = ALL_GIFTS.find(g => g.id === giftId);
-        if (!gift || !this.inventory.find(e => e.giftId === giftId)) return;
-        this.sellTargetGiftId = giftId;
-        document.getElementById('sellEmoji').textContent = gift.emoji;
-        document.getElementById('sellName').textContent = gift.name;
-        document.getElementById('sellPrice').textContent = gift.price + ' ⭐';
-        document.getElementById('sellOverlay').classList.add('show');
-    }
+    const gift = ALL_GIFTS.find(g => g.id === giftId);
+    if (!gift || !this.inventory.find(e => e.giftId === giftId)) return;
+    this.sellTargetGiftId = giftId;
+    document.getElementById('sellEmoji').innerHTML = `<img src="${gift.icon}" alt="${gift.name}" style="width:56px;height:56px;object-fit:contain;filter:drop-shadow(0 0 15px rgba(255,255,255,0.4));">`;
+    document.getElementById('sellName').textContent = gift.name;
+    document.getElementById('sellPrice').textContent = gift.price + ' ⭐';
+    document.getElementById('sellOverlay').classList.add('show');
+}
 
     closeSellOverlay() {
         document.getElementById('sellOverlay').classList.remove('show');
@@ -309,7 +309,7 @@ class UpgradeGame {
         this.wheelAnimationId = requestAnimationFrame(anim);
     }
 
-    onSpinComplete() {
+        onSpinComplete() {
     this.isSpinning = false;
     const btn = document.getElementById('upgradeBtn');
     btn.classList.remove('spinning');
@@ -362,38 +362,39 @@ class UpgradeGame {
     }
 
     renderGiftCard(cardId, gift, isCurrent) {
-        const card = document.getElementById(cardId);
-        card.innerHTML = '';
-        card.className = 'gift-card';
+    const card = document.getElementById(cardId);
+    card.innerHTML = '';
+    card.className = 'gift-card';
 
-        if (gift) {
-            if (isCurrent) card.classList.add('current-gift');
-            else card.classList.add('target-gift');
-            const emoji = document.createElement('div');
-            emoji.className = 'gift-emoji';
-            emoji.textContent = gift.emoji;
-            const name = document.createElement('div');
-            name.className = 'gift-name';
-            name.textContent = gift.name;
-            const price = document.createElement('div');
-            price.className = 'gift-price';
-            price.textContent = gift.price + ' ⭐';
-            card.appendChild(emoji);
-            card.appendChild(name);
-            card.appendChild(price);
-        } else {
-            card.classList.add('empty-card');
-            const arrows = document.createElement('div');
-            arrows.className = 'placeholder-arrows ' + (isCurrent ? 'left-arrows' : 'right-arrows');
-            for (let i = 0; i < 3; i++) {
-                const arrow = document.createElement('span');
-                arrow.className = 'placeholder-arrow';
-                arrow.textContent = '❱';
-                arrows.appendChild(arrow);
-            }
-            card.appendChild(arrows);
+    if (gift) {
+        if (isCurrent) card.classList.add('current-gift');
+        else card.classList.add('target-gift');
+        const img = document.createElement('img');
+        img.className = 'gift-icon';
+        img.src = gift.icon;
+        img.alt = gift.name;
+        const name = document.createElement('div');
+        name.className = 'gift-name';
+        name.textContent = gift.name;
+        const price = document.createElement('div');
+        price.className = 'gift-price';
+        price.textContent = gift.price + ' ⭐';
+        card.appendChild(img);
+        card.appendChild(name);
+        card.appendChild(price);
+    } else {
+        card.classList.add('empty-card');
+        const arrows = document.createElement('div');
+        arrows.className = 'placeholder-arrows ' + (isCurrent ? 'left-arrows' : 'right-arrows');
+        for (let i = 0; i < 3; i++) {
+            const arrow = document.createElement('span');
+            arrow.className = 'placeholder-arrow';
+            arrow.textContent = '❱';
+            arrows.appendChild(arrow);
         }
+        card.appendChild(arrows);
     }
+}
 
     drawWheel() {
         const c = document.getElementById('wheelCanvas');
@@ -560,45 +561,45 @@ class UpgradeGame {
     }
 
     renderInventoryList() {
-        const c = document.getElementById('inventoryList');
-        const ig = this.inventoryGifts;
-        if (!ig.length) { c.innerHTML = '<div style="padding:20px;text-align:center;color:#6b7daa;font-size:12px;">Пусто</div>'; return; }
-        c.innerHTML = ig.map(g => `
-            <div class="gift-list-item" data-gift-id="${g.id}" style="${g.id===this.currentGiftId?'background:#111827;border-left:3px solid #ffd700;box-shadow:inset 0 0 15px rgba(255,215,0,0.05);':''}">
-                <span class="gift-emoji-small">${g.emoji}</span>
-                <div class="gift-list-item-info"><div class="gift-list-item-name">${g.name}</div><div class="gift-list-item-price">${g.price} ⭐</div></div>
-                <button class="sell-icon-btn" data-gift-id="${g.id}">Sell</button>
-            </div>`).join('');
-        c.querySelectorAll('.sell-icon-btn').forEach(btn => {
-            btn.addEventListener('click', e => { e.stopPropagation(); const gid = btn.dataset.giftId; this.openSellOverlay(gid); });
-        });
-    }
+    const c = document.getElementById('inventoryList');
+    const ig = this.inventoryGifts;
+    if (!ig.length) { c.innerHTML = '<div style="padding:20px;text-align:center;color:#6b7daa;font-size:12px;">Пусто</div>'; return; }
+    c.innerHTML = ig.map(g => `
+        <div class="gift-list-item" data-gift-id="${g.id}" style="${g.id===this.currentGiftId?'background:#111827;border-left:3px solid #ffd700;box-shadow:inset 0 0 15px rgba(255,215,0,0.05);':''}">
+            <img src="${g.icon}" alt="${g.name}" class="gift-icon-small">
+            <div class="gift-list-item-info"><div class="gift-list-item-name">${g.name}</div><div class="gift-list-item-price">${g.price} ⭐</div></div>
+            <button class="sell-icon-btn" data-gift-id="${g.id}">Sell</button>
+        </div>`).join('');
+    c.querySelectorAll('.sell-icon-btn').forEach(btn => {
+        btn.addEventListener('click', e => { e.stopPropagation(); const gid = btn.dataset.giftId; this.openSellOverlay(gid); });
+    });
+}
 
     renderTargetsList() {
-        const c = document.getElementById('targetsList');
-        const t = this.getAllTargets();
-        if (!t.length) { c.innerHTML = '<div style="padding:20px;text-align:center;color:#6b7daa;font-size:12px;">Нет подарков</div>'; return; }
-        c.innerHTML = t.map(g => {
-            const isSelected = g.id === this.targetGiftId;
-            return `
-            <div class="gift-list-item" data-gift-id="${g.id}" style="${isSelected?'background:#111827;border-left:3px solid #f0883e;box-shadow:inset 0 0 15px rgba(240,136,62,0.05);':''}">
-                <span class="gift-emoji-small">${g.emoji}</span>
-                <div class="gift-list-item-info"><div class="gift-list-item-name">${g.name}</div><div class="gift-list-item-price">${g.price} ⭐</div></div>
-            </div>`;
-        }).join('');
-    }
+    const c = document.getElementById('targetsList');
+    const t = this.getAllTargets();
+    if (!t.length) { c.innerHTML = '<div style="padding:20px;text-align:center;color:#6b7daa;font-size:12px;">Нет подарков</div>'; return; }
+    c.innerHTML = t.map(g => {
+        const isSelected = g.id === this.targetGiftId;
+        return `
+        <div class="gift-list-item" data-gift-id="${g.id}" style="${isSelected?'background:#111827;border-left:3px solid #f0883e;box-shadow:inset 0 0 15px rgba(240,136,62,0.05);':''}">
+            <img src="${g.icon}" alt="${g.name}" class="gift-icon-small">
+            <div class="gift-list-item-info"><div class="gift-list-item-name">${g.name}</div><div class="gift-list-item-price">${g.price} ⭐</div></div>
+        </div>`;
+    }).join('');
+}
 
     renderShop() {
-        const c = document.getElementById('shopItems');
-        c.innerHTML = ALL_GIFTS.map(g => `
-            <div class="shop-item">
-                <span class="shop-item-emoji">${g.emoji}</span>
-                <div class="shop-item-info"><h3>${g.name}</h3><p>Подарок для апгрейда</p></div>
-                <div style="text-align:right;"><div class="shop-item-price">${g.price} ⭐</div>
-                <button class="buy-btn" data-gift-id="${g.id}" ${this.balance<g.price?'disabled':''}>Купить</button></div>
-            </div>`).join('');
-        c.querySelectorAll('.buy-btn').forEach(b => b.addEventListener('click', e => { const gid = e.target.dataset.giftId; const g = ALL_GIFTS.find(x => x.id === gid); if (g && this.balance >= g.price) { this.balance -= g.price; if (!this.inventory.find(en => en.giftId === g.id)) this.inventory.push({ giftId: g.id, acquiredAt: Date.now() }); this.deduplicateInventory(); if (!this.currentGift) { this.currentGiftId = g.id; this.updateChance(); } this.saveToStorage(); this.renderAll(); this.renderShop(); if (tg) tg.HapticFeedback.notificationOccurred('success'); } }));
-    }
+    const c = document.getElementById('shopItems');
+    c.innerHTML = ALL_GIFTS.map(g => `
+        <div class="shop-item">
+            <img src="${g.icon}" alt="${g.name}" class="shop-item-icon">
+            <div class="shop-item-info"><h3>${g.name}</h3><p>Подарок для апгрейда</p></div>
+            <div style="text-align:right;"><div class="shop-item-price">${g.price} ⭐</div>
+            <button class="buy-btn" data-gift-id="${g.id}" ${this.balance<g.price?'disabled':''}>Купить</button></div>
+        </div>`).join('');
+    c.querySelectorAll('.buy-btn').forEach(b => b.addEventListener('click', e => { const gid = e.target.dataset.giftId; const g = ALL_GIFTS.find(x => x.id === gid); if (g && this.balance >= g.price) { this.balance -= g.price; if (!this.inventory.find(en => en.giftId === g.id)) this.inventory.push({ giftId: g.id, acquiredAt: Date.now() }); this.deduplicateInventory(); if (!this.currentGift) { this.currentGiftId = g.id; this.updateChance(); } this.saveToStorage(); this.renderAll(); this.renderShop(); if (tg) tg.HapticFeedback.notificationOccurred('success'); } }));
+}
 }
 
 const game = new UpgradeGame();
