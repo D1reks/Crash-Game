@@ -117,8 +117,8 @@ class UpgradeGame {
         this.resultTimeout = null;
         this.sparkSystem = null;
         this.sellTargetGiftId = null;
+        this.activeTab = 'inventory';
         
-        // Settings
         this.quickCoefs = [2, 4, 8];
         this.quickPercents = [35, 55, 75];
         this.spinType = 'normal';
@@ -166,14 +166,12 @@ class UpgradeGame {
     }
 
     async init() {
-		    const preloader = document.getElementById('preloader');
-    if (preloader) {
-        preloader.classList.add('hide');
-        setTimeout(() => {
-            if (preloader.parentNode) preloader.remove();
-        }, 300);
-    }
-		
+        const preloader = document.getElementById('preloader');
+        if (preloader) {
+            preloader.classList.add('hide');
+            setTimeout(() => { if (preloader.parentNode) preloader.remove(); }, 300);
+        }
+        
         this.loadFromStorage();
         this.deduplicateInventory();
         if (this.inventory.length > 0 && this.selectedGiftIds.length === 0) {
@@ -264,7 +262,6 @@ class UpgradeGame {
         }
         container.innerHTML = html;
         
-        // Re-attach listeners
         container.querySelectorAll('.quick-bet-btn').forEach(b => b.addEventListener('click', e => {
             if (this.isSpinning) return;
             if (!this.primaryGift) return;
@@ -303,10 +300,23 @@ class UpgradeGame {
         document.getElementById('sellCancelBtn').addEventListener('click', () => this.closeSellOverlay());
         document.getElementById('sellOverlay').addEventListener('click', e => { if (e.target === document.getElementById('sellOverlay')) this.closeSellOverlay(); });
         
-        // Settings
         document.getElementById('settingsBtn').addEventListener('click', () => this.openSettings());
         document.getElementById('settingsSaveBtn').addEventListener('click', () => this.saveSettingsFromUI());
         document.getElementById('settingsOverlay').addEventListener('click', e => { if (e.target === document.getElementById('settingsOverlay')) document.getElementById('settingsOverlay').classList.remove('show'); });
+        
+        document.getElementById('tabInventory').addEventListener('click', () => {
+            this.activeTab = 'inventory';
+            document.getElementById('tabInventory').classList.add('active');
+            document.getElementById('tabTargets').classList.remove('active');
+            this.renderGiftList();
+        });
+        
+        document.getElementById('tabTargets').addEventListener('click', () => {
+            this.activeTab = 'targets';
+            document.getElementById('tabTargets').classList.add('active');
+            document.getElementById('tabInventory').classList.remove('active');
+            this.renderGiftList();
+        });
         
         document.body.addEventListener('click', () => { if (!this.soundEnabled) this.initAudio(); }, { once: true });
     }
@@ -433,15 +443,12 @@ class UpgradeGame {
         document.querySelectorAll('.quick-bet-btn').forEach(b => { b.disabled = spinning; });
         document.getElementById('currentGiftCard').classList.toggle('spinning-disabled', spinning);
         document.getElementById('targetGiftCard').classList.toggle('spinning-disabled', spinning);
-        document.getElementById('inventoryList').style.pointerEvents = spinning ? 'none' : 'auto';
-        document.getElementById('targetsList').style.pointerEvents = spinning ? 'none' : 'auto';
-        document.getElementById('inventoryList').style.opacity = spinning ? '0.6' : '1';
-        document.getElementById('targetsList').style.opacity = spinning ? '0.6' : '1';
+        document.getElementById('giftListContent').style.pointerEvents = spinning ? 'none' : 'auto';
+        document.getElementById('giftListContent').style.opacity = spinning ? '0.6' : '1';
     }
 
     onUpgradeSuccess(sc) {
         const ng = this.targetGift;
-        // Remove all selected gifts
         for (const g of this.selectedGifts) {
             const idx = this.inventory.findIndex(e => e.giftId === g.id);
             if (idx !== -1) this.inventory.splice(idx, 1);
@@ -484,7 +491,7 @@ class UpgradeGame {
         if (idx !== -1) {
             this.selectedGiftIds.splice(idx, 1);
         } else {
-            if (this.selectedGiftIds.length >= 9) return; // Max 9 (3 rows × 3)
+            if (this.selectedGiftIds.length >= 9) return;
             this.selectedGiftIds.push(giftId);
         }
         this.updateChance();
@@ -499,8 +506,7 @@ class UpgradeGame {
         const cp = (this.currentChance * 100).toFixed(1);
         document.getElementById('chancePercent').textContent = cp + '%';
         this.drawWheel();
-        this.renderInventoryList();
-        this.renderTargetsList();
+        this.renderGiftList();
         const ub = document.getElementById('upgradeBtn');
         const totalCost = this.getSelectedTotalCost();
         const canUpgrade = !this.isSpinning && this.primaryGift && this.targetGift && this.targetGift.price > totalCost && this.selectedGifts.every(g => this.inventory.find(e => e.giftId === g.id));
@@ -526,9 +532,6 @@ class UpgradeGame {
             const showGifts = this.selectedGifts.slice(0, maxItems);
             
             const totalInGrid = showGifts.length;
-            const rows = Math.ceil(totalInGrid / maxPerRow);
-            const cols = totalInGrid <= maxPerRow ? totalInGrid : maxPerRow;
-            
             const baseSize = totalInGrid <= 3 ? 50 : totalInGrid <= 6 ? 40 : 30;
             
             for (const g of showGifts) {
@@ -574,7 +577,6 @@ class UpgradeGame {
         const nameOutside = document.getElementById(isCurrent ? 'currentGiftNameOutside' : 'targetGiftNameOutside');
         const priceOutside = document.getElementById(isCurrent ? 'currentGiftPriceOutside' : 'targetGiftPriceOutside');
         
-        // Skip if this is current card (handled by renderCurrentGiftCard)
         if (isCurrent) return;
 
         card.innerHTML = '';
@@ -609,10 +611,10 @@ class UpgradeGame {
         const c = document.getElementById('wheelCanvas');
         const ctx = c.getContext('2d');
         const w = c.width, h = c.height, cx = w / 2, cy = h / 2;
-        const or = Math.min(w, h) / 2 - 12, rw = 24, ir = or - rw, cr = ir - 5;
-        const outerRingInner = or + 4;
-        const outerRingOuter = or + 10;
-        const arrowBaseRadius = outerRingInner + 3;
+        const or = Math.min(w, h) / 2 - 12, rw = 22, ir = or - rw, cr = ir - 4;
+        const outerRingInner = or + 3;
+        const outerRingOuter = or + 8;
+        const arrowBaseRadius = outerRingInner + 2;
         
         ctx.clearRect(0, 0, w, h);
         
@@ -629,7 +631,7 @@ class UpgradeGame {
             ctx.fillStyle = grad;
             ctx.fill();
             ctx.shadowColor = 'rgba(240,136,62,0.5)';
-            ctx.shadowBlur = 20;
+            ctx.shadowBlur = 18;
             ctx.fill();
             ctx.shadowBlur = 0;
         }
@@ -654,7 +656,7 @@ class UpgradeGame {
         ctx.lineWidth = 2;
         ctx.stroke();
         ctx.shadowColor = 'rgba(100,140,255,0.3)';
-        ctx.shadowBlur = 15;
+        ctx.shadowBlur = 12;
         ctx.stroke();
         ctx.shadowBlur = 0;
         
@@ -671,7 +673,7 @@ class UpgradeGame {
             ctx.fillStyle = grad;
             ctx.fill();
             ctx.shadowColor = 'rgba(240,136,62,0.5)';
-            ctx.shadowBlur = 20;
+            ctx.shadowBlur = 18;
             ctx.fill();
             ctx.shadowBlur = 0;
         }
@@ -681,7 +683,7 @@ class UpgradeGame {
         ctx.strokeStyle = '#2a3a5c';
         ctx.lineWidth = 2;
         ctx.shadowColor = 'rgba(100,140,255,0.2)';
-        ctx.shadowBlur = 8;
+        ctx.shadowBlur = 6;
         ctx.stroke();
         ctx.shadowBlur = 0;
         ctx.beginPath();
@@ -689,7 +691,7 @@ class UpgradeGame {
         ctx.strokeStyle = '#2a3a5c';
         ctx.lineWidth = 2;
         ctx.shadowColor = 'rgba(100,140,255,0.2)';
-        ctx.shadowBlur = 8;
+        ctx.shadowBlur = 6;
         ctx.stroke();
         ctx.shadowBlur = 0;
         
@@ -698,7 +700,7 @@ class UpgradeGame {
         ctx.strokeStyle = '#2a3a5c';
         ctx.lineWidth = 1.5;
         ctx.shadowColor = 'rgba(100,140,255,0.2)';
-        ctx.shadowBlur = 6;
+        ctx.shadowBlur = 5;
         ctx.stroke();
         ctx.shadowBlur = 0;
         
@@ -710,7 +712,7 @@ class UpgradeGame {
         ctx.lineWidth = 2;
         ctx.stroke();
         ctx.beginPath();
-        ctx.arc(cx, cy, cr - 4, 0, Math.PI * 2);
+        ctx.arc(cx, cy, cr - 3, 0, Math.PI * 2);
         ctx.strokeStyle = '#1a2540';
         ctx.lineWidth = 1;
         ctx.stroke();
@@ -727,27 +729,18 @@ class UpgradeGame {
         ctx.moveTo(baseX, baseY);
         ctx.lineTo(tipX, tipY);
         ctx.strokeStyle = '#ffd700';
-        ctx.lineWidth = 3;
+        ctx.lineWidth = 2.5;
         ctx.lineCap = 'round';
         ctx.shadowColor = '#ffd700';
-        ctx.shadowBlur = 15;
+        ctx.shadowBlur = 12;
         ctx.stroke();
         ctx.shadowBlur = 0;
         
         ctx.beginPath();
         ctx.moveTo(tipX, tipY);
-        ctx.lineTo(-8, tipY - 12);
-        ctx.lineTo(8, tipY - 12);
+        ctx.lineTo(-6, tipY - 10);
+        ctx.lineTo(6, tipY - 10);
         ctx.closePath();
-        ctx.fillStyle = '#ffd700';
-        ctx.fill();
-        ctx.shadowColor = '#ffd700';
-        ctx.shadowBlur = 15;
-        ctx.fill();
-        ctx.shadowBlur = 0;
-        
-        ctx.beginPath();
-        ctx.arc(baseX, baseY, 4.5, 0, Math.PI * 2);
         ctx.fillStyle = '#ffd700';
         ctx.fill();
         ctx.shadowColor = '#ffd700';
@@ -755,9 +748,18 @@ class UpgradeGame {
         ctx.fill();
         ctx.shadowBlur = 0;
         
+        ctx.beginPath();
+        ctx.arc(baseX, baseY, 3.5, 0, Math.PI * 2);
+        ctx.fillStyle = '#ffd700';
+        ctx.fill();
+        ctx.shadowColor = '#ffd700';
+        ctx.shadowBlur = 10;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        
         ctx.restore();
         
-        const rg = ctx.createRadialGradient(cx - or * 0.2, cy - or * 0.2, or * 0.04, cx, cy, or);
+        const rg = ctx.createRadialGradient(cx - or * 0.2, cy - or * 0.2, or * 0.03, cx, cy, or);
         rg.addColorStop(0, 'rgba(255,255,255,0.05)');
         rg.addColorStop(0.5, 'rgba(255,255,255,0.01)');
         rg.addColorStop(1, 'rgba(0,0,0,0.2)');
@@ -769,8 +771,16 @@ class UpgradeGame {
         ctx.fill();
     }
 
-    renderInventoryList() {
-        const c = document.getElementById('inventoryList');
+    renderGiftList() {
+        if (this.activeTab === 'inventory') {
+            this.renderInventoryListInPanel();
+        } else {
+            this.renderTargetsListInPanel();
+        }
+    }
+
+    renderInventoryListInPanel() {
+        const c = document.getElementById('giftListContent');
         const ig = this.inventoryGifts;
         if (!ig.length) { c.innerHTML = '<div style="padding:20px;text-align:center;color:#6b7daa;font-size:12px;">Пусто</div>'; return; }
         c.innerHTML = ig.map(g => {
@@ -797,8 +807,8 @@ class UpgradeGame {
         });
     }
 
-    renderTargetsList() {
-        const c = document.getElementById('targetsList');
+    renderTargetsListInPanel() {
+        const c = document.getElementById('giftListContent');
         const t = this.getAllTargets();
         if (!t.length) { c.innerHTML = '<div style="padding:20px;text-align:center;color:#6b7daa;font-size:12px;">Нет подарков</div>'; return; }
         const totalCost = this.getSelectedTotalCost();
@@ -851,7 +861,6 @@ class UpgradeGame {
         this.inventory.splice(idx, 1);
         this.balance += gift.price;
         
-        // Remove from selection if sold
         const selIdx = this.selectedGiftIds.indexOf(this.sellTargetGiftId);
         if (selIdx !== -1) this.selectedGiftIds.splice(selIdx, 1);
         

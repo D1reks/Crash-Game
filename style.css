@@ -143,32 +143,6 @@ body {
     object-fit: contain;
 }
 
-/* Шестерёнка */
-.settings-btn {
-    background: linear-gradient(135deg, #f0883e, #f5c842);
-    border: 1px solid #f5c84260;
-    border-radius: 10px;
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.2s;
-    box-shadow: 0 0 15px rgba(240, 136, 62, 0.3);
-    padding: 7px;
-    flex-shrink: 0;
-}
-
-.settings-btn:active {
-    box-shadow: 0 0 25px rgba(240, 136, 62, 0.6);
-}
-
-.settings-icon {
-    width: 100%;
-    height: 100%;
-}
-
 .balance-container {
     display: flex;
     align-items: center;
@@ -620,50 +594,75 @@ body {
 }
 
 .lists-row {
-    display: flex;
-    gap: 10px;
     width: 100%;
     flex: 1;
     min-height: 140px;
     overflow: hidden;
     padding: 0 12px 12px 12px;
+    box-sizing: border-box;
 }
 
 .gift-list-panel {
-    flex: 1;
+    width: 100%;
+    height: 100%;
     background: #0d111f;
     border: 1px solid #1e2a45;
     border-radius: 10px;
-    overflow-y: auto;
-    scrollbar-width: thin;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
     box-shadow: 0 0 15px rgba(0, 0, 0, 0.4);
 }
 
-.gift-list-panel::-webkit-scrollbar {
-    width: 3px;
-}
-.gift-list-panel::-webkit-scrollbar-thumb {
-    background: #1e2a45;
-    border-radius: 3px;
-    box-shadow: 0 0 5px rgba(100, 140, 255, 0.2);
+.tab-header {
+    display: flex;
+    background: #08090d;
+    border-radius: 8px;
+    margin: 8px;
+    padding: 3px;
+    position: relative;
+    flex-shrink: 0;
 }
 
-.gift-list-title {
-    padding: 8px 10px;
-    color: #6b7daa;
+.tab-btn {
+    flex: 1;
+    text-align: center;
+    padding: 8px 0;
     font-size: 10px;
     letter-spacing: 2px;
     text-transform: uppercase;
-    border-bottom: 1px solid #1a2540;
-    position: sticky;
-    top: 0;
-    background: #0d111f;
+    cursor: pointer;
+    color: #6b7daa;
+    transition: all 0.3s ease;
+    border-radius: 6px;
+    position: relative;
     z-index: 1;
     text-shadow: 0 0 8px rgba(100, 140, 255, 0.2);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
+    font-weight: 600;
+}
+
+.tab-btn.active {
+    background: #ffd700;
+    color: #0a0f1a;
+    text-shadow: none;
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+    font-weight: 800;
+}
+
+#giftListContent {
+    flex: 1;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    padding-bottom: 4px;
+}
+
+#giftListContent::-webkit-scrollbar {
+    width: 3px;
+}
+#giftListContent::-webkit-scrollbar-thumb {
+    background: #1e2a45;
+    border-radius: 3px;
+    box-shadow: 0 0 5px rgba(100, 140, 255, 0.2);
 }
 
 .gift-list-item {
@@ -777,7 +776,7 @@ body {
 .shop-overlay.show {
     opacity: 1;
     pointer-events: all;
-}}
+}
 
 .shop-header {
     padding: 16px;
@@ -1026,13 +1025,14 @@ body {
     font-size: 13px;
 }
 
-/* Settings overlay */
 .settings-overlay {
-    position: absolute;
+    position: fixed;
     top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    left: 50%;
+    transform: translate(-50%, 0);
+    width: 100%;
+    max-width: 450px;
+    height: 100vh;
     background: rgba(6, 8, 13, 0.95);
     backdrop-filter: blur(8px);
     display: flex;
@@ -1168,11 +1168,13 @@ body {
 }
 
 .info-overlay {
-    position: absolute;
+    position: fixed;
     top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    left: 50%;
+    transform: translate(-50%, 0);
+    width: 100%;
+    max-width: 450px;
+    height: 100vh;
     background: rgba(6, 8, 13, 0.95);
     backdrop-filter: blur(8px);
     display: flex;
