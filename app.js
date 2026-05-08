@@ -134,31 +134,31 @@ class UpgradeGame {
     }
 
     setupEventListeners() {
-        document.getElementById('upgradeBtn').addEventListener('click', () => this.startUpgrade());
-        document.getElementById('currentGiftCard').addEventListener('click', () => { if (this.isSpinning) return; if (this.selectedGiftIds.length > 0) { this.selectedGiftIds = []; this.updateChance(); this.renderAll(); this.saveToStorage(); } });
-        document.getElementById('targetGiftCard').addEventListener('click', () => {
-            if (this.isSpinning) return;
-            const t = this.getAllTargets(); if (!t.length) return;
-            if (!this.targetGift) this.targetGiftId = t[0].id;
-            else { const ci = t.findIndex(g => g.id === this.targetGiftId); this.targetGiftId = t[(ci+1)%t.length].id; }
-            this.updateChance(); this.renderAll(); this.saveToStorage();
-        });
-        document.getElementById('balanceContainer').addEventListener('click', () => document.getElementById('balanceTopupOverlay').classList.add('show'));
-        document.getElementById('closeTopupBtn').addEventListener('click', () => document.getElementById('balanceTopupOverlay').classList.remove('show'));
-        document.getElementById('topupGifts').addEventListener('click', () => { alert('Функция пополнения подарками Telegram будет доступна с интеграцией бота.'); document.getElementById('balanceTopupOverlay').classList.remove('show'); });
-        document.getElementById('topupStars').addEventListener('click', () => { this.balance += 500; this.renderAll(); this.saveToStorage(); document.getElementById('balanceTopupOverlay').classList.remove('show'); if(tg) tg.HapticFeedback.notificationOccurred('success'); });
-        document.getElementById('shopBtn').addEventListener('click', () => { document.getElementById('shopOverlay').classList.add('show'); this.renderShop(); });
-        document.getElementById('closeShopBtn').addEventListener('click', () => document.getElementById('shopOverlay').classList.remove('show'));
-        document.getElementById('sellConfirmBtn').addEventListener('click', () => this.confirmSell());
-        document.getElementById('sellCancelBtn').addEventListener('click', () => this.closeSellOverlay());
-        document.getElementById('sellOverlay').addEventListener('click', e => { if (e.target === document.getElementById('sellOverlay')) this.closeSellOverlay(); });
-        document.getElementById('settingsBtn').addEventListener('click', () => this.openSettings());
-        document.getElementById('settingsSaveBtn').addEventListener('click', () => this.saveSettingsFromUI());
-        document.getElementById('settingsOverlay').addEventListener('click', e => { if (e.target === document.getElementById('settingsOverlay')) document.getElementById('settingsOverlay').classList.remove('show'); });
-        document.getElementById('tabInventory').addEventListener('click', () => { this.activeTab='inventory'; document.getElementById('tabInventory').classList.add('active'); document.getElementById('tabTargets').classList.remove('active'); this.renderGiftList(); });
-        document.getElementById('tabTargets').addEventListener('click', () => { this.activeTab='targets'; document.getElementById('tabTargets').classList.add('active'); document.getElementById('tabInventory').classList.remove('active'); this.renderGiftList(); });
-        document.body.addEventListener('click', () => { if (!this.soundEnabled) this.initAudio(); }, { once: true });
-    }
+    document.getElementById('upgradeBtn').addEventListener('click', () => this.startUpgrade());
+    document.getElementById('currentGiftCard').addEventListener('click', () => { if (this.isSpinning) return; if (this.selectedGiftIds.length > 0) { this.selectedGiftIds = []; this.updateChance(); this.renderAll(); this.saveToStorage(); } });
+    document.getElementById('targetGiftCard').addEventListener('click', () => {
+        if (this.isSpinning) return;
+        const t = this.getAllTargets(); if (!t.length) return;
+        if (!this.targetGift) this.targetGiftId = t[0].id;
+        else { const ci = t.findIndex(g => g.id === this.targetGiftId); this.targetGiftId = t[(ci+1)%t.length].id; }
+        this.updateChance(); this.renderAll(); this.saveToStorage();
+    });
+    document.getElementById('balanceContainer').addEventListener('click', () => document.getElementById('balanceTopupOverlay').classList.add('show'));
+    document.getElementById('closeTopupBtn').addEventListener('click', () => document.getElementById('balanceTopupOverlay').classList.remove('show'));
+    document.getElementById('topupGifts').addEventListener('click', () => { alert('Функция пополнения подарками Telegram будет доступна с интеграцией бота.'); document.getElementById('balanceTopupOverlay').classList.remove('show'); });
+    document.getElementById('topupStars').addEventListener('click', () => { this.balance += 500; this.renderAll(); this.saveToStorage(); document.getElementById('balanceTopupOverlay').classList.remove('show'); if(tg) tg.HapticFeedback.notificationOccurred('success'); });
+    document.getElementById('shopBtn').addEventListener('click', () => { document.getElementById('shopOverlay').classList.add('show'); this.renderShop(); });
+    document.getElementById('closeShopBtn').addEventListener('click', () => document.getElementById('shopOverlay').classList.remove('show'));
+    document.getElementById('sellConfirmBtn').addEventListener('click', () => this.confirmSell());
+    document.getElementById('sellCancelBtn').addEventListener('click', () => this.closeSellOverlay());
+    document.getElementById('sellOverlay').addEventListener('click', e => { if (e.target === document.getElementById('sellOverlay')) this.closeSellOverlay(); });
+    document.getElementById('settingsBtn').addEventListener('click', () => this.openSettings());
+    document.getElementById('settingsSaveBtn').addEventListener('click', () => this.saveSettingsFromUI());
+    document.getElementById('settingsOverlay').addEventListener('click', e => { if (e.target === document.getElementById('settingsOverlay')) document.getElementById('settingsOverlay').classList.remove('show'); });
+    document.getElementById('tabInventory').addEventListener('click', () => { this.activeTab='inventory'; document.getElementById('tabInventory').classList.add('active'); document.getElementById('tabTargets').classList.remove('active'); this.renderGiftList(); });
+    document.getElementById('tabTargets').addEventListener('click', () => { this.activeTab='targets'; document.getElementById('tabTargets').classList.add('active'); document.getElementById('tabInventory').classList.remove('active'); this.renderGiftList(); });
+    document.body.addEventListener('click', () => { if (!this.soundEnabled) this.initAudio(); }, { once: true });
+}
 
     openSettings() {
         document.getElementById('settingCoef1').value = this.quickCoefs[0]||2;
@@ -351,20 +351,24 @@ class UpgradeGame {
     renderGiftList() { if (this.activeTab==='inventory') this.renderInventoryListInPanel(); else this.renderTargetsListInPanel(); }
 
     renderInventoryListInPanel() {
-        const c = document.getElementById('giftListContent'), ig = this.inventoryGifts;
-        if (!ig.length) { c.innerHTML = '<div style="padding:20px;text-align:center;color:#6b7daa;font-size:12px;">Пусто</div>'; return; }
-        c.innerHTML = ig.map(g => {
-            const isSel = this.selectedGiftIds.includes(g.id);
-            return `<div class="gift-list-item ${isSel?'selected-for-upgrade':''}" data-gift-id="${g.id}">
-                <div class="select-checkbox ${isSel?'checked':''}" data-action="toggle" data-gift-id="${g.id}"></div>
-                <img src="${g.icon}" alt="${g.name}" class="gift-icon-small">
-                <div class="gift-list-item-info"><div class="gift-list-item-name">${g.name}</div><div class="gift-list-item-price">${g.price} <span class="star-icon-small"></span></div></div>
-                <button class="sell-icon-btn" data-gift-id="${g.id}">Sell</button>
-            </div>`;
-        }).join('');
-        c.querySelectorAll('.select-checkbox').forEach(cb => cb.addEventListener('click', e => { e.stopPropagation(); this.toggleGiftSelection(cb.dataset.giftId); }));
-        c.querySelectorAll('.sell-icon-btn').forEach(btn => btn.addEventListener('click', e => { e.stopPropagation(); this.openSellOverlay(btn.dataset.giftId); }));
-    }
+    const c = document.getElementById('giftListContent'), ig = this.inventoryGifts;
+    if (!ig.length) { c.innerHTML = '<div style="padding:20px;text-align:center;color:#6b7daa;font-size:12px;">Пусто</div>'; return; }
+    c.innerHTML = ig.map(g => {
+        const isSel = this.selectedGiftIds.includes(g.id);
+        return `<div class="gift-list-item ${isSel?'selected-for-upgrade':''}" data-gift-id="${g.id}">
+            <img src="${g.icon}" alt="${g.name}" class="gift-icon-small">
+            <div class="gift-list-item-info"><div class="gift-list-item-name">${g.name}</div><div class="gift-list-item-price">${g.price} <span class="star-icon-small"></span></div></div>
+            <button class="sell-icon-btn" data-gift-id="${g.id}">Продать</button>
+        </div>`;
+    }).join('');
+    c.querySelectorAll('.gift-list-item').forEach(item => {
+        item.addEventListener('click', (e) => {
+            if (e.target.closest('.sell-icon-btn')) return; // не переключаем при клике на Sell
+            this.toggleGiftSelection(item.dataset.giftId);
+        });
+    });
+    c.querySelectorAll('.sell-icon-btn').forEach(btn => btn.addEventListener('click', e => { e.stopPropagation(); this.openSellOverlay(btn.dataset.giftId); }));
+}
 
     renderTargetsListInPanel() {
         const c = document.getElementById('giftListContent'), t = this.getAllTargets();
