@@ -84,12 +84,21 @@ body {
 .shop-btn-grouped:active { background: rgba(255, 215, 0, 0.12); box-shadow: none; }
 
 .icon-btn {
-    background: #111827; border: 1px solid #2a3a5c; border-radius: 10px;
-    width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;
-    cursor: pointer; transition: all 0.2s; box-shadow: 0 0 10px rgba(100, 140, 255, 0.1);
-    padding: 6px; flex-shrink: 0;
+    background: transparent;
+    border: none;
+    border-radius: 10px;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: none;
+    padding: 6px;
+    flex-shrink: 0;
 }
-.icon-btn:active { background: #1a2540; box-shadow: 0 0 20px rgba(100, 140, 255, 0.25); }
+.icon-btn:active { background: rgba(255, 215, 0, 0.08); box-shadow: none; }
 .icon-img { width: 24px; height: 24px; object-fit: contain; }
 
 .balance-container {
