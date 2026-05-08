@@ -166,6 +166,14 @@ class UpgradeGame {
     }
 
     async init() {
+		    const preloader = document.getElementById('preloader');
+    if (preloader) {
+        preloader.classList.add('hide');
+        setTimeout(() => {
+            if (preloader.parentNode) preloader.remove();
+        }, 300);
+    }
+		
         this.loadFromStorage();
         this.deduplicateInventory();
         if (this.inventory.length > 0 && this.selectedGiftIds.length === 0) {
