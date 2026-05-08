@@ -196,8 +196,8 @@ body {
 
 .wheel-container {
     position: relative;
-    width: 170px;
-    height: 170px;
+    width: 120px;
+    height: 120px;
     flex-shrink: 0;
     filter: drop-shadow(0 0 30px rgba(100, 140, 255, 0.2));
     margin: 8px auto 6px auto;
@@ -213,8 +213,8 @@ body {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 240px;
-    height: 240px;
+    width: 180px;
+    height: 180px;
     pointer-events: none;
     z-index: 5;
 }
@@ -236,7 +236,7 @@ body {
 }
 
 .center-result-text {
-    font-size: 16px;
+    font-size: 14px;
     font-weight: 800;
     letter-spacing: 1px;
     text-transform: uppercase;
@@ -259,7 +259,7 @@ body {
 }
 
 .center-result-chance {
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 600;
     margin-top: 2px;
     opacity: 0.8;
@@ -281,14 +281,14 @@ body {
 }
 
 .chance-percent {
-    font-size: 24px;
+    font-size: 20px;
     font-weight: 800;
     color: #ffd700;
     text-shadow: 0 0 20px rgba(255, 215, 0, 0.5), 0 0 40px rgba(255, 215, 0, 0.2);
 }
 
 .chance-label {
-    font-size: 9px;
+    font-size: 8px;
     color: #6b7daa;
     letter-spacing: 2px;
     text-shadow: 0 0 8px rgba(100, 140, 255, 0.3);
@@ -296,11 +296,11 @@ body {
 
 .gift-selection-row {
     display: flex;
-    gap: 10px;
+    gap: 12px;
     width: 100%;
     align-items: stretch;
     padding: 0 12px;
-    margin-top: 6px;
+    margin-top: 8px;
 }
 
 .gift-card-wrapper {
@@ -317,7 +317,7 @@ body {
     background: #0d111f;
     border: 1px solid #1e2a45;
     border-radius: 12px;
-    padding: 6px;
+    padding: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -325,7 +325,7 @@ body {
     cursor: pointer;
     transition: all 0.25s;
     box-shadow: 0 0 15px rgba(0, 0, 0, 0.4);
-    min-height: 70px;
+    min-height: 90px;
     position: relative;
     overflow: hidden;
 }
@@ -369,13 +369,13 @@ body {
 }
 
 .multi-gift-item .gift-icon {
-    max-height: 45px;
+    max-height: 55px;
 }
 
 .gift-icon {
     width: 100%;
     height: 100%;
-    max-height: 60px;
+    max-height: 75px;
     object-fit: contain;
     filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.3));
 }
@@ -391,7 +391,7 @@ body {
 
 .gift-name-outside {
     color: #d0daf0;
-    font-size: 10px;
+    font-size: 11px;
     font-weight: 600;
     text-align: center;
     text-shadow: 0 0 8px rgba(200, 210, 255, 0.2);
@@ -403,7 +403,7 @@ body {
 
 .gift-price-outside {
     color: #ffd700;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: bold;
     text-shadow: 0 0 8px rgba(255, 215, 0, 0.3);
 }
@@ -422,7 +422,7 @@ body {
 
 .placeholder-arrow {
     color: #ffd700;
-    font-size: 24px;
+    font-size: 28px;
     font-weight: bold;
     opacity: 0.8;
     text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
