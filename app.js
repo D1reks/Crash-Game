@@ -396,168 +396,168 @@ class UpgradeGame {
     }
 
     drawWheel() {
-        const c = document.getElementById('wheelCanvas');
-        const ctx = c.getContext('2d');
-        const w = c.width, h = c.height, cx = w / 2, cy = h / 2;
-        const or = Math.min(w, h) / 2 - 12, rw = 24, ir = or - rw, cr = ir - 5;
-        const outerRingInner = or + 4;
-        const outerRingOuter = or + 10;
-        const arrowBaseRadius = outerRingInner + 3;
-        
-        ctx.clearRect(0, 0, w, h);
-        
-        if (this.currentChance > 0) {
-            const sa = -Math.PI / 2, ea = -Math.PI / 2 + this.currentChance * Math.PI * 2;
-            ctx.beginPath();
-            ctx.arc(cx, cy, outerRingOuter, sa, ea);
-            ctx.arc(cx, cy, outerRingInner, ea, sa, true);
-            ctx.closePath();
-            const grad = ctx.createLinearGradient(cx - or, cy - or, cx + or, cy + or);
-            grad.addColorStop(0, '#f0883e');
-            grad.addColorStop(0.5, '#f5c842');
-            grad.addColorStop(1, '#ffd700');
-            ctx.fillStyle = grad;
-            ctx.fill();
-            ctx.shadowColor = 'rgba(240,136,62,0.5)';
-            ctx.shadowBlur = 20;
-            ctx.fill();
-            ctx.shadowBlur = 0;
-        }
-        
+    const c = document.getElementById('wheelCanvas');
+    const ctx = c.getContext('2d');
+    const w = c.width, h = c.height, cx = w / 2, cy = h / 2;
+    const or = Math.min(w, h) / 2 - 12, rw = 24, ir = or - rw, cr = ir - 5;
+    const outerRingInner = or + 4;
+    const outerRingOuter = or + 10;
+    const arrowBaseRadius = outerRingInner + 3;
+    
+    ctx.clearRect(0, 0, w, h);
+    
+    if (this.currentChance > 0) {
+        const sa = -Math.PI / 2, ea = -Math.PI / 2 + this.currentChance * Math.PI * 2;
         ctx.beginPath();
-        ctx.arc(cx, cy, outerRingOuter, 0, Math.PI * 2);
-        ctx.arc(cx, cy, outerRingInner, 0, Math.PI * 2, true);
+        ctx.arc(cx, cy, outerRingOuter, sa, ea);
+        ctx.arc(cx, cy, outerRingInner, ea, sa, true);
         ctx.closePath();
-        ctx.fillStyle = '#111827';
+        const grad = ctx.createLinearGradient(cx - or, cy - or, cx + or, cy + or);
+        grad.addColorStop(0, '#007a93');
+        grad.addColorStop(0.5, '#00b4d8');
+        grad.addColorStop(1, '#00d4ff');
+        ctx.fillStyle = grad;
         ctx.fill();
-        ctx.strokeStyle = '#2a3a5c';
-        ctx.lineWidth = 1.5;
-        ctx.stroke();
-        
-        ctx.beginPath();
-        ctx.arc(cx, cy, or, 0, Math.PI * 2);
-        ctx.arc(cx, cy, ir, 0, Math.PI * 2, true);
-        ctx.closePath();
-        ctx.fillStyle = '#111827';
-        ctx.fill();
-        ctx.strokeStyle = '#2a3a5c';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-        ctx.shadowColor = 'rgba(100,140,255,0.3)';
-        ctx.shadowBlur = 15;
-        ctx.stroke();
-        ctx.shadowBlur = 0;
-        
-        if (this.currentChance > 0) {
-            const sa = -Math.PI / 2, ea = -Math.PI / 2 + this.currentChance * Math.PI * 2;
-            ctx.beginPath();
-            ctx.arc(cx, cy, or - 2, sa, ea);
-            ctx.arc(cx, cy, ir + 2, ea, sa, true);
-            ctx.closePath();
-            const grad = ctx.createLinearGradient(cx - or, cy - or, cx + or, cy + or);
-            grad.addColorStop(0, '#f0883e');
-            grad.addColorStop(0.5, '#f5c842');
-            grad.addColorStop(1, '#ffd700');
-            ctx.fillStyle = grad;
-            ctx.fill();
-            ctx.shadowColor = 'rgba(240,136,62,0.5)';
-            ctx.shadowBlur = 20;
-            ctx.fill();
-            ctx.shadowBlur = 0;
-        }
-        
-        ctx.beginPath();
-        ctx.arc(cx, cy, ir, 0, Math.PI * 2);
-        ctx.strokeStyle = '#2a3a5c';
-        ctx.lineWidth = 2;
-        ctx.shadowColor = 'rgba(100,140,255,0.2)';
-        ctx.shadowBlur = 8;
-        ctx.stroke();
-        ctx.shadowBlur = 0;
-        ctx.beginPath();
-        ctx.arc(cx, cy, or, 0, Math.PI * 2);
-        ctx.strokeStyle = '#2a3a5c';
-        ctx.lineWidth = 2;
-        ctx.shadowColor = 'rgba(100,140,255,0.2)';
-        ctx.shadowBlur = 8;
-        ctx.stroke();
-        ctx.shadowBlur = 0;
-        
-        ctx.beginPath();
-        ctx.arc(cx, cy, outerRingOuter, 0, Math.PI * 2);
-        ctx.strokeStyle = '#2a3a5c';
-        ctx.lineWidth = 1.5;
-        ctx.shadowColor = 'rgba(100,140,255,0.2)';
-        ctx.shadowBlur = 6;
-        ctx.stroke();
-        ctx.shadowBlur = 0;
-        
-        ctx.beginPath();
-        ctx.arc(cx, cy, cr, 0, Math.PI * 2);
-        ctx.fillStyle = '#080c14';
-        ctx.fill();
-        ctx.strokeStyle = '#2a3a5c';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.arc(cx, cy, cr - 4, 0, Math.PI * 2);
-        ctx.strokeStyle = '#1a2540';
-        ctx.lineWidth = 1;
-        ctx.stroke();
-        
-        ctx.save();
-        ctx.translate(cx, cy);
-        ctx.rotate(this.wheelAngle);
-        
-        const tipRadius = ir + 2;
-        const tipX = 0, tipY = -tipRadius;
-        const baseX = 0, baseY = -arrowBaseRadius;
-        
-        ctx.beginPath();
-        ctx.moveTo(baseX, baseY);
-        ctx.lineTo(tipX, tipY);
-        ctx.strokeStyle = '#ffd700';
-        ctx.lineWidth = 3;
-        ctx.lineCap = 'round';
-        ctx.shadowColor = '#ffd700';
-        ctx.shadowBlur = 15;
-        ctx.stroke();
-        ctx.shadowBlur = 0;
-        
-        ctx.beginPath();
-        ctx.moveTo(tipX, tipY);
-        ctx.lineTo(-8, tipY - 12);
-        ctx.lineTo(8, tipY - 12);
-        ctx.closePath();
-        ctx.fillStyle = '#ffd700';
-        ctx.fill();
-        ctx.shadowColor = '#ffd700';
-        ctx.shadowBlur = 15;
+        ctx.shadowColor = 'rgba(0,180,216,0.5)';
+        ctx.shadowBlur = 20;
         ctx.fill();
         ctx.shadowBlur = 0;
-        
-        ctx.beginPath();
-        ctx.arc(baseX, baseY, 4.5, 0, Math.PI * 2);
-        ctx.fillStyle = '#ffd700';
-        ctx.fill();
-        ctx.shadowColor = '#ffd700';
-        ctx.shadowBlur = 12;
-        ctx.fill();
-        ctx.shadowBlur = 0;
-        
-        ctx.restore();
-        
-        const rg = ctx.createRadialGradient(cx - or * 0.2, cy - or * 0.2, or * 0.04, cx, cy, or);
-        rg.addColorStop(0, 'rgba(255,255,255,0.05)');
-        rg.addColorStop(0.5, 'rgba(255,255,255,0.01)');
-        rg.addColorStop(1, 'rgba(0,0,0,0.2)');
-        ctx.beginPath();
-        ctx.arc(cx, cy, or, 0, Math.PI * 2);
-        ctx.arc(cx, cy, ir, 0, Math.PI * 2, true);
-        ctx.closePath();
-        ctx.fillStyle = rg;
-        ctx.fill();
     }
+    
+    ctx.beginPath();
+    ctx.arc(cx, cy, outerRingOuter, 0, Math.PI * 2);
+    ctx.arc(cx, cy, outerRingInner, 0, Math.PI * 2, true);
+    ctx.closePath();
+    ctx.fillStyle = '#0a0d14';
+    ctx.fill();
+    ctx.strokeStyle = '#1a1d27';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    
+    ctx.beginPath();
+    ctx.arc(cx, cy, or, 0, Math.PI * 2);
+    ctx.arc(cx, cy, ir, 0, Math.PI * 2, true);
+    ctx.closePath();
+    ctx.fillStyle = '#0a0d14';
+    ctx.fill();
+    ctx.strokeStyle = '#1a1d27';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.shadowColor = 'rgba(0,180,216,0.3)';
+    ctx.shadowBlur = 15;
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+    
+    if (this.currentChance > 0) {
+        const sa = -Math.PI / 2, ea = -Math.PI / 2 + this.currentChance * Math.PI * 2;
+        ctx.beginPath();
+        ctx.arc(cx, cy, or - 2, sa, ea);
+        ctx.arc(cx, cy, ir + 2, ea, sa, true);
+        ctx.closePath();
+        const grad = ctx.createLinearGradient(cx - or, cy - or, cx + or, cy + or);
+        grad.addColorStop(0, '#007a93');
+        grad.addColorStop(0.5, '#00b4d8');
+        grad.addColorStop(1, '#00d4ff');
+        ctx.fillStyle = grad;
+        ctx.fill();
+        ctx.shadowColor = 'rgba(0,180,216,0.5)';
+        ctx.shadowBlur = 20;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+    }
+    
+    ctx.beginPath();
+    ctx.arc(cx, cy, ir, 0, Math.PI * 2);
+    ctx.strokeStyle = '#1a1d27';
+    ctx.lineWidth = 2;
+    ctx.shadowColor = 'rgba(0,180,216,0.15)';
+    ctx.shadowBlur = 8;
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+    ctx.beginPath();
+    ctx.arc(cx, cy, or, 0, Math.PI * 2);
+    ctx.strokeStyle = '#1a1d27';
+    ctx.lineWidth = 2;
+    ctx.shadowColor = 'rgba(0,180,216,0.15)';
+    ctx.shadowBlur = 8;
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+    
+    ctx.beginPath();
+    ctx.arc(cx, cy, outerRingOuter, 0, Math.PI * 2);
+    ctx.strokeStyle = '#1a1d27';
+    ctx.lineWidth = 1.5;
+    ctx.shadowColor = 'rgba(0,180,216,0.15)';
+    ctx.shadowBlur = 6;
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+    
+    ctx.beginPath();
+    ctx.arc(cx, cy, cr, 0, Math.PI * 2);
+    ctx.fillStyle = '#08090d';
+    ctx.fill();
+    ctx.strokeStyle = '#1a1d27';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(cx, cy, cr - 4, 0, Math.PI * 2);
+    ctx.strokeStyle = '#13161d';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(this.wheelAngle);
+    
+    const tipRadius = ir + 2;
+    const tipX = 0, tipY = -tipRadius;
+    const baseX = 0, baseY = -arrowBaseRadius;
+    
+    ctx.beginPath();
+    ctx.moveTo(baseX, baseY);
+    ctx.lineTo(tipX, tipY);
+    ctx.strokeStyle = '#00d4ff';
+    ctx.lineWidth = 3;
+    ctx.lineCap = 'round';
+    ctx.shadowColor = '#00d4ff';
+    ctx.shadowBlur = 15;
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+    
+    ctx.beginPath();
+    ctx.moveTo(tipX, tipY);
+    ctx.lineTo(-8, tipY - 12);
+    ctx.lineTo(8, tipY - 12);
+    ctx.closePath();
+    ctx.fillStyle = '#00d4ff';
+    ctx.fill();
+    ctx.shadowColor = '#00d4ff';
+    ctx.shadowBlur = 15;
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    
+    ctx.beginPath();
+    ctx.arc(baseX, baseY, 4.5, 0, Math.PI * 2);
+    ctx.fillStyle = '#00d4ff';
+    ctx.fill();
+    ctx.shadowColor = '#00d4ff';
+    ctx.shadowBlur = 12;
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    
+    ctx.restore();
+    
+    const rg = ctx.createRadialGradient(cx - or * 0.2, cy - or * 0.2, or * 0.04, cx, cy, or);
+    rg.addColorStop(0, 'rgba(255,255,255,0.03)');
+    rg.addColorStop(0.5, 'rgba(255,255,255,0.01)');
+    rg.addColorStop(1, 'rgba(0,0,0,0.3)');
+    ctx.beginPath();
+    ctx.arc(cx, cy, or, 0, Math.PI * 2);
+    ctx.arc(cx, cy, ir, 0, Math.PI * 2, true);
+    ctx.closePath();
+    ctx.fillStyle = rg;
+    ctx.fill();
+}
 
     renderInventoryList() {
         const c = document.getElementById('inventoryList');
