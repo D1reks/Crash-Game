@@ -31,19 +31,6 @@
             </div>
         </div>
 
-        <div class="wheel-container" id="wheelContainer">
-            <canvas class="wheel-canvas" id="wheelCanvas" width="380" height="380"></canvas>
-            <canvas class="spark-canvas" id="sparkCanvas" width="500" height="500"></canvas>
-            <div class="chance-display" id="chanceDisplay">
-                <div class="chance-percent" id="chancePercent">0%</div>
-                <div class="chance-label">ШАНС</div>
-            </div>
-            <div class="center-result" id="centerResult">
-                <div class="center-result-text" id="centerResultText">УСПЕХ</div>
-                <div class="center-result-chance" id="centerResultChance"></div>
-            </div>
-        </div>
-
         <div class="gift-selection-row">
             <div class="gift-card-wrapper">
                 <div class="gift-card current-gift" id="currentGiftCard"></div>
@@ -58,6 +45,19 @@
                     <div class="gift-name-outside" id="targetGiftNameOutside"></div>
                     <div class="gift-price-outside" id="targetGiftPriceOutside"></div>
                 </div>
+            </div>
+        </div>
+
+        <div class="bar-container" id="barContainer">
+            <canvas class="bar-canvas" id="barCanvas" width="700" height="120"></canvas>
+            <canvas class="spark-canvas" id="sparkCanvas" width="500" height="200"></canvas>
+            <div class="chance-display" id="chanceDisplay">
+                <div class="chance-percent" id="chancePercent">0%</div>
+                <div class="chance-label">ШАНС</div>
+            </div>
+            <div class="center-result" id="centerResult">
+                <div class="center-result-text" id="centerResultText">УСПЕХ</div>
+                <div class="center-result-chance" id="centerResultChance"></div>
             </div>
         </div>
 
@@ -83,14 +83,14 @@
         </div>
 
         <div class="lists-row">
-    <div class="gift-list-panel" id="giftListPanel">
-        <div class="tab-header">
-            <div class="tab-btn active" id="tabInventory">Инвентарь</div>
-            <div class="tab-btn" id="tabTargets">Прокачать до</div>
+            <div class="gift-list-panel" id="giftListPanel">
+                <div class="tab-header">
+                    <div class="tab-btn active" id="tabInventory">Инвентарь</div>
+                    <div class="tab-btn" id="tabTargets">Прокачать до</div>
+                </div>
+                <div id="giftListContent"></div>
+            </div>
         </div>
-        <div id="giftListContent"></div>
-    </div>
-</div>
 
         <!-- Settings overlay -->
         <div class="settings-overlay" id="settingsOverlay">
