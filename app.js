@@ -112,8 +112,9 @@ class UpgradeGame {
         this.isSpinning = false;
         this.audioContext = null;
         this.soundEnabled = false;
-        this.wheelAngle = 0;
-        this.wheelAnimationId = null;
+        this.barPosition = 0.5;
+        this.barDirection = 1;
+        this.barAnimationId = null;
         this.resultTimeout = null;
         this.sparkSystem = null;
         this.sellTargetGiftId = null;
@@ -391,7 +392,7 @@ class UpgradeGame {
         const cx = sc.width / 2;
         const cy = sc.height / 2;
         const colors = success ? ['#5ff57a', '#3fb950', '#a5f5b0', '#ffffff', '#7dff90'] : ['#ff6b6b', '#f85149', '#ff9999', '#ffffff', '#ff4444'];
-        this.sparkSystem.emit(cx, cy, 50, colors);
+        this.sparkSystem.emit(cx, cy, 40, colors);
         if (this.resultTimeout) clearTimeout(this.resultTimeout);
         this.resultTimeout = setTimeout(() => {
             centerResult.classList.remove('show');
@@ -412,29 +413,59 @@ class UpgradeGame {
         this.setSpinningState(true);
         if (tg) tg.HapticFeedback.impactOccurred('heavy');
         
-        const totalRot = this.spinType === 'fast' ? 3 + Math.floor(Math.random() * 3) : 5 + Math.floor(Math.random() * 5);
-        const ta = Math.random() * Math.PI * 2;
-        const totalAngle = totalRot * Math.PI * 2 + ta;
-        const dur = this.spinType === 'fast' ? 2000 : 4000;
-        const st = Date.now(), sa = this.wheelAngle;
-        const ease = t => 1 - Math.pow(1 - t, 3);
-        const anim = () => { const el = Date.now() - st, p = Math.min(el / dur, 1), ep = ease(p); this.wheelAngle = sa + totalAngle * ep; this.drawWheel(); if (this.soundEnabled && p < 0.9 && Math.floor(p * 40) % 2 === 0) this.playBeep(200 + (1 - ep) * 800, 0.01); if (p < 1) this.wheelAnimationId = requestAnimationFrame(anim); else this.onSpinComplete(); };
-        this.wheelAnimationId = requestAnimationFrame(anim);
+        this.barPosition = 0;
+        this.barDirection = 1;
+        
+        const dur = this.spinType === 'fast' ? 2500 : 4500;
+        const st = Date.now();
+        const bounces = this.spinType === 'fast' ? 6 : 10;
+        let bounceCount = 0;
+        
+        const anim = () => {
+            const el = Date.now() - st;
+            const p = Math.min(el / dur, 1);
+            
+            const freq = bounces * Math.PI;
+            const decay = Math.exp(-p * 4);
+            const rawPos = Math.abs(Math.sin(p * freq)) * decay;
+            
+            this.barPosition = rawPos;
+            this.drawBar();
+            
+            if (this.soundEnabled && p < 0.9) {
+                const newBounce = Math.floor(p * bounces * 2);
+                if (newBounce > bounceCount) {
+                    bounceCount = newBounce;
+                    this.playBeep(300 + rawPos * 600, 0.015);
+                }
+            }
+            
+            if (p < 1) {
+                this.barAnimationId = requestAnimationFrame(anim);
+            } else {
+                this.onBarComplete();
+            }
+        };
+        this.barAnimationId = requestAnimationFrame(anim);
     }
 
-    onSpinComplete() {
+    onBarComplete() {
         this.isSpinning = false;
         const btn = document.getElementById('upgradeBtn');
         btn.classList.remove('spinning');
         btn.textContent = 'Прокачать';
         btn.disabled = false;
         this.setSpinningState(false);
-        const na = ((this.wheelAngle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
-        const se = this.currentChance * Math.PI * 2;
-        const win = na <= se;
+        
+        const finalPos = this.barPosition;
         const sc = this.currentChance;
-        this.wheelAngle = 0;
-        this.drawWheel();
+        const winStart = 0.5 - sc / 2;
+        const winEnd = 0.5 + sc / 2;
+        const win = finalPos >= winStart && finalPos <= winEnd;
+        
+        this.barPosition = 0.5;
+        this.drawBar();
+        
         if (win) this.onUpgradeSuccess(sc);
         else this.onUpgradeFail(sc);
     }
@@ -445,6 +476,7 @@ class UpgradeGame {
         document.getElementById('targetGiftCard').classList.toggle('spinning-disabled', spinning);
         document.getElementById('giftListContent').style.pointerEvents = spinning ? 'none' : 'auto';
         document.getElementById('giftListContent').style.opacity = spinning ? '0.6' : '1';
+        document.getElementById('barCanvas').style.pointerEvents = spinning ? 'none' : 'auto';
     }
 
     onUpgradeSuccess(sc) {
@@ -505,7 +537,7 @@ class UpgradeGame {
         this.renderGiftCard('targetGiftCard', this.targetGift, false);
         const cp = (this.currentChance * 100).toFixed(1);
         document.getElementById('chancePercent').textContent = cp + '%';
-        this.drawWheel();
+        this.drawBar();
         this.renderGiftList();
         const ub = document.getElementById('upgradeBtn');
         const totalCost = this.getSelectedTotalCost();
@@ -607,167 +639,130 @@ class UpgradeGame {
         }
     }
 
-    drawWheel() {
-        const c = document.getElementById('wheelCanvas');
+    drawBar() {
+        const c = document.getElementById('barCanvas');
         const ctx = c.getContext('2d');
-        const w = c.width, h = c.height, cx = w / 2, cy = h / 2;
-        const or = Math.min(w, h) / 2 - 12, rw = 22, ir = or - rw, cr = ir - 4;
-        const outerRingInner = or + 3;
-        const outerRingOuter = or + 8;
-        const arrowBaseRadius = outerRingInner + 2;
+        const w = c.width, h = c.height;
         
         ctx.clearRect(0, 0, w, h);
         
-        if (this.currentChance > 0) {
-            const sa = -Math.PI / 2, ea = -Math.PI / 2 + this.currentChance * Math.PI * 2;
-            ctx.beginPath();
-            ctx.arc(cx, cy, outerRingOuter, sa, ea);
-            ctx.arc(cx, cy, outerRingInner, ea, sa, true);
-            ctx.closePath();
-            const grad = ctx.createLinearGradient(cx - or, cy - or, cx + or, cy + or);
-            grad.addColorStop(0, '#f0883e');
-            grad.addColorStop(0.5, '#f5c842');
-            grad.addColorStop(1, '#ffd700');
-            ctx.fillStyle = grad;
-            ctx.fill();
-            ctx.shadowColor = 'rgba(240,136,62,0.5)';
-            ctx.shadowBlur = 18;
-            ctx.fill();
-            ctx.shadowBlur = 0;
-        }
+        const pad = 16;
+        const barX = pad;
+        const barY = (h - 32) / 2;
+        const barW = w - pad * 2;
+        const barH = 32;
+        const radius = 10;
         
+        // Фон полоски
         ctx.beginPath();
-        ctx.arc(cx, cy, outerRingOuter, 0, Math.PI * 2);
-        ctx.arc(cx, cy, outerRingInner, 0, Math.PI * 2, true);
-        ctx.closePath();
-        ctx.fillStyle = '#0d111f';
-        ctx.fill();
-        ctx.strokeStyle = '#2a3a5c';
-        ctx.lineWidth = 1.5;
-        ctx.stroke();
-        
-        ctx.beginPath();
-        ctx.arc(cx, cy, or, 0, Math.PI * 2);
-        ctx.arc(cx, cy, ir, 0, Math.PI * 2, true);
-        ctx.closePath();
+        ctx.roundRect(barX, barY, barW, barH, radius);
         ctx.fillStyle = '#0d111f';
         ctx.fill();
         ctx.strokeStyle = '#2a3a5c';
         ctx.lineWidth = 2;
-        ctx.stroke();
         ctx.shadowColor = 'rgba(100,140,255,0.3)';
-        ctx.shadowBlur = 12;
+        ctx.shadowBlur = 10;
         ctx.stroke();
         ctx.shadowBlur = 0;
         
+        // Заполненная зона от центра
         if (this.currentChance > 0) {
-            const sa = -Math.PI / 2, ea = -Math.PI / 2 + this.currentChance * Math.PI * 2;
+            const centerX = barX + barW / 2;
+            const halfFill = (barW / 2) * this.currentChance;
+            const fillX1 = centerX - halfFill;
+            const fillX2 = centerX + halfFill;
+            
             ctx.beginPath();
-            ctx.arc(cx, cy, or - 2, sa, ea);
-            ctx.arc(cx, cy, ir + 2, ea, sa, true);
-            ctx.closePath();
-            const grad = ctx.createLinearGradient(cx - or, cy - or, cx + or, cy + or);
+            ctx.roundRect(fillX1, barY, fillX2 - fillX1, barH, radius);
+            const grad = ctx.createLinearGradient(barX, 0, barX + barW, 0);
             grad.addColorStop(0, '#f0883e');
             grad.addColorStop(0.5, '#f5c842');
             grad.addColorStop(1, '#ffd700');
             ctx.fillStyle = grad;
-            ctx.fill();
-            ctx.shadowColor = 'rgba(240,136,62,0.5)';
-            ctx.shadowBlur = 18;
+            ctx.shadowColor = 'rgba(240,136,62,0.4)';
+            ctx.shadowBlur = 16;
             ctx.fill();
             ctx.shadowBlur = 0;
         }
         
+        // Обводка поверх заливки
         ctx.beginPath();
-        ctx.arc(cx, cy, ir, 0, Math.PI * 2);
+        ctx.roundRect(barX, barY, barW, barH, radius);
         ctx.strokeStyle = '#2a3a5c';
         ctx.lineWidth = 2;
-        ctx.shadowColor = 'rgba(100,140,255,0.2)';
-        ctx.shadowBlur = 6;
         ctx.stroke();
-        ctx.shadowBlur = 0;
-        ctx.beginPath();
-        ctx.arc(cx, cy, or, 0, Math.PI * 2);
-        ctx.strokeStyle = '#2a3a5c';
-        ctx.lineWidth = 2;
-        ctx.shadowColor = 'rgba(100,140,255,0.2)';
-        ctx.shadowBlur = 6;
-        ctx.stroke();
-        ctx.shadowBlur = 0;
         
-        ctx.beginPath();
-        ctx.arc(cx, cy, outerRingOuter, 0, Math.PI * 2);
-        ctx.strokeStyle = '#2a3a5c';
-        ctx.lineWidth = 1.5;
-        ctx.shadowColor = 'rgba(100,140,255,0.2)';
-        ctx.shadowBlur = 5;
-        ctx.stroke();
-        ctx.shadowBlur = 0;
-        
-        ctx.beginPath();
-        ctx.arc(cx, cy, cr, 0, Math.PI * 2);
-        ctx.fillStyle = '#08090d';
-        ctx.fill();
-        ctx.strokeStyle = '#2a3a5c';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.arc(cx, cy, cr - 3, 0, Math.PI * 2);
-        ctx.strokeStyle = '#1a2540';
-        ctx.lineWidth = 1;
-        ctx.stroke();
+        // Двухсторонняя стрелка
+        const arrowX = barX + this.barPosition * barW;
+        const arrowY = barY + barH / 2;
+        const arrowSize = 14;
         
         ctx.save();
-        ctx.translate(cx, cy);
-        ctx.rotate(this.wheelAngle);
         
-        const tipRadius = ir + 2;
-        const tipX = 0, tipY = -tipRadius;
-        const baseX = 0, baseY = -arrowBaseRadius;
-        
+        // Левое остриё
         ctx.beginPath();
-        ctx.moveTo(baseX, baseY);
-        ctx.lineTo(tipX, tipY);
-        ctx.strokeStyle = '#ffd700';
-        ctx.lineWidth = 2.5;
-        ctx.lineCap = 'round';
-        ctx.shadowColor = '#ffd700';
-        ctx.shadowBlur = 12;
-        ctx.stroke();
-        ctx.shadowBlur = 0;
-        
-        ctx.beginPath();
-        ctx.moveTo(tipX, tipY);
-        ctx.lineTo(-6, tipY - 10);
-        ctx.lineTo(6, tipY - 10);
+        ctx.moveTo(arrowX - arrowSize, arrowY);
+        ctx.lineTo(arrowX - 3, arrowY - arrowSize * 0.7);
+        ctx.lineTo(arrowX - 3, arrowY - 4);
+        ctx.lineTo(arrowX + 3, arrowY - 4);
+        ctx.lineTo(arrowX + 3, arrowY - arrowSize * 0.7);
         ctx.closePath();
         ctx.fillStyle = '#ffd700';
-        ctx.fill();
         ctx.shadowColor = '#ffd700';
-        ctx.shadowBlur = 12;
+        ctx.shadowBlur = 14;
         ctx.fill();
+        
+        // Правое остриё
+        ctx.beginPath();
+        ctx.moveTo(arrowX + arrowSize, arrowY);
+        ctx.lineTo(arrowX + 3, arrowY - arrowSize * 0.7);
+        ctx.lineTo(arrowX + 3, arrowY - 4);
+        ctx.lineTo(arrowX - 3, arrowY - 4);
+        ctx.lineTo(arrowX - 3, arrowY - arrowSize * 0.7);
+        ctx.closePath();
+        ctx.fill();
+        
+        // Нижнее левое остриё
+        ctx.beginPath();
+        ctx.moveTo(arrowX - arrowSize, arrowY);
+        ctx.lineTo(arrowX - 3, arrowY + arrowSize * 0.7);
+        ctx.lineTo(arrowX - 3, arrowY + 4);
+        ctx.lineTo(arrowX + 3, arrowY + 4);
+        ctx.lineTo(arrowX + 3, arrowY + arrowSize * 0.7);
+        ctx.closePath();
+        ctx.fill();
+        
+        // Нижнее правое остриё
+        ctx.beginPath();
+        ctx.moveTo(arrowX + arrowSize, arrowY);
+        ctx.lineTo(arrowX + 3, arrowY + arrowSize * 0.7);
+        ctx.lineTo(arrowX + 3, arrowY + 4);
+        ctx.lineTo(arrowX - 3, arrowY + 4);
+        ctx.lineTo(arrowX - 3, arrowY + arrowSize * 0.7);
+        ctx.closePath();
+        ctx.fill();
+        
         ctx.shadowBlur = 0;
         
+        // Центральный круг
         ctx.beginPath();
-        ctx.arc(baseX, baseY, 3.5, 0, Math.PI * 2);
-        ctx.fillStyle = '#ffd700';
+        ctx.arc(arrowX, arrowY, 5, 0, Math.PI * 2);
+        ctx.fillStyle = '#0a0f1a';
         ctx.fill();
-        ctx.shadowColor = '#ffd700';
-        ctx.shadowBlur = 10;
-        ctx.fill();
-        ctx.shadowBlur = 0;
+        ctx.strokeStyle = '#ffd700';
+        ctx.lineWidth = 2;
+        ctx.stroke();
         
         ctx.restore();
         
-        const rg = ctx.createRadialGradient(cx - or * 0.2, cy - or * 0.2, or * 0.03, cx, cy, or);
-        rg.addColorStop(0, 'rgba(255,255,255,0.05)');
-        rg.addColorStop(0.5, 'rgba(255,255,255,0.01)');
-        rg.addColorStop(1, 'rgba(0,0,0,0.2)');
+        // Блик
+        const glossGrad = ctx.createLinearGradient(0, barY, 0, barY + barH);
+        glossGrad.addColorStop(0, 'rgba(255,255,255,0.04)');
+        glossGrad.addColorStop(0.5, 'rgba(255,255,255,0)');
+        glossGrad.addColorStop(1, 'rgba(255,255,255,0.03)');
         ctx.beginPath();
-        ctx.arc(cx, cy, or, 0, Math.PI * 2);
-        ctx.arc(cx, cy, ir, 0, Math.PI * 2, true);
-        ctx.closePath();
-        ctx.fillStyle = rg;
+        ctx.roundRect(barX, barY, barW, barH, radius);
+        ctx.fillStyle = glossGrad;
         ctx.fill();
     }
 
