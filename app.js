@@ -105,7 +105,7 @@ class UpgradeGame {
     constructor() {
         this.balance = 1000;
         this.inventory = [];
-        this.currentGiftId = null;
+        this.selectedGiftIds = [];
         this.targetGiftId = null;
         this.currentChance = 0;
         this.history = [];
@@ -117,49 +117,64 @@ class UpgradeGame {
         this.resultTimeout = null;
         this.sparkSystem = null;
         this.sellTargetGiftId = null;
+        
+        // Settings
+        this.quickCoefs = [2, 4, 8];
+        this.quickPercents = [35, 55, 75];
+        this.spinType = 'normal';
+        
         this.init();
     }
 
-    get currentGift() { return ALL_GIFTS.find(g => g.id === this.currentGiftId) || null; }
+    get selectedGifts() {
+        return this.selectedGiftIds.map(id => ALL_GIFTS.find(g => g.id === id)).filter(Boolean);
+    }
+
+    get primaryGift() {
+        return this.selectedGifts[0] || null;
+    }
+
     get targetGift() { return ALL_GIFTS.find(g => g.id === this.targetGiftId) || null; }
+
     get inventoryGifts() {
         const seen = new Set();
         return this.inventory.filter(e => { if (seen.has(e.giftId)) return false; seen.add(e.giftId); return true; }).map(e => ALL_GIFTS.find(g => g.id === e.giftId)).filter(Boolean);
     }
 
-    calculateChance(cp, tp) { return cp >= tp ? 0 : (cp / tp) * 0.95; }
+    calculateChance(totalCost, tp) { return totalCost >= tp ? 0 : (totalCost / tp) * 0.95; }
     
     getAllTargets() {
-        if (!this.currentGift) return ALL_GIFTS;
-        return ALL_GIFTS.filter(g => g.price > this.currentGift.price);
+        if (!this.primaryGift) return ALL_GIFTS;
+        const totalCost = this.getSelectedTotalCost();
+        return ALL_GIFTS.filter(g => g.price > totalCost);
+    }
+
+    getSelectedTotalCost() {
+        return this.selectedGifts.reduce((sum, g) => sum + g.price, 0);
     }
 
     findTargetByFraction(fr) {
-        if (!this.currentGift) return null;
+        if (!this.primaryGift) return null;
         const [n, d] = fr.split('/').map(Number);
         const tc = n / d;
-        const cPrice = this.currentGift.price;
-        const cands = ALL_GIFTS.filter(g => g.price > cPrice);
+        const totalCost = this.getSelectedTotalCost();
+        const cands = ALL_GIFTS.filter(g => g.price > totalCost);
         if (!cands.length) return null;
         let best = cands[0], bd = Infinity;
-        for (const g of cands) { const diff = Math.abs(this.calculateChance(cPrice, g.price) - tc); if (diff < bd) { bd = diff; best = g; } }
+        for (const g of cands) { const diff = Math.abs(this.calculateChance(totalCost, g.price) - tc); if (diff < bd) { bd = diff; best = g; } }
         return best;
     }
 
     async init() {
-		    const preloader = document.getElementById('preloader');
-    if (preloader) {
-        preloader.classList.add('hide');
-        setTimeout(() => preloader.remove(), 300);
-    }
-		
         this.loadFromStorage();
         this.deduplicateInventory();
-        if (this.inventory.length > 0 && !this.inventory.find(e => e.giftId === this.currentGiftId)) {
-            this.currentGiftId = this.inventory[0].giftId;
+        if (this.inventory.length > 0 && this.selectedGiftIds.length === 0) {
+            this.selectedGiftIds = [this.inventory[0].giftId];
         }
         this.updateChance();
         this.sparkSystem = new SparkSystem(document.getElementById('sparkCanvas'));
+        this.loadSettings();
+        this.renderQuickButtons();
         this.setupEventListeners();
         this.renderAll();
     }
@@ -167,31 +182,99 @@ class UpgradeGame {
     deduplicateInventory() { const s = new Set(); const u = []; for (const e of this.inventory) { if (!s.has(e.giftId)) { s.add(e.giftId); u.push(e); } } this.inventory = u; }
 
     updateChance() {
-        if (this.currentGift && this.targetGift && this.targetGift.price > this.currentGift.price) {
-            this.currentChance = this.calculateChance(this.currentGift.price, this.targetGift.price);
+        if (this.primaryGift && this.targetGift) {
+            const totalCost = this.getSelectedTotalCost();
+            if (this.targetGift.price > totalCost) {
+                this.currentChance = this.calculateChance(totalCost, this.targetGift.price);
+            } else {
+                this.currentChance = 0;
+            }
         } else {
             this.currentChance = 0;
         }
     }
 
-    loadFromStorage() { try { const s = localStorage.getItem('upgrade_stars_v12'); if (s) { const d = JSON.parse(s); this.balance = d.balance || 1000; this.inventory = d.inventory || []; this.history = d.history || []; this.currentGiftId = d.currentGiftId || null; this.targetGiftId = d.targetGiftId || null; } } catch (e) {} }
-    saveToStorage() { try { localStorage.setItem('upgrade_stars_v12', JSON.stringify({ balance: this.balance, inventory: this.inventory, history: this.history.slice(0, 30), currentGiftId: this.currentGiftId, targetGiftId: this.targetGiftId })); } catch (e) {} }
+    loadFromStorage() {
+        try {
+            const s = localStorage.getItem('upgrade_stars_v12');
+            if (s) {
+                const d = JSON.parse(s);
+                this.balance = d.balance || 1000;
+                this.inventory = d.inventory || [];
+                this.history = d.history || [];
+                this.selectedGiftIds = d.selectedGiftIds || [];
+                this.targetGiftId = d.targetGiftId || null;
+            }
+        } catch (e) {}
+    }
 
-    setupEventListeners() {
-        document.getElementById('upgradeBtn').addEventListener('click', () => this.startUpgrade());
-        document.querySelectorAll('.quick-bet-btn').forEach(b => b.addEventListener('click', e => {
+    saveToStorage() {
+        try {
+            localStorage.setItem('upgrade_stars_v12', JSON.stringify({
+                balance: this.balance,
+                inventory: this.inventory,
+                history: this.history.slice(0, 30),
+                selectedGiftIds: this.selectedGiftIds,
+                targetGiftId: this.targetGiftId
+            }));
+        } catch (e) {}
+    }
+
+    loadSettings() {
+        try {
+            const s = localStorage.getItem('upgift_settings');
+            if (s) {
+                const d = JSON.parse(s);
+                this.quickCoefs = d.quickCoefs || [2, 4, 8];
+                this.quickPercents = d.quickPercents || [35, 55, 75];
+                this.soundEnabled = d.soundEnabled !== undefined ? d.soundEnabled : false;
+                this.spinType = d.spinType || 'normal';
+            }
+        } catch (e) {}
+    }
+
+    saveSettings() {
+        try {
+            localStorage.setItem('upgift_settings', JSON.stringify({
+                quickCoefs: this.quickCoefs,
+                quickPercents: this.quickPercents,
+                soundEnabled: this.soundEnabled,
+                spinType: this.spinType
+            }));
+        } catch (e) {}
+    }
+
+    renderQuickButtons() {
+        const container = document.getElementById('quickBetButtons');
+        if (!container) return;
+        let html = '';
+        for (const c of this.quickCoefs) {
+            html += `<button class="quick-bet-btn" data-fraction="1/${c}">x${c}</button>`;
+        }
+        for (const p of this.quickPercents) {
+            html += `<button class="quick-bet-btn" data-fraction="${p}/100">${p}%</button>`;
+        }
+        container.innerHTML = html;
+        
+        // Re-attach listeners
+        container.querySelectorAll('.quick-bet-btn').forEach(b => b.addEventListener('click', e => {
             if (this.isSpinning) return;
-            if (!this.currentGift) return;
+            if (!this.primaryGift) return;
             const f = e.target.dataset.fraction;
             const g = this.findTargetByFraction(f); if (g) { this.targetGiftId = g.id; this.updateChance(); this.renderAll(); this.highlightQuickButton(f); }
         }));
+    }
+
+    setupEventListeners() {
+        document.getElementById('upgradeBtn').addEventListener('click', () => this.startUpgrade());
         document.getElementById('currentGiftCard').addEventListener('click', () => {
             if (this.isSpinning) return;
-            const ig = this.inventoryGifts; if (ig.length === 0) return;
-            if (!this.currentGift) { this.currentGiftId = ig[0].id; } else { const ci = ig.findIndex(g => g.id === this.currentGiftId); this.currentGiftId = ig[(ci + 1) % ig.length].id; }
-            this.updateChance();
-            this.renderAll();
-            this.saveToStorage();
+            if (this.selectedGiftIds.length > 0) {
+                this.selectedGiftIds = [];
+                this.updateChance();
+                this.renderAll();
+                this.saveToStorage();
+            }
         });
         document.getElementById('targetGiftCard').addEventListener('click', () => {
             if (this.isSpinning) return;
@@ -204,62 +287,63 @@ class UpgradeGame {
         });
         document.getElementById('balanceContainer').addEventListener('click', () => document.getElementById('balanceTopupOverlay').classList.add('show'));
         document.getElementById('closeTopupBtn').addEventListener('click', () => document.getElementById('balanceTopupOverlay').classList.remove('show'));
-        document.getElementById('topupGifts').addEventListener('click', () => { alert('🔜 Функция пополнения подарками Telegram будет доступна с интеграцией бота.'); document.getElementById('balanceTopupOverlay').classList.remove('show'); });
+        document.getElementById('topupGifts').addEventListener('click', () => { alert('Функция пополнения подарками Telegram будет доступна с интеграцией бота.'); document.getElementById('balanceTopupOverlay').classList.remove('show'); });
         document.getElementById('topupStars').addEventListener('click', () => { this.balance += 500; this.renderAll(); this.saveToStorage(); document.getElementById('balanceTopupOverlay').classList.remove('show'); if (tg) tg.HapticFeedback.notificationOccurred('success'); });
         document.getElementById('shopBtn').addEventListener('click', () => { document.getElementById('shopOverlay').classList.add('show'); this.renderShop(); });
         document.getElementById('closeShopBtn').addEventListener('click', () => document.getElementById('shopOverlay').classList.remove('show'));
-        document.getElementById('infoBtn').addEventListener('click', () => { document.getElementById('infoOverlay').classList.add('show'); });
-        document.getElementById('closeInfoBtn').addEventListener('click', () => { document.getElementById('infoOverlay').classList.remove('show'); });
-        document.getElementById('inventoryList').addEventListener('click', e => {
-            if (this.isSpinning) return;
-            const it = e.target.closest('.gift-list-item'); if (!it) return; const gid = it.dataset.giftId; if (gid && this.inventory.find(en => en.giftId === gid)) { this.currentGiftId = gid; this.updateChance(); this.renderAll(); this.saveToStorage(); }
-        });
-        document.getElementById('targetsList').addEventListener('click', e => {
-            if (this.isSpinning) return;
-            const it = e.target.closest('.gift-list-item'); if (!it) return; const gid = it.dataset.giftId; const tgt = ALL_GIFTS.find(g => g.id === gid); if (tgt && (!this.currentGift || tgt.price > this.currentGift.price)) { this.targetGiftId = gid; this.updateChance(); this.renderAll(); this.saveToStorage(); }
-        });
         document.getElementById('sellConfirmBtn').addEventListener('click', () => this.confirmSell());
         document.getElementById('sellCancelBtn').addEventListener('click', () => this.closeSellOverlay());
         document.getElementById('sellOverlay').addEventListener('click', e => { if (e.target === document.getElementById('sellOverlay')) this.closeSellOverlay(); });
+        
+        // Settings
+        document.getElementById('settingsBtn').addEventListener('click', () => this.openSettings());
+        document.getElementById('settingsSaveBtn').addEventListener('click', () => this.saveSettingsFromUI());
+        document.getElementById('settingsOverlay').addEventListener('click', e => { if (e.target === document.getElementById('settingsOverlay')) document.getElementById('settingsOverlay').classList.remove('show'); });
+        
         document.body.addEventListener('click', () => { if (!this.soundEnabled) this.initAudio(); }, { once: true });
     }
 
-    openSellOverlay(giftId) {
-        const gift = ALL_GIFTS.find(g => g.id === giftId);
-        if (!gift || !this.inventory.find(e => e.giftId === giftId)) return;
-        this.sellTargetGiftId = giftId;
-        document.getElementById('sellEmoji').innerHTML = `<img src="${gift.icon}" alt="${gift.name}" class="sell-icon">`;
-        document.getElementById('sellName').textContent = gift.name;
-        document.getElementById('sellPrice').innerHTML = gift.price + ' <span class="star-icon-small"></span>';
-        document.getElementById('sellOverlay').classList.add('show');
+    openSettings() {
+        document.getElementById('settingCoef1').value = this.quickCoefs[0] || 2;
+        document.getElementById('settingCoef2').value = this.quickCoefs[1] || 4;
+        document.getElementById('settingCoef3').value = this.quickCoefs[2] || 8;
+        document.getElementById('settingPerc1').value = this.quickPercents[0] || 35;
+        document.getElementById('settingPerc2').value = this.quickPercents[1] || 55;
+        document.getElementById('settingPerc3').value = this.quickPercents[2] || 75;
+        
+        document.getElementById('soundOn').checked = this.soundEnabled;
+        document.getElementById('soundOff').checked = !this.soundEnabled;
+        document.getElementById('spinNormal').checked = this.spinType === 'normal';
+        document.getElementById('spinFast').checked = this.spinType === 'fast';
+        
+        document.getElementById('settingsOverlay').classList.add('show');
     }
 
-    closeSellOverlay() {
-        document.getElementById('sellOverlay').classList.remove('show');
-        this.sellTargetGiftId = null;
-    }
-
-    confirmSell() {
-        if (!this.sellTargetGiftId) return;
-        const gift = ALL_GIFTS.find(g => g.id === this.sellTargetGiftId);
-        if (!gift) return;
-        const idx = this.inventory.findIndex(e => e.giftId === this.sellTargetGiftId);
-        if (idx === -1) return;
-        this.inventory.splice(idx, 1);
-        this.balance += gift.price;
-        if (this.currentGiftId === this.sellTargetGiftId) {
-            this.currentGiftId = this.inventory.length > 0 ? this.inventory[0].giftId : null;
-            this.updateChance();
-        }
-        this.saveToStorage();
+    saveSettingsFromUI() {
+        this.quickCoefs = [
+            parseInt(document.getElementById('settingCoef1').value) || 2,
+            parseInt(document.getElementById('settingCoef2').value) || 4,
+            parseInt(document.getElementById('settingCoef3').value) || 8
+        ];
+        this.quickPercents = [
+            parseInt(document.getElementById('settingPerc1').value) || 35,
+            parseInt(document.getElementById('settingPerc2').value) || 55,
+            parseInt(document.getElementById('settingPerc3').value) || 75
+        ];
+        this.soundEnabled = document.getElementById('soundOn').checked;
+        this.spinType = document.querySelector('input[name="spinType"]:checked')?.value || 'normal';
+        
+        this.saveSettings();
+        this.renderQuickButtons();
+        this.updateChance();
         this.renderAll();
-        this.closeSellOverlay();
+        document.getElementById('settingsOverlay').classList.remove('show');
         if (tg) tg.HapticFeedback.notificationOccurred('success');
     }
 
     highlightQuickButton(fr) { document.querySelectorAll('.quick-bet-btn').forEach(b => b.classList.remove('active')); const btn = document.querySelector(`.quick-bet-btn[data-fraction="${fr}"]`); if (btn) btn.classList.add('active'); }
 
-    async initAudio() { try { this.audioContext = new (window.AudioContext || window.webkitAudioContext)(); await this.audioContext.resume(); this.soundEnabled = true; } catch (e) {} }
+    async initAudio() { try { this.audioContext = new (window.AudioContext || window.webkitAudioContext)(); await this.audioContext.resume(); } catch (e) {} }
     playBeep(f, d, ty = 'sine') { if (!this.audioContext || !this.soundEnabled) return; const o = this.audioContext.createOscillator(); const g = this.audioContext.createGain(); o.connect(g); g.connect(this.audioContext.destination); o.frequency.value = f; o.type = ty; g.gain.setValueAtTime(0.05, this.audioContext.currentTime); g.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + d); o.start(); o.stop(this.audioContext.currentTime + d); }
 
     showResultText(success, chance) {
@@ -298,7 +382,10 @@ class UpgradeGame {
     }
 
     startUpgrade() {
-        if (this.isSpinning || !this.currentGift || !this.targetGift || !this.inventory.find(e => e.giftId === this.currentGiftId) || this.currentGift.price >= this.targetGift.price) return;
+        const totalCost = this.getSelectedTotalCost();
+        if (this.isSpinning || !this.primaryGift || !this.targetGift || totalCost >= this.targetGift.price) return;
+        if (this.selectedGifts.some(g => !this.inventory.find(e => e.giftId === g.id))) return;
+        
         this.isSpinning = true;
         const btn = document.getElementById('upgradeBtn');
         btn.disabled = true;
@@ -306,10 +393,12 @@ class UpgradeGame {
         btn.textContent = 'КРУТИМ...';
         this.setSpinningState(true);
         if (tg) tg.HapticFeedback.impactOccurred('heavy');
-        const totalRot = 5 + Math.floor(Math.random() * 5);
+        
+        const totalRot = this.spinType === 'fast' ? 3 + Math.floor(Math.random() * 3) : 5 + Math.floor(Math.random() * 5);
         const ta = Math.random() * Math.PI * 2;
         const totalAngle = totalRot * Math.PI * 2 + ta;
-        const dur = 4000, st = Date.now(), sa = this.wheelAngle;
+        const dur = this.spinType === 'fast' ? 2000 : 4000;
+        const st = Date.now(), sa = this.wheelAngle;
         const ease = t => 1 - Math.pow(1 - t, 3);
         const anim = () => { const el = Date.now() - st, p = Math.min(el / dur, 1), ep = ease(p); this.wheelAngle = sa + totalAngle * ep; this.drawWheel(); if (this.soundEnabled && p < 0.9 && Math.floor(p * 40) % 2 === 0) this.playBeep(200 + (1 - ep) * 800, 0.01); if (p < 1) this.wheelAnimationId = requestAnimationFrame(anim); else this.onSpinComplete(); };
         this.wheelAnimationId = requestAnimationFrame(anim);
@@ -342,13 +431,62 @@ class UpgradeGame {
         document.getElementById('targetsList').style.opacity = spinning ? '0.6' : '1';
     }
 
-    onUpgradeSuccess(sc) { const og = this.currentGift, ng = this.targetGift; const idx = this.inventory.findIndex(e => e.giftId === og.id); if (idx !== -1) this.inventory.splice(idx, 1); if (!this.inventory.find(e => e.giftId === ng.id)) this.inventory.push({ giftId: ng.id, acquiredAt: Date.now() }); this.currentGiftId = ng.id; this.updateChance(); this.history.unshift({ from: og.id, to: ng.id, chance: sc, success: true, time: Date.now() }); this.saveToStorage(); this.renderAll(); this.showResultText(true, sc); if (tg) tg.HapticFeedback.notificationOccurred('success'); this.playBeep(1500, 0.2); setTimeout(() => this.playBeep(1800, 0.15), 150); }
+    onUpgradeSuccess(sc) {
+        const ng = this.targetGift;
+        // Remove all selected gifts
+        for (const g of this.selectedGifts) {
+            const idx = this.inventory.findIndex(e => e.giftId === g.id);
+            if (idx !== -1) this.inventory.splice(idx, 1);
+        }
+        if (!this.inventory.find(e => e.giftId === ng.id)) this.inventory.push({ giftId: ng.id, acquiredAt: Date.now() });
+        this.selectedGiftIds = [ng.id];
+        this.updateChance();
+        this.history.unshift({ from: this.selectedGifts.map(g => g.id).join(','), to: ng.id, chance: sc, success: true, time: Date.now() });
+        this.saveToStorage();
+        this.renderAll();
+        this.showResultText(true, sc);
+        if (tg) tg.HapticFeedback.notificationOccurred('success');
+        this.playBeep(1500, 0.2);
+        setTimeout(() => this.playBeep(1800, 0.15), 150);
+    }
 
-    onUpgradeFail(sc) { const og = this.currentGift, tgf = this.targetGift; const idx = this.inventory.findIndex(e => e.giftId === og.id); if (idx !== -1) this.inventory.splice(idx, 1); if (!this.inventory.length) { this.currentGiftId = null; } else { this.currentGiftId = this.inventory[0].giftId; } this.updateChance(); this.history.unshift({ from: og.id, to: tgf.id, chance: sc, success: false, time: Date.now() }); this.saveToStorage(); this.renderAll(); this.showResultText(false, sc); if (tg) tg.HapticFeedback.notificationOccurred('error'); this.playBeep(200, 0.3, 'sawtooth'); }
+    onUpgradeFail(sc) {
+        const tgf = this.targetGift;
+        for (const g of this.selectedGifts) {
+            const idx = this.inventory.findIndex(e => e.giftId === g.id);
+            if (idx !== -1) this.inventory.splice(idx, 1);
+        }
+        if (!this.inventory.length) {
+            this.selectedGiftIds = [];
+        } else {
+            this.selectedGiftIds = [this.inventory[0].giftId];
+        }
+        this.updateChance();
+        this.history.unshift({ from: this.selectedGifts.map(g => g.id).join(','), to: tgf.id, chance: sc, success: false, time: Date.now() });
+        this.saveToStorage();
+        this.renderAll();
+        this.showResultText(false, sc);
+        if (tg) tg.HapticFeedback.notificationOccurred('error');
+        this.playBeep(200, 0.3, 'sawtooth');
+    }
+
+    toggleGiftSelection(giftId) {
+        if (!this.inventory.find(e => e.giftId === giftId)) return;
+        const idx = this.selectedGiftIds.indexOf(giftId);
+        if (idx !== -1) {
+            this.selectedGiftIds.splice(idx, 1);
+        } else {
+            if (this.selectedGiftIds.length >= 9) return; // Max 9 (3 rows × 3)
+            this.selectedGiftIds.push(giftId);
+        }
+        this.updateChance();
+        this.renderAll();
+        this.saveToStorage();
+    }
 
     renderAll() {
         document.getElementById('balance').textContent = this.balance.toLocaleString();
-        this.renderGiftCard('currentGiftCard', this.currentGift, true);
+        this.renderCurrentGiftCard();
         this.renderGiftCard('targetGiftCard', this.targetGift, false);
         const cp = (this.currentChance * 100).toFixed(1);
         document.getElementById('chancePercent').textContent = cp + '%';
@@ -356,22 +494,86 @@ class UpgradeGame {
         this.renderInventoryList();
         this.renderTargetsList();
         const ub = document.getElementById('upgradeBtn');
-        const canUpgrade = !this.isSpinning && this.currentGift && this.targetGift && this.inventory.find(e => e.giftId === this.currentGiftId) && this.targetGift.price > this.currentGift.price;
+        const totalCost = this.getSelectedTotalCost();
+        const canUpgrade = !this.isSpinning && this.primaryGift && this.targetGift && this.targetGift.price > totalCost && this.selectedGifts.every(g => this.inventory.find(e => e.giftId === g.id));
         ub.disabled = !canUpgrade;
         if (!this.isSpinning) { ub.classList.remove('spinning'); ub.textContent = 'Прокачать'; }
         if (this.isSpinning) { this.setSpinningState(true); ub.disabled = true; }
+    }
+
+    renderCurrentGiftCard() {
+        const card = document.getElementById('currentGiftCard');
+        const nameOutside = document.getElementById('currentGiftNameOutside');
+        const priceOutside = document.getElementById('currentGiftPriceOutside');
+        card.innerHTML = '';
+        card.className = 'gift-card current-gift';
+
+        if (this.selectedGifts.length > 0) {
+            const grid = document.createElement('div');
+            grid.className = 'multi-gift-grid';
+            
+            const maxPerRow = 3;
+            const maxRows = 3;
+            const maxItems = maxPerRow * maxRows;
+            const showGifts = this.selectedGifts.slice(0, maxItems);
+            
+            const totalInGrid = showGifts.length;
+            const rows = Math.ceil(totalInGrid / maxPerRow);
+            const cols = totalInGrid <= maxPerRow ? totalInGrid : maxPerRow;
+            
+            const baseSize = totalInGrid <= 3 ? 50 : totalInGrid <= 6 ? 40 : 30;
+            
+            for (const g of showGifts) {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'multi-gift-item';
+                const img = document.createElement('img');
+                img.className = 'gift-icon';
+                img.src = g.icon;
+                img.alt = g.name;
+                img.style.maxHeight = baseSize + 'px';
+                wrapper.appendChild(img);
+                grid.appendChild(wrapper);
+            }
+            
+            card.appendChild(grid);
+            
+            if (this.selectedGifts.length === 1) {
+                nameOutside.textContent = this.selectedGifts[0].name;
+                priceOutside.innerHTML = this.selectedGifts[0].price + ' <span class="star-icon-small"></span>';
+            } else {
+                nameOutside.textContent = `Выбрано: ${this.selectedGifts.length}`;
+                const totalCost = this.getSelectedTotalCost();
+                priceOutside.innerHTML = totalCost + ' <span class="star-icon-small"></span>';
+            }
+        } else {
+            card.classList.add('empty-card');
+            const arrows = document.createElement('div');
+            arrows.className = 'placeholder-arrows left-arrows';
+            for (let i = 0; i < 3; i++) {
+                const arrow = document.createElement('span');
+                arrow.className = 'placeholder-arrow';
+                arrow.textContent = '❱';
+                arrows.appendChild(arrow);
+            }
+            card.appendChild(arrows);
+            nameOutside.textContent = '';
+            priceOutside.textContent = '';
+        }
     }
 
     renderGiftCard(cardId, gift, isCurrent) {
         const card = document.getElementById(cardId);
         const nameOutside = document.getElementById(isCurrent ? 'currentGiftNameOutside' : 'targetGiftNameOutside');
         const priceOutside = document.getElementById(isCurrent ? 'currentGiftPriceOutside' : 'targetGiftPriceOutside');
+        
+        // Skip if this is current card (handled by renderCurrentGiftCard)
+        if (isCurrent) return;
+
         card.innerHTML = '';
         card.className = 'gift-card';
 
         if (gift) {
-            if (isCurrent) card.classList.add('current-gift');
-            else card.classList.add('target-gift');
+            card.classList.add('target-gift');
             const img = document.createElement('img');
             img.className = 'gift-icon';
             img.src = gift.icon;
@@ -382,7 +584,7 @@ class UpgradeGame {
         } else {
             card.classList.add('empty-card');
             const arrows = document.createElement('div');
-            arrows.className = 'placeholder-arrows ' + (isCurrent ? 'left-arrows' : 'right-arrows');
+            arrows.className = 'placeholder-arrows right-arrows';
             for (let i = 0; i < 3; i++) {
                 const arrow = document.createElement('span');
                 arrow.className = 'placeholder-arrow';
@@ -396,179 +598,192 @@ class UpgradeGame {
     }
 
     drawWheel() {
-    const c = document.getElementById('wheelCanvas');
-    const ctx = c.getContext('2d');
-    const w = c.width, h = c.height, cx = w / 2, cy = h / 2;
-    const or = Math.min(w, h) / 2 - 12, rw = 24, ir = or - rw, cr = ir - 5;
-    const outerRingInner = or + 4;
-    const outerRingOuter = or + 10;
-    const arrowBaseRadius = outerRingInner + 3;
-    
-    ctx.clearRect(0, 0, w, h);
-    
-    if (this.currentChance > 0) {
-        const sa = -Math.PI / 2, ea = -Math.PI / 2 + this.currentChance * Math.PI * 2;
+        const c = document.getElementById('wheelCanvas');
+        const ctx = c.getContext('2d');
+        const w = c.width, h = c.height, cx = w / 2, cy = h / 2;
+        const or = Math.min(w, h) / 2 - 12, rw = 24, ir = or - rw, cr = ir - 5;
+        const outerRingInner = or + 4;
+        const outerRingOuter = or + 10;
+        const arrowBaseRadius = outerRingInner + 3;
+        
+        ctx.clearRect(0, 0, w, h);
+        
+        if (this.currentChance > 0) {
+            const sa = -Math.PI / 2, ea = -Math.PI / 2 + this.currentChance * Math.PI * 2;
+            ctx.beginPath();
+            ctx.arc(cx, cy, outerRingOuter, sa, ea);
+            ctx.arc(cx, cy, outerRingInner, ea, sa, true);
+            ctx.closePath();
+            const grad = ctx.createLinearGradient(cx - or, cy - or, cx + or, cy + or);
+            grad.addColorStop(0, '#f0883e');
+            grad.addColorStop(0.5, '#f5c842');
+            grad.addColorStop(1, '#ffd700');
+            ctx.fillStyle = grad;
+            ctx.fill();
+            ctx.shadowColor = 'rgba(240,136,62,0.5)';
+            ctx.shadowBlur = 20;
+            ctx.fill();
+            ctx.shadowBlur = 0;
+        }
+        
         ctx.beginPath();
-        ctx.arc(cx, cy, outerRingOuter, sa, ea);
-        ctx.arc(cx, cy, outerRingInner, ea, sa, true);
+        ctx.arc(cx, cy, outerRingOuter, 0, Math.PI * 2);
+        ctx.arc(cx, cy, outerRingInner, 0, Math.PI * 2, true);
         ctx.closePath();
-        const grad = ctx.createLinearGradient(cx - or, cy - or, cx + or, cy + or);
-        grad.addColorStop(0, '#007a93');
-        grad.addColorStop(0.5, '#00b4d8');
-        grad.addColorStop(1, '#00d4ff');
-        ctx.fillStyle = grad;
+        ctx.fillStyle = '#0d111f';
         ctx.fill();
-        ctx.shadowColor = 'rgba(0,180,216,0.5)';
-        ctx.shadowBlur = 20;
+        ctx.strokeStyle = '#2a3a5c';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+        
+        ctx.beginPath();
+        ctx.arc(cx, cy, or, 0, Math.PI * 2);
+        ctx.arc(cx, cy, ir, 0, Math.PI * 2, true);
+        ctx.closePath();
+        ctx.fillStyle = '#0d111f';
+        ctx.fill();
+        ctx.strokeStyle = '#2a3a5c';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.shadowColor = 'rgba(100,140,255,0.3)';
+        ctx.shadowBlur = 15;
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+        
+        if (this.currentChance > 0) {
+            const sa = -Math.PI / 2, ea = -Math.PI / 2 + this.currentChance * Math.PI * 2;
+            ctx.beginPath();
+            ctx.arc(cx, cy, or - 2, sa, ea);
+            ctx.arc(cx, cy, ir + 2, ea, sa, true);
+            ctx.closePath();
+            const grad = ctx.createLinearGradient(cx - or, cy - or, cx + or, cy + or);
+            grad.addColorStop(0, '#f0883e');
+            grad.addColorStop(0.5, '#f5c842');
+            grad.addColorStop(1, '#ffd700');
+            ctx.fillStyle = grad;
+            ctx.fill();
+            ctx.shadowColor = 'rgba(240,136,62,0.5)';
+            ctx.shadowBlur = 20;
+            ctx.fill();
+            ctx.shadowBlur = 0;
+        }
+        
+        ctx.beginPath();
+        ctx.arc(cx, cy, ir, 0, Math.PI * 2);
+        ctx.strokeStyle = '#2a3a5c';
+        ctx.lineWidth = 2;
+        ctx.shadowColor = 'rgba(100,140,255,0.2)';
+        ctx.shadowBlur = 8;
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+        ctx.beginPath();
+        ctx.arc(cx, cy, or, 0, Math.PI * 2);
+        ctx.strokeStyle = '#2a3a5c';
+        ctx.lineWidth = 2;
+        ctx.shadowColor = 'rgba(100,140,255,0.2)';
+        ctx.shadowBlur = 8;
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+        
+        ctx.beginPath();
+        ctx.arc(cx, cy, outerRingOuter, 0, Math.PI * 2);
+        ctx.strokeStyle = '#2a3a5c';
+        ctx.lineWidth = 1.5;
+        ctx.shadowColor = 'rgba(100,140,255,0.2)';
+        ctx.shadowBlur = 6;
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+        
+        ctx.beginPath();
+        ctx.arc(cx, cy, cr, 0, Math.PI * 2);
+        ctx.fillStyle = '#08090d';
+        ctx.fill();
+        ctx.strokeStyle = '#2a3a5c';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(cx, cy, cr - 4, 0, Math.PI * 2);
+        ctx.strokeStyle = '#1a2540';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+        
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.rotate(this.wheelAngle);
+        
+        const tipRadius = ir + 2;
+        const tipX = 0, tipY = -tipRadius;
+        const baseX = 0, baseY = -arrowBaseRadius;
+        
+        ctx.beginPath();
+        ctx.moveTo(baseX, baseY);
+        ctx.lineTo(tipX, tipY);
+        ctx.strokeStyle = '#ffd700';
+        ctx.lineWidth = 3;
+        ctx.lineCap = 'round';
+        ctx.shadowColor = '#ffd700';
+        ctx.shadowBlur = 15;
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+        
+        ctx.beginPath();
+        ctx.moveTo(tipX, tipY);
+        ctx.lineTo(-8, tipY - 12);
+        ctx.lineTo(8, tipY - 12);
+        ctx.closePath();
+        ctx.fillStyle = '#ffd700';
+        ctx.fill();
+        ctx.shadowColor = '#ffd700';
+        ctx.shadowBlur = 15;
         ctx.fill();
         ctx.shadowBlur = 0;
-    }
-    
-    ctx.beginPath();
-    ctx.arc(cx, cy, outerRingOuter, 0, Math.PI * 2);
-    ctx.arc(cx, cy, outerRingInner, 0, Math.PI * 2, true);
-    ctx.closePath();
-    ctx.fillStyle = '#0a0d14';
-    ctx.fill();
-    ctx.strokeStyle = '#1a1d27';
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
-    
-    ctx.beginPath();
-    ctx.arc(cx, cy, or, 0, Math.PI * 2);
-    ctx.arc(cx, cy, ir, 0, Math.PI * 2, true);
-    ctx.closePath();
-    ctx.fillStyle = '#0a0d14';
-    ctx.fill();
-    ctx.strokeStyle = '#1a1d27';
-    ctx.lineWidth = 2;
-    ctx.stroke();
-    ctx.shadowColor = 'rgba(0,180,216,0.3)';
-    ctx.shadowBlur = 15;
-    ctx.stroke();
-    ctx.shadowBlur = 0;
-    
-    if (this.currentChance > 0) {
-        const sa = -Math.PI / 2, ea = -Math.PI / 2 + this.currentChance * Math.PI * 2;
+        
         ctx.beginPath();
-        ctx.arc(cx, cy, or - 2, sa, ea);
-        ctx.arc(cx, cy, ir + 2, ea, sa, true);
-        ctx.closePath();
-        const grad = ctx.createLinearGradient(cx - or, cy - or, cx + or, cy + or);
-        grad.addColorStop(0, '#007a93');
-        grad.addColorStop(0.5, '#00b4d8');
-        grad.addColorStop(1, '#00d4ff');
-        ctx.fillStyle = grad;
+        ctx.arc(baseX, baseY, 4.5, 0, Math.PI * 2);
+        ctx.fillStyle = '#ffd700';
         ctx.fill();
-        ctx.shadowColor = 'rgba(0,180,216,0.5)';
-        ctx.shadowBlur = 20;
+        ctx.shadowColor = '#ffd700';
+        ctx.shadowBlur = 12;
         ctx.fill();
         ctx.shadowBlur = 0;
+        
+        ctx.restore();
+        
+        const rg = ctx.createRadialGradient(cx - or * 0.2, cy - or * 0.2, or * 0.04, cx, cy, or);
+        rg.addColorStop(0, 'rgba(255,255,255,0.05)');
+        rg.addColorStop(0.5, 'rgba(255,255,255,0.01)');
+        rg.addColorStop(1, 'rgba(0,0,0,0.2)');
+        ctx.beginPath();
+        ctx.arc(cx, cy, or, 0, Math.PI * 2);
+        ctx.arc(cx, cy, ir, 0, Math.PI * 2, true);
+        ctx.closePath();
+        ctx.fillStyle = rg;
+        ctx.fill();
     }
-    
-    ctx.beginPath();
-    ctx.arc(cx, cy, ir, 0, Math.PI * 2);
-    ctx.strokeStyle = '#1a1d27';
-    ctx.lineWidth = 2;
-    ctx.shadowColor = 'rgba(0,180,216,0.15)';
-    ctx.shadowBlur = 8;
-    ctx.stroke();
-    ctx.shadowBlur = 0;
-    ctx.beginPath();
-    ctx.arc(cx, cy, or, 0, Math.PI * 2);
-    ctx.strokeStyle = '#1a1d27';
-    ctx.lineWidth = 2;
-    ctx.shadowColor = 'rgba(0,180,216,0.15)';
-    ctx.shadowBlur = 8;
-    ctx.stroke();
-    ctx.shadowBlur = 0;
-    
-    ctx.beginPath();
-    ctx.arc(cx, cy, outerRingOuter, 0, Math.PI * 2);
-    ctx.strokeStyle = '#1a1d27';
-    ctx.lineWidth = 1.5;
-    ctx.shadowColor = 'rgba(0,180,216,0.15)';
-    ctx.shadowBlur = 6;
-    ctx.stroke();
-    ctx.shadowBlur = 0;
-    
-    ctx.beginPath();
-    ctx.arc(cx, cy, cr, 0, Math.PI * 2);
-    ctx.fillStyle = '#08090d';
-    ctx.fill();
-    ctx.strokeStyle = '#1a1d27';
-    ctx.lineWidth = 2;
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.arc(cx, cy, cr - 4, 0, Math.PI * 2);
-    ctx.strokeStyle = '#13161d';
-    ctx.lineWidth = 1;
-    ctx.stroke();
-    
-    ctx.save();
-    ctx.translate(cx, cy);
-    ctx.rotate(this.wheelAngle);
-    
-    const tipRadius = ir + 2;
-    const tipX = 0, tipY = -tipRadius;
-    const baseX = 0, baseY = -arrowBaseRadius;
-    
-    ctx.beginPath();
-    ctx.moveTo(baseX, baseY);
-    ctx.lineTo(tipX, tipY);
-    ctx.strokeStyle = '#00d4ff';
-    ctx.lineWidth = 3;
-    ctx.lineCap = 'round';
-    ctx.shadowColor = '#00d4ff';
-    ctx.shadowBlur = 15;
-    ctx.stroke();
-    ctx.shadowBlur = 0;
-    
-    ctx.beginPath();
-    ctx.moveTo(tipX, tipY);
-    ctx.lineTo(-8, tipY - 12);
-    ctx.lineTo(8, tipY - 12);
-    ctx.closePath();
-    ctx.fillStyle = '#00d4ff';
-    ctx.fill();
-    ctx.shadowColor = '#00d4ff';
-    ctx.shadowBlur = 15;
-    ctx.fill();
-    ctx.shadowBlur = 0;
-    
-    ctx.beginPath();
-    ctx.arc(baseX, baseY, 4.5, 0, Math.PI * 2);
-    ctx.fillStyle = '#00d4ff';
-    ctx.fill();
-    ctx.shadowColor = '#00d4ff';
-    ctx.shadowBlur = 12;
-    ctx.fill();
-    ctx.shadowBlur = 0;
-    
-    ctx.restore();
-    
-    const rg = ctx.createRadialGradient(cx - or * 0.2, cy - or * 0.2, or * 0.04, cx, cy, or);
-    rg.addColorStop(0, 'rgba(255,255,255,0.03)');
-    rg.addColorStop(0.5, 'rgba(255,255,255,0.01)');
-    rg.addColorStop(1, 'rgba(0,0,0,0.3)');
-    ctx.beginPath();
-    ctx.arc(cx, cy, or, 0, Math.PI * 2);
-    ctx.arc(cx, cy, ir, 0, Math.PI * 2, true);
-    ctx.closePath();
-    ctx.fillStyle = rg;
-    ctx.fill();
-}
 
     renderInventoryList() {
         const c = document.getElementById('inventoryList');
         const ig = this.inventoryGifts;
         if (!ig.length) { c.innerHTML = '<div style="padding:20px;text-align:center;color:#6b7daa;font-size:12px;">Пусто</div>'; return; }
-        c.innerHTML = ig.map(g => `
-            <div class="gift-list-item" data-gift-id="${g.id}" style="${g.id===this.currentGiftId?'background:#111827;border-left:3px solid #ffd700;box-shadow:inset 0 0 15px rgba(255,215,0,0.05);':''}">
+        c.innerHTML = ig.map(g => {
+            const isSelected = this.selectedGiftIds.includes(g.id);
+            return `
+            <div class="gift-list-item ${isSelected ? 'selected-for-upgrade' : ''}" data-gift-id="${g.id}">
+                <div class="select-checkbox ${isSelected ? 'checked' : ''}" data-action="toggle" data-gift-id="${g.id}"></div>
                 <img src="${g.icon}" alt="${g.name}" class="gift-icon-small">
                 <div class="gift-list-item-info"><div class="gift-list-item-name">${g.name}</div><div class="gift-list-item-price">${g.price} <span class="star-icon-small"></span></div></div>
                 <button class="sell-icon-btn" data-gift-id="${g.id}">Sell</button>
-            </div>`).join('');
+            </div>`;
+        }).join('');
+        
+        c.querySelectorAll('.select-checkbox').forEach(cb => {
+            cb.addEventListener('click', e => {
+                e.stopPropagation();
+                const gid = cb.dataset.giftId;
+                this.toggleGiftSelection(gid);
+            });
+        });
+        
         c.querySelectorAll('.sell-icon-btn').forEach(btn => {
             btn.addEventListener('click', e => { e.stopPropagation(); const gid = btn.dataset.giftId; this.openSellOverlay(gid); });
         });
@@ -578,14 +793,68 @@ class UpgradeGame {
         const c = document.getElementById('targetsList');
         const t = this.getAllTargets();
         if (!t.length) { c.innerHTML = '<div style="padding:20px;text-align:center;color:#6b7daa;font-size:12px;">Нет подарков</div>'; return; }
+        const totalCost = this.getSelectedTotalCost();
         c.innerHTML = t.map(g => {
             const isSelected = g.id === this.targetGiftId;
+            const chance = totalCost > 0 && g.price > totalCost ? (totalCost / g.price * 0.95 * 100).toFixed(1) : '0.0';
             return `
             <div class="gift-list-item" data-gift-id="${g.id}" style="${isSelected?'background:#111827;border-left:3px solid #f0883e;box-shadow:inset 0 0 15px rgba(240,136,62,0.05);':''}">
                 <img src="${g.icon}" alt="${g.name}" class="gift-icon-small">
-                <div class="gift-list-item-info"><div class="gift-list-item-name">${g.name}</div><div class="gift-list-item-price">${g.price} <span class="star-icon-small"></span></div></div>
+                <div class="gift-list-item-info"><div class="gift-list-item-name">${g.name} <span style="color:#6b7daa;font-size:10px;">${chance}%</span></div><div class="gift-list-item-price">${g.price} <span class="star-icon-small"></span></div></div>
             </div>`;
         }).join('');
+        
+        c.querySelectorAll('.gift-list-item').forEach(item => {
+            item.addEventListener('click', () => {
+                if (this.isSpinning) return;
+                const gid = item.dataset.giftId;
+                const tgt = ALL_GIFTS.find(g => g.id === gid);
+                if (tgt && (!this.primaryGift || tgt.price > this.getSelectedTotalCost())) {
+                    this.targetGiftId = gid;
+                    this.updateChance();
+                    this.renderAll();
+                    this.saveToStorage();
+                }
+            });
+        });
+    }
+
+    openSellOverlay(giftId) {
+        const gift = ALL_GIFTS.find(g => g.id === giftId);
+        if (!gift || !this.inventory.find(e => e.giftId === giftId)) return;
+        this.sellTargetGiftId = giftId;
+        document.getElementById('sellEmoji').innerHTML = `<img src="${gift.icon}" alt="${gift.name}" class="sell-icon">`;
+        document.getElementById('sellName').textContent = gift.name;
+        document.getElementById('sellPrice').innerHTML = gift.price + ' <span class="star-icon-small"></span>';
+        document.getElementById('sellOverlay').classList.add('show');
+    }
+
+    closeSellOverlay() {
+        document.getElementById('sellOverlay').classList.remove('show');
+        this.sellTargetGiftId = null;
+    }
+
+    confirmSell() {
+        if (!this.sellTargetGiftId) return;
+        const gift = ALL_GIFTS.find(g => g.id === this.sellTargetGiftId);
+        if (!gift) return;
+        const idx = this.inventory.findIndex(e => e.giftId === this.sellTargetGiftId);
+        if (idx === -1) return;
+        this.inventory.splice(idx, 1);
+        this.balance += gift.price;
+        
+        // Remove from selection if sold
+        const selIdx = this.selectedGiftIds.indexOf(this.sellTargetGiftId);
+        if (selIdx !== -1) this.selectedGiftIds.splice(selIdx, 1);
+        
+        if (this.selectedGiftIds.length === 0 && this.inventory.length > 0) {
+            this.selectedGiftIds = [this.inventory[0].giftId];
+        }
+        this.updateChance();
+        this.saveToStorage();
+        this.renderAll();
+        this.closeSellOverlay();
+        if (tg) tg.HapticFeedback.notificationOccurred('success');
     }
 
     renderShop() {
@@ -597,7 +866,7 @@ class UpgradeGame {
                 <div style="text-align:right;"><div class="shop-item-price">${g.price} <span class="star-icon-small"></span></div>
                 <button class="buy-btn" data-gift-id="${g.id}" ${this.balance<g.price?'disabled':''}>Купить</button></div>
             </div>`).join('');
-        c.querySelectorAll('.buy-btn').forEach(b => b.addEventListener('click', e => { const gid = e.target.dataset.giftId; const g = ALL_GIFTS.find(x => x.id === gid); if (g && this.balance >= g.price) { this.balance -= g.price; if (!this.inventory.find(en => en.giftId === g.id)) this.inventory.push({ giftId: g.id, acquiredAt: Date.now() }); this.deduplicateInventory(); if (!this.currentGift) { this.currentGiftId = g.id; this.updateChance(); } this.saveToStorage(); this.renderAll(); this.renderShop(); if (tg) tg.HapticFeedback.notificationOccurred('success'); } }));
+        c.querySelectorAll('.buy-btn').forEach(b => b.addEventListener('click', e => { const gid = e.target.dataset.giftId; const g = ALL_GIFTS.find(x => x.id === gid); if (g && this.balance >= g.price) { this.balance -= g.price; if (!this.inventory.find(en => en.giftId === g.id)) this.inventory.push({ giftId: g.id, acquiredAt: Date.now() }); this.deduplicateInventory(); if (!this.primaryGift) { this.selectedGiftIds = [g.id]; this.updateChance(); } this.saveToStorage(); this.renderAll(); this.renderShop(); if (tg) tg.HapticFeedback.notificationOccurred('success'); } }));
     }
 }
 
