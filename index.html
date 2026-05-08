@@ -25,15 +25,22 @@
                     <span class="star-icon"></span>
                     <span class="balance" id="balance">1,000</span>
                 </div>
-                <button class="settings-btn" id="settingsBtn">
-                    <svg class="settings-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z" fill="#0a0f1a"/>
-                        <path fill-rule="evenodd" clip-rule="evenodd" d="M11.1 1.1L10.5 0H13.5L12.9 1.1C13.5 1.3 14.1 1.5 14.6 1.8L15.6 1.3L17.2 2.9L16.7 3.9C17.1 4.4 17.4 5 17.7 5.6L18.9 6.2L18.9 8.2L17.7 8.8C17.4 9.4 17.1 10 16.7 10.5L17.2 11.5L15.6 13.1L14.6 12.6C14.1 12.9 13.5 13.1 12.9 13.3L13.5 14.4H10.5L11.1 13.3C10.5 13.1 9.9 12.9 9.4 12.6L8.4 13.1L6.8 11.5L7.3 10.5C6.9 10 6.6 9.4 6.3 8.8L5.1 8.2V6.2L6.3 5.6C6.6 5 6.9 4.4 7.3 3.9L6.8 2.9L8.4 1.3L9.4 1.8C9.9 1.5 10.5 1.3 11.1 1.1Z" stroke="#0a0f1a" stroke-width="1.5"/>
-                    </svg>
-                </button>
                 <button class="icon-btn" id="shopBtn">
                     <img src="images/shop_icon.png" alt="Shop" class="icon-img">
                 </button>
+            </div>
+        </div>
+
+        <div class="wheel-container" id="wheelContainer">
+            <canvas class="wheel-canvas" id="wheelCanvas" width="380" height="380"></canvas>
+            <canvas class="spark-canvas" id="sparkCanvas" width="500" height="500"></canvas>
+            <div class="chance-display" id="chanceDisplay">
+                <div class="chance-percent" id="chancePercent">0%</div>
+                <div class="chance-label">ШАНС</div>
+            </div>
+            <div class="center-result" id="centerResult">
+                <div class="center-result-text" id="centerResultText">УСПЕХ</div>
+                <div class="center-result-chance" id="centerResultChance"></div>
             </div>
         </div>
 
@@ -54,31 +61,26 @@
             </div>
         </div>
 
-        <div class="wheel-container" id="wheelContainer">
-            <canvas class="wheel-canvas" id="wheelCanvas" width="380" height="380"></canvas>
-            <canvas class="spark-canvas" id="sparkCanvas" width="500" height="500"></canvas>
-            <div class="chance-display" id="chanceDisplay">
-                <div class="chance-percent" id="chancePercent">0%</div>
-                <div class="chance-label">ШАНС</div>
-            </div>
-            <div class="center-result" id="centerResult">
-                <div class="center-result-text" id="centerResultText">УСПЕХ</div>
-                <div class="center-result-chance" id="centerResultChance"></div>
-            </div>
-        </div>
-
-        <div class="quick-bet-buttons" id="quickBetButtons">
-            <button class="quick-bet-btn" data-fraction="1/2">x2</button>
-            <button class="quick-bet-btn" data-fraction="1/4">x4</button>
-            <button class="quick-bet-btn" data-fraction="1/8">x8</button>
-            <button class="quick-bet-btn" data-fraction="35/100">35%</button>
-            <button class="quick-bet-btn" data-fraction="55/100">55%</button>
-            <button class="quick-bet-btn" data-fraction="75/100">75%</button>
-        </div>
-
         <button class="upgrade-btn" id="upgradeBtn" disabled>
             Прокачать
         </button>
+
+        <div class="quick-bet-row">
+            <div class="quick-bet-buttons" id="quickBetButtons">
+                <button class="quick-bet-btn" data-fraction="1/2">x2</button>
+                <button class="quick-bet-btn" data-fraction="1/4">x4</button>
+                <button class="quick-bet-btn" data-fraction="1/8">x8</button>
+                <button class="quick-bet-btn" data-fraction="35/100">35%</button>
+                <button class="quick-bet-btn" data-fraction="55/100">55%</button>
+                <button class="quick-bet-btn" data-fraction="75/100">75%</button>
+            </div>
+            <button class="quick-bet-settings-btn" id="settingsBtn">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="12" cy="12" r="3"/>
+                    <path d="M12 1l2.4 5.2L20 7.4l-3.8 3.8 1 6.8-6.2-3-6.2 3 1-6.8L4 7.4l5.6-1.2z" stroke-width="1.5"/>
+                </svg>
+            </button>
+        </div>
 
         <div class="lists-row">
             <div class="gift-list-panel" id="inventoryPanel">
@@ -99,18 +101,18 @@
                 <div class="settings-section">
                     <h4>Кнопки по коэффициенту</h4>
                     <div class="settings-row">
-                        <input type="number" id="settingCoef1" min="2" max="100">
-                        <input type="number" id="settingCoef2" min="2" max="100">
-                        <input type="number" id="settingCoef3" min="2" max="100">
+                        <input type="number" id="settingCoef1" min="2" max="100" placeholder="2">
+                        <input type="number" id="settingCoef2" min="2" max="100" placeholder="4">
+                        <input type="number" id="settingCoef3" min="2" max="100" placeholder="8">
                     </div>
                 </div>
                 
                 <div class="settings-section">
                     <h4>Кнопки по проценту (%)</h4>
                     <div class="settings-row">
-                        <input type="number" id="settingPerc1" min="1" max="99">
-                        <input type="number" id="settingPerc2" min="1" max="99">
-                        <input type="number" id="settingPerc3" min="1" max="99">
+                        <input type="number" id="settingPerc1" min="1" max="99" placeholder="35">
+                        <input type="number" id="settingPerc2" min="1" max="99" placeholder="55">
+                        <input type="number" id="settingPerc3" min="1" max="99" placeholder="75">
                     </div>
                 </div>
                 
