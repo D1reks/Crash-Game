@@ -428,7 +428,10 @@ body {
 }
 .center-result-modal.show { opacity: 1; }
 .center-result-text-modal {
-    font-size: 16px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase;
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-transform: uppercase;
     animation: result-pop 0.4s ease-out;
 }
 @keyframes result-pop {
@@ -436,7 +439,12 @@ body {
     60% { transform: scale(1.2); opacity: 1; }
     100% { transform: scale(1); opacity: 1; }
 }
-.center-result-chance-modal { font-size: 11px; font-weight: 600; margin-top: 2px; opacity: 0.8; }
+.center-result-chance-modal {
+    font-size: 14px;
+    font-weight: 600;
+    margin-top: 4px;
+    opacity: 0.9;
+}
 
 /* Overlays */
 .shop-overlay {
