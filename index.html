@@ -30,17 +30,9 @@
             </div>
         </div>
 
-        <div class="wheel-container" id="wheelContainer">
-            <canvas class="wheel-canvas" id="wheelCanvas" width="380" height="380"></canvas>
-            <canvas class="spark-canvas" id="sparkCanvas" width="500" height="500"></canvas>
-            <div class="chance-display" id="chanceDisplay">
-                <div class="chance-percent" id="chancePercent">0%</div>
-                <div class="chance-label">ШАНС</div>
-            </div>
-            <div class="center-result" id="centerResult">
-                <div class="center-result-text" id="centerResultText">УСПЕХ</div>
-                <div class="center-result-chance" id="centerResultChance"></div>
-            </div>
+        <div class="chance-display-inline" id="chanceDisplayInline">
+            <div class="chance-percent-inline" id="chancePercent">0%</div>
+            <div class="chance-label-inline">ШАНС</div>
         </div>
 
         <div class="gift-selection-row">
@@ -83,6 +75,20 @@
                     <div class="tab-btn" id="tabTargets">Прокачать до</div>
                 </div>
                 <div id="giftListContent"></div>
+            </div>
+        </div>
+
+        <div class="wheel-modal-overlay" id="wheelModalOverlay">
+            <div class="wheel-modal-content">
+                <div class="wheel-modal-chance" id="wheelModalChance">0%</div>
+                <div class="wheel-container-modal" id="wheelContainer">
+                    <canvas class="wheel-canvas-modal" id="wheelCanvas" width="380" height="380"></canvas>
+                    <canvas class="spark-canvas-modal" id="sparkCanvas" width="500" height="500"></canvas>
+                    <div class="center-result-modal" id="centerResult">
+                        <div class="center-result-text-modal" id="centerResultText">УСПЕХ</div>
+                        <div class="center-result-chance-modal" id="centerResultChance"></div>
+                    </div>
+                </div>
             </div>
         </div>
 
