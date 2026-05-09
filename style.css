@@ -62,8 +62,14 @@ body {
 @keyframes pulse-text { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
 
 .header {
-    padding: 10px 16px; display: flex; justify-content: space-between; align-items: center;
-    background: #0a0d14; border-bottom: 1px solid #1e2a45; z-index: 10; flex-shrink: 0;
+    padding: 10px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #0a0d14;
+    border-bottom: none;
+    z-index: 10;
+    flex-shrink: 0;
     box-shadow: 0 2px 20px rgba(0, 0, 0, 0.4);
 }
 .header-left { display: flex; align-items: center; }
@@ -135,7 +141,7 @@ body {
     align-items: center;
     justify-content: flex-end;
     position: absolute;
-    bottom: 14px;
+    bottom: 2px;
     left: 50%;
     transform: translateX(-50%);
     opacity: 0.8;
