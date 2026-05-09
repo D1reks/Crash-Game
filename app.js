@@ -189,17 +189,27 @@ class UpgradeGame {
     playBeep(f, d, ty='sine') { if (!this.audioContext||!this.soundEnabled) return; const o = this.audioContext.createOscillator(), g = this.audioContext.createGain(); o.connect(g); g.connect(this.audioContext.destination); o.frequency.value = f; o.type = ty; g.gain.setValueAtTime(0.05, this.audioContext.currentTime); g.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime+d); o.start(); o.stop(this.audioContext.currentTime+d); }
 
     showResultText(success, chance) {
-        const cr = document.getElementById('centerResult'), rt = document.getElementById('centerResultText'), rc = document.getElementById('centerResultChance');
-        if (success) { rt.textContent = 'УСПЕХ!'; rt.style.color = '#5ff57a'; rt.style.textShadow = '0 0 20px #5ff57a, 0 0 40px #3fb950'; rc.textContent = `Шанс: ${(chance*100).toFixed(1)}%`; rc.style.color = '#5ff57a'; }
-        else { rt.textContent = 'ПРОВАЛ!'; rt.style.color = '#ff6b6b'; rt.style.textShadow = '0 0 20px #ff6b6b, 0 0 40px #f85149'; rc.textContent = `Шанс: ${(chance*100).toFixed(1)}%`; rc.style.color = '#ff6b6b'; }
-        rt.style.animation = 'none'; rt.offsetHeight; rt.style.animation = 'result-pop 0.4s ease-out';
-        cr.classList.add('show');
-        const sc = document.getElementById('sparkCanvas');
-        const colors = success ? ['#5ff57a','#3fb950','#a5f5b0','#ffffff','#7dff90'] : ['#ff6b6b','#f85149','#ff9999','#ffffff','#ff4444'];
-        this.sparkSystem.emit(sc.width/2, sc.height/2, 40, colors);
-        if (this.resultTimeout) clearTimeout(this.resultTimeout);
-        this.resultTimeout = setTimeout(() => { cr.classList.remove('show'); }, 1800);
-    }
+    const wmc = document.getElementById('wheelModalChance');
+    const cr = document.getElementById('centerResult'), rt = document.getElementById('centerResultText'), rc = document.getElementById('centerResultChance');
+    
+    // Скрываем шанс
+    wmc.style.opacity = '0';
+    
+    if (success) { rt.textContent = 'УСПЕХ!'; rt.style.color = '#5ff57a'; rt.style.textShadow = '0 0 20px #5ff57a, 0 0 40px #3fb950'; rc.textContent = `Шанс: ${(chance*100).toFixed(1)}%`; rc.style.color = '#5ff57a'; }
+    else { rt.textContent = 'ПРОВАЛ!'; rt.style.color = '#ff6b6b'; rt.style.textShadow = '0 0 20px #ff6b6b, 0 0 40px #f85149'; rc.textContent = `Шанс: ${(chance*100).toFixed(1)}%`; rc.style.color = '#ff6b6b'; }
+    rt.style.animation = 'none'; rt.offsetHeight; rt.style.animation = 'result-pop 0.4s ease-out';
+    cr.classList.add('show');
+    
+    const sc = document.getElementById('sparkCanvas');
+    const colors = success ? ['#5ff57a','#3fb950','#a5f5b0','#ffffff','#7dff90'] : ['#ff6b6b','#f85149','#ff9999','#ffffff','#ff4444'];
+    this.sparkSystem.emit(sc.width/2, sc.height/2, 40, colors);
+    
+    if (this.resultTimeout) clearTimeout(this.resultTimeout);
+    this.resultTimeout = setTimeout(() => {
+        cr.classList.remove('show');
+        wmc.style.opacity = '1'; // Показываем шанс обратно
+    }, 1800);
+}
 
     startUpgrade() {
         const tc = this.getSelectedTotalCost();
