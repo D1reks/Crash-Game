@@ -73,106 +73,45 @@ body {
 }
 .header-right { display: flex; align-items: center; gap: 8px; }
 
-.settings-img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-}
+.settings-img { width: 100%; height: 100%; object-fit: contain; }
 
 .icon-btn {
-    background: transparent;
-    border: none;
-    border-radius: 10px;
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.2s;
-    box-shadow: none;
-    padding: 6px;
-    flex-shrink: 0;
+    background: transparent; border: none; border-radius: 10px;
+    width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: all 0.2s; box-shadow: none; padding: 6px; flex-shrink: 0;
 }
 .icon-btn:active { background: rgba(255, 215, 0, 0.08); box-shadow: none; }
 .icon-img { width: 24px; height: 24px; object-fit: contain; }
 
 .balance-container {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    background: rgba(255, 215, 0, 0.08);
-    padding: 6px 14px;
-    border-radius: 30px;
-    cursor: pointer;
-    transition: all 0.2s;
-    box-shadow: 0 0 12px rgba(255, 215, 0, 0.06);
-    border: none;
+    display: flex; align-items: center; gap: 6px;
+    background: rgba(255, 215, 0, 0.08); padding: 6px 14px; border-radius: 30px;
+    cursor: pointer; transition: all 0.2s;
+    box-shadow: 0 0 12px rgba(255, 215, 0, 0.06); border: none;
 }
 .balance-container:active { background: rgba(255, 215, 0, 0.14); }
 .balance {
-    color: #ffd700;
-    font-weight: bold;
-    font-size: 18px;
+    color: #ffd700; font-weight: bold; font-size: 18px;
     text-shadow: 0 0 10px rgba(255, 215, 0, 0.4);
-}
-
-/* Шанс над карточками */
-.chance-display-inline {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    gap: 2px;
-    padding: 0 4px;
-}
-.chance-percent-inline {
-    font-size: 18px;
-    font-weight: 800;
-    color: #ffd700;
-    text-shadow: 0 0 16px rgba(255, 215, 0, 0.5), 0 0 32px rgba(255, 215, 0, 0.2);
-}
-.chance-label-inline {
-    font-size: 7px;
-    color: #6b7daa;
-    letter-spacing: 2px;
-    text-shadow: 0 0 8px rgba(100, 140, 255, 0.3);
 }
 
 /* Карточки */
 .gift-selection-row {
     display: flex; gap: 12px; width: 100%; align-items: stretch;
-    padding: 0 12px; margin-top: 4px; flex: 1; min-height: 0;
+    padding: 0 12px; margin-top: 10px; flex: 1; min-height: 0;
 }
 .gift-card-wrapper { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; }
 .gift-card {
-    width: 100%;
-    flex: 1;
-    background: rgba(255, 255, 255, 0.03);
-    border: none;
-    border-radius: 14px;
-    padding: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 0;
-    cursor: pointer;
-    transition: all 0.25s;
+    width: 100%; flex: 1; background: rgba(255, 255, 255, 0.03);
+    border: none; border-radius: 14px; padding: 10px;
+    display: flex; align-items: center; justify-content: center;
+    min-width: 0; cursor: pointer; transition: all 0.25s;
     box-shadow: 0 0 15px rgba(0, 0, 0, 0.4);
-    min-height: 120px;
-    position: relative;
-    overflow: hidden;
+    min-height: 120px; position: relative; overflow: hidden;
 }
-.gift-card.current-gift {
-    box-shadow: 0 0 20px rgba(63, 185, 80, 0.15);
-}
-.gift-card.target-gift {
-    box-shadow: 0 0 20px rgba(240, 136, 62, 0.15);
-}
-.gift-card.empty-card {
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
-}
+.gift-card.current-gift { box-shadow: 0 0 20px rgba(63, 185, 80, 0.15); }
+.gift-card.target-gift { box-shadow: 0 0 20px rgba(240, 136, 62, 0.15); }
+.gift-card.empty-card { box-shadow: 0 0 10px rgba(0, 0, 0, 0.3); }
 .gift-card.spinning-disabled { pointer-events: none; opacity: 0.7; }
 
 .multi-gift-grid {
@@ -184,11 +123,24 @@ body {
 .multi-gift-item:only-child .gift-icon { max-height: 90px !important; }
 
 .gift-icon {
-    width: 100%;
-    height: 100%;
-    max-height: 90px;
+    width: 100%; height: 100%; max-height: 90px;
     object-fit: contain;
     filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.3));
+}
+
+/* Шанс внутри карточки цели */
+.target-chance-inside {
+    display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
+    position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%);
+    opacity: 0.6; pointer-events: none;
+}
+.chance-percent-inside {
+    font-size: 14px; font-weight: 800; color: #ffd700;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.4), 0 0 20px rgba(255, 215, 0, 0.15);
+}
+.chance-label-inside {
+    font-size: 6px; color: #6b7daa; letter-spacing: 2px;
+    text-shadow: 0 0 6px rgba(100, 140, 255, 0.2);
 }
 
 .gift-info-outside {
@@ -211,20 +163,12 @@ body {
     justify-content: center; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
 }
 .placeholder-arrow {
-    color: #ffd700;
-    font-weight: bold;
-    opacity: 0.8;
-    text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
-    line-height: 0.8;
-    display: inline-block;
+    color: #ffd700; font-weight: bold; opacity: 0.8;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.5); line-height: 0.8; display: inline-block;
 }
 .placeholder-arrow:nth-child(1),
-.placeholder-arrow:nth-child(3) {
-    font-size: 18px;
-}
-.placeholder-arrow:nth-child(2) {
-    font-size: 26px;
-}
+.placeholder-arrow:nth-child(3) { font-size: 18px; }
+.placeholder-arrow:nth-child(2) { font-size: 26px; }
 
 .left-arrows .placeholder-arrow {
     transform: scaleX(2.2) rotate(-90deg);
@@ -369,7 +313,6 @@ body {
 
 /* Блюр */
 #app.blurred .header,
-#app.blurred .chance-display-inline,
 #app.blurred .gift-selection-row,
 #app.blurred .upgrade-btn,
 #app.blurred .quick-bet-row,
@@ -381,60 +324,31 @@ body {
 
 /* Модальное колесо */
 .wheel-modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 50%;
-    transform: translate(-50%, 0);
-    width: 100%;
-    max-width: 450px;
-    height: 100vh;
-    z-index: 50;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity 0.35s ease;
+    position: fixed; top: 0; left: 50%; transform: translate(-50%, 0);
+    width: 100%; max-width: 450px; height: 100vh;
+    z-index: 50; display: flex; justify-content: center; align-items: center;
+    pointer-events: none; opacity: 0; transition: opacity 0.35s ease;
 }
-.wheel-modal-overlay.show {
-    opacity: 1;
-    pointer-events: all;
-}
-.wheel-modal-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0;
-}
+.wheel-modal-overlay.show { opacity: 1; pointer-events: all; }
+.wheel-modal-content { display: flex; flex-direction: column; align-items: center; gap: 0; }
 
 .wheel-container-modal {
-    position: relative;
-    width: 240px;
-    height: 240px;
-    flex-shrink: 0;
+    position: relative; width: 240px; height: 240px; flex-shrink: 0;
     filter: drop-shadow(0 0 35px rgba(100, 140, 255, 0.25));
 }
 .wheel-canvas-modal { width: 100%; height: 100%; }
 
 .spark-canvas-modal {
-    position: absolute;
-    top: 50%; left: 50%; transform: translate(-50%, -50%);
-    width: 300px; height: 300px;
-    pointer-events: none; z-index: 5;
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    width: 300px; height: 300px; pointer-events: none; z-index: 5;
 }
 
 .wheel-modal-chance {
-    font-size: 32px;
-    font-weight: 800;
-    color: #ffd700;
+    font-size: 32px; font-weight: 800; color: #ffd700;
     text-shadow: 0 0 24px rgba(255, 215, 0, 0.6), 0 0 48px rgba(255, 215, 0, 0.3);
     animation: chance-pop-in 0.4s ease-out;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 4;
-    pointer-events: none;
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    z-index: 4; pointer-events: none;
 }
 @keyframes chance-pop-in {
     0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
@@ -443,17 +357,13 @@ body {
 }
 
 .center-result-modal {
-    position: absolute;
-    top: 50%; left: 50%; transform: translate(-50%, -50%);
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
     text-align: center; pointer-events: none; z-index: 6;
     opacity: 0; transition: opacity 0.3s ease;
 }
 .center-result-modal.show { opacity: 1; }
 .center-result-text-modal {
-    font-size: 22px;
-    font-weight: 800;
-    letter-spacing: 2px;
-    text-transform: uppercase;
+    font-size: 22px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase;
     animation: result-pop 0.4s ease-out;
 }
 @keyframes result-pop {
@@ -461,12 +371,7 @@ body {
     60% { transform: scale(1.2); opacity: 1; }
     100% { transform: scale(1); opacity: 1; }
 }
-.center-result-chance-modal {
-    font-size: 14px;
-    font-weight: 600;
-    margin-top: 4px;
-    opacity: 0.9;
-}
+.center-result-chance-modal { font-size: 14px; font-weight: 600; margin-top: 4px; opacity: 0.9; }
 
 /* Overlays */
 .shop-overlay {
