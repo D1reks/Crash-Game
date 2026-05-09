@@ -329,12 +329,52 @@ class UpgradeGame {
     }
 
     renderGiftCard(cardId, gift, isCurrent) {
-        if (isCurrent) return;
-        const card = document.getElementById(cardId), no = document.getElementById('targetGiftNameOutside'), po = document.getElementById('targetGiftPriceOutside');
-        card.innerHTML = ''; card.className = 'gift-card';
-        if (gift) { card.classList.add('target-gift'); const img = document.createElement('img'); img.className = 'gift-icon'; img.src = gift.icon; img.alt = gift.name; card.appendChild(img); no.textContent = gift.name; po.innerHTML = gift.price+' <span class="star-icon-small"></span>'; }
-        else { card.classList.add('empty-card'); const arrows = document.createElement('div'); arrows.className = 'placeholder-arrows right-arrows'; for (let i=0;i<3;i++) { const a = document.createElement('span'); a.className = 'placeholder-arrow'; a.textContent = '❱'; arrows.appendChild(a); } card.appendChild(arrows); no.textContent = ''; po.textContent = ''; }
+    if (isCurrent) return;
+    const card = document.getElementById(cardId);
+    
+    // Сохраняем блок шанса если он есть
+    const existingChance = card.querySelector('.target-chance-inside');
+    
+    card.innerHTML = '';
+    card.className = 'gift-card';
+    
+    if (gift) { 
+        card.classList.add('target-gift'); 
+        const img = document.createElement('img'); 
+        img.className = 'gift-icon'; 
+        img.src = gift.icon; 
+        img.alt = gift.name; 
+        card.appendChild(img);
+        
+        // Восстанавливаем или создаём блок шанса
+        if (existingChance) {
+            card.appendChild(existingChance);
+        } else {
+            const chanceDiv = document.createElement('div');
+            chanceDiv.className = 'target-chance-inside';
+            chanceDiv.id = 'chanceDisplayInline';
+            chanceDiv.innerHTML = `
+                <div class="chance-percent-inside" id="chancePercent">0%</div>
+                <div class="chance-label-inside">ШАНС</div>
+            `;
+            card.appendChild(chanceDiv);
+        }
+    } else { 
+        card.classList.add('empty-card'); 
+        const arrows = document.createElement('div'); 
+        arrows.className = 'placeholder-arrows right-arrows'; 
+        for (let i=0;i<3;i++) { 
+            const a = document.createElement('span'); 
+            a.className = 'placeholder-arrow'; 
+            a.textContent = '❱'; 
+            arrows.appendChild(a); 
+        } 
+        card.appendChild(arrows); 
     }
+    
+    document.getElementById('targetGiftNameOutside').textContent = gift ? gift.name : '';
+    document.getElementById('targetGiftPriceOutside').innerHTML = gift ? gift.price + ' <span class="star-icon-small"></span>' : '';
+}
 
     drawWheel() {
         const c = document.getElementById('wheelCanvas'), ctx = c.getContext('2d'), w = c.width, h = c.height, cx = w/2, cy = h/2;
