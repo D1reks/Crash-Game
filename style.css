@@ -130,9 +130,16 @@ body {
 
 /* Шанс внутри карточки цели */
 .target-chance-inside {
-    display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
-    position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%);
-    opacity: 0.6; pointer-events: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    position: absolute;
+    bottom: 4px;
+    left: 50%;
+    transform: translateX(-50%);
+    opacity: 0.8;
+    pointer-events: none;
 }
 .chance-percent-inside {
     font-size: 14px; font-weight: 800; color: #ffd700;
