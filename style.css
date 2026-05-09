@@ -119,9 +119,13 @@ body {
 
 /* Шанс над карточками */
 .chance-display-inline {
-    text-align: center;
-    padding: 6px 0 2px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     flex-shrink: 0;
+    gap: 2px;
+    padding: 0 4px;
 }
 .chance-percent-inline {
     font-size: 18px;
@@ -143,14 +147,32 @@ body {
 }
 .gift-card-wrapper { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; }
 .gift-card {
-    width: 100%; flex: 1; background: #0d111f; border: 1px solid #1e2a45;
-    border-radius: 14px; padding: 10px; display: flex; align-items: center; justify-content: center;
-    min-width: 0; cursor: pointer; transition: all 0.25s;
-    box-shadow: 0 0 15px rgba(0, 0, 0, 0.4); min-height: 120px; position: relative; overflow: hidden;
+    width: 100%;
+    flex: 1;
+    background: rgba(255, 255, 255, 0.03);
+    border: none;
+    border-radius: 14px;
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+    cursor: pointer;
+    transition: all 0.25s;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.4);
+    min-height: 120px;
+    position: relative;
+    overflow: hidden;
 }
-.gift-card.current-gift { border-color: #3fb95060; box-shadow: 0 0 20px rgba(63, 185, 80, 0.2); }
-.gift-card.target-gift { border-color: #f0883e60; box-shadow: 0 0 20px rgba(240, 136, 62, 0.2); }
-.gift-card.empty-card { border-color: #1e2a45; box-shadow: 0 0 10px rgba(0, 0, 0, 0.3); }
+.gift-card.current-gift {
+    box-shadow: 0 0 20px rgba(63, 185, 80, 0.15);
+}
+.gift-card.target-gift {
+    box-shadow: 0 0 20px rgba(240, 136, 62, 0.15);
+}
+.gift-card.empty-card {
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+}
 .gift-card.spinning-disabled { pointer-events: none; opacity: 0.7; }
 
 .multi-gift-grid {
