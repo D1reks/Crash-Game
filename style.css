@@ -110,7 +110,7 @@ body {
     width: 100%;
     flex: 1;
     background: rgba(255, 255, 255, 0.03);
-    border: 1px solid transparent;
+    border: none;
     border-radius: 14px;
     padding: 10px;
     display: flex;
@@ -125,14 +125,16 @@ body {
     overflow: hidden;
 }
 .gift-card.current-gift {
-    border-color: #f5c842;
-    box-shadow: 0 0 20px rgba(240, 136, 62, 0.2), inset 0 0 15px rgba(240, 136, 62, 0.05);
+    box-shadow: 0 0 20px rgba(63, 185, 80, 0.15);
 }
 .gift-card.target-gift {
-    border-color: #f0883e;
-    box-shadow: 0 0 20px rgba(240, 136, 62, 0.2), inset 0 0 15px rgba(240, 136, 62, 0.05);
+    background: radial-gradient(ellipse at center, rgba(240, 136, 62, 0.15) 0%, rgba(240, 136, 62, 0.03) 60%, rgba(255, 255, 255, 0.03) 100%);
+    box-shadow: 0 0 20px rgba(240, 136, 62, 0.2);
 }
-.gift-card.empty-card { box-shadow: 0 0 10px rgba(0, 0, 0, 0.3); }
+.gift-card.empty-card {
+    background: rgba(255, 255, 255, 0.03);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+}
 .gift-card.spinning-disabled { pointer-events: none; opacity: 0.7; }
 
 .multi-gift-grid {
