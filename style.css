@@ -66,11 +66,10 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: #0a0d14;
+    background: #08090d;
     border-bottom: none;
     z-index: 10;
     flex-shrink: 0;
-    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.4);
 }
 .header-left { display: flex; align-items: center; }
 .header-logo {
