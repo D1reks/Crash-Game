@@ -195,8 +195,8 @@ class UpgradeGame {
     // Скрываем шанс
     wmc.style.opacity = '0';
     
-    if (success) { rt.textContent = 'УСПЕХ!'; rt.style.color = '#5ff57a'; rt.style.textShadow = '0 0 20px #5ff57a, 0 0 40px #3fb950'; rc.textContent = `Шанс: ${(chance*100).toFixed(1)}%`; rc.style.color = '#5ff57a'; }
-    else { rt.textContent = 'ПРОВАЛ!'; rt.style.color = '#ff6b6b'; rt.style.textShadow = '0 0 20px #ff6b6b, 0 0 40px #f85149'; rc.textContent = `Шанс: ${(chance*100).toFixed(1)}%`; rc.style.color = '#ff6b6b'; }
+    if (success) { rt.textContent = 'УСПЕШНО'; rt.style.color = '#5ff57a'; rt.style.textShadow = '0 0 20px #5ff57a, 0 0 40px #3fb950'; rc.textContent = `Шанс: ${(chance*100).toFixed(1)}%`; rc.style.color = '#5ff57a'; }
+    else { rt.textContent = 'НЕ ПОВЕЗЛО'; rt.style.color = '#ff6b6b'; rt.style.textShadow = '0 0 20px #ff6b6b, 0 0 40px #f85149'; rc.textContent = `Шанс: ${(chance*100).toFixed(1)}%`; rc.style.color = '#ff6b6b'; }
     rt.style.animation = 'none'; rt.offsetHeight; rt.style.animation = 'result-pop 0.4s ease-out';
     cr.classList.add('show');
     
