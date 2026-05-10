@@ -376,45 +376,103 @@ class UpgradeGame {
     document.getElementById('targetGiftPriceOutside').innerHTML = gift ? gift.price + ' <span class="star-icon-small"></span>' : '';
 }
 
-    drawWheel() {
-        const c = document.getElementById('wheelCanvas'), ctx = c.getContext('2d'), w = c.width, h = c.height, cx = w/2, cy = h/2;
-        const or = Math.min(w, h)/2-12, rw = 22, ir = or-rw, cr = ir-4;
-        const outerRingInner = or+3, outerRingOuter = or+8, arrowBaseRadius = outerRingInner+2;
-        ctx.clearRect(0,0,w,h);
-        if (this.currentChance > 0) {
-            const sa = -Math.PI/2, ea = -Math.PI/2+this.currentChance*Math.PI*2;
-            ctx.beginPath(); ctx.arc(cx, cy, outerRingOuter, sa, ea); ctx.arc(cx, cy, outerRingInner, ea, sa, true); ctx.closePath();
-            const grad = ctx.createLinearGradient(cx-or, cy-or, cx+or, cy+or);
-            grad.addColorStop(0, '#f0883e'); grad.addColorStop(0.5, '#f5c842'); grad.addColorStop(1, '#ffd700');
-            ctx.fillStyle = grad; ctx.fill(); ctx.shadowColor = 'rgba(240,136,62,0.5)'; ctx.shadowBlur = 18; ctx.fill(); ctx.shadowBlur = 0;
-        }
-        ctx.beginPath(); ctx.arc(cx, cy, outerRingOuter, 0, Math.PI*2); ctx.arc(cx, cy, outerRingInner, 0, Math.PI*2, true); ctx.closePath();
-        ctx.fillStyle = '#0d111f'; ctx.fill(); ctx.strokeStyle = '#2a3a5c'; ctx.lineWidth = 1.5; ctx.stroke();
-        ctx.beginPath(); ctx.arc(cx, cy, or, 0, Math.PI*2); ctx.arc(cx, cy, ir, 0, Math.PI*2, true); ctx.closePath();
-        ctx.fillStyle = '#0d111f'; ctx.fill(); ctx.strokeStyle = '#2a3a5c'; ctx.lineWidth = 2; ctx.stroke();
-        ctx.shadowColor = 'rgba(100,140,255,0.3)'; ctx.shadowBlur = 12; ctx.stroke(); ctx.shadowBlur = 0;
-        if (this.currentChance > 0) {
-            const sa = -Math.PI/2, ea = -Math.PI/2+this.currentChance*Math.PI*2;
-            ctx.beginPath(); ctx.arc(cx, cy, or-2, sa, ea); ctx.arc(cx, cy, ir+2, ea, sa, true); ctx.closePath();
-            const grad = ctx.createLinearGradient(cx-or, cy-or, cx+or, cy+or);
-            grad.addColorStop(0, '#f0883e'); grad.addColorStop(0.5, '#f5c842'); grad.addColorStop(1, '#ffd700');
-            ctx.fillStyle = grad; ctx.fill(); ctx.shadowColor = 'rgba(240,136,62,0.5)'; ctx.shadowBlur = 18; ctx.fill(); ctx.shadowBlur = 0;
-        }
-        ctx.beginPath(); ctx.arc(cx, cy, ir, 0, Math.PI*2); ctx.strokeStyle = '#2a3a5c'; ctx.lineWidth = 2; ctx.shadowColor = 'rgba(100,140,255,0.2)'; ctx.shadowBlur = 6; ctx.stroke(); ctx.shadowBlur = 0;
-        ctx.beginPath(); ctx.arc(cx, cy, or, 0, Math.PI*2); ctx.strokeStyle = '#2a3a5c'; ctx.lineWidth = 2; ctx.shadowColor = 'rgba(100,140,255,0.2)'; ctx.shadowBlur = 6; ctx.stroke(); ctx.shadowBlur = 0;
-        ctx.beginPath(); ctx.arc(cx, cy, outerRingOuter, 0, Math.PI*2); ctx.strokeStyle = '#2a3a5c'; ctx.lineWidth = 1.5; ctx.shadowColor = 'rgba(100,140,255,0.2)'; ctx.shadowBlur = 5; ctx.stroke(); ctx.shadowBlur = 0;
-        ctx.beginPath(); ctx.arc(cx, cy, cr, 0, Math.PI*2); ctx.fillStyle = '#08090d'; ctx.fill(); ctx.strokeStyle = '#2a3a5c'; ctx.lineWidth = 2; ctx.stroke();
-        ctx.beginPath(); ctx.arc(cx, cy, cr-3, 0, Math.PI*2); ctx.strokeStyle = '#1a2540'; ctx.lineWidth = 1; ctx.stroke();
-        ctx.save(); ctx.translate(cx, cy); ctx.rotate(this.wheelAngle);
-        const tipRadius = ir+2, tipX = 0, tipY = -tipRadius, baseX = 0, baseY = -arrowBaseRadius;
-        ctx.beginPath(); ctx.moveTo(baseX, baseY); ctx.lineTo(tipX, tipY); ctx.strokeStyle = '#ffd700'; ctx.lineWidth = 2.5; ctx.lineCap = 'round'; ctx.shadowColor = '#ffd700'; ctx.shadowBlur = 12; ctx.stroke(); ctx.shadowBlur = 0;
-        ctx.beginPath(); ctx.moveTo(tipX, tipY); ctx.lineTo(-6, tipY-10); ctx.lineTo(6, tipY-10); ctx.closePath(); ctx.fillStyle = '#ffd700'; ctx.fill(); ctx.shadowColor = '#ffd700'; ctx.shadowBlur = 12; ctx.fill(); ctx.shadowBlur = 0;
-        ctx.beginPath(); ctx.arc(baseX, baseY, 3.5, 0, Math.PI*2); ctx.fillStyle = '#ffd700'; ctx.fill(); ctx.shadowColor = '#ffd700'; ctx.shadowBlur = 10; ctx.fill(); ctx.shadowBlur = 0;
-        ctx.restore();
-        const rg = ctx.createRadialGradient(cx-or*0.2, cy-or*0.2, or*0.03, cx, cy, or);
-        rg.addColorStop(0, 'rgba(255,255,255,0.05)'); rg.addColorStop(0.5, 'rgba(255,255,255,0.01)'); rg.addColorStop(1, 'rgba(0,0,0,0.2)');
-        ctx.beginPath(); ctx.arc(cx, cy, or, 0, Math.PI*2); ctx.arc(cx, cy, ir, 0, Math.PI*2, true); ctx.closePath(); ctx.fillStyle = rg; ctx.fill();
+   drawWheel() {
+    const c = document.getElementById('wheelCanvas');
+    if (!c) return;
+    const ctx = c.getContext('2d', { alpha: true });
+    const w = c.width, h = c.height, cx = w/2, cy = h/2;
+    const or = Math.min(w, h)/2 - 12, rw = 22, ir = or - rw;
+    
+    ctx.clearRect(0, 0, w, h);
+    
+    // Сохраняем, рисуем всё сразу, восстанавливаем
+    ctx.save();
+    
+    // Внешнее кольцо — фон
+    ctx.beginPath();
+    ctx.arc(cx, cy, or + 8, 0, Math.PI * 2);
+    ctx.arc(cx, cy, or + 3, 0, Math.PI * 2, true);
+    ctx.fillStyle = '#0d111f';
+    ctx.fill();
+    
+    // Основное кольцо — фон
+    ctx.beginPath();
+    ctx.arc(cx, cy, or, 0, Math.PI * 2);
+    ctx.arc(cx, cy, ir, 0, Math.PI * 2, true);
+    ctx.fillStyle = '#0d111f';
+    ctx.fill();
+    
+    // Зона успеха
+    if (this.currentChance > 0) {
+        const sa = -Math.PI/2;
+        const ea = sa + this.currentChance * Math.PI * 2;
+        
+        // Внешнее кольцо
+        ctx.beginPath();
+        ctx.arc(cx, cy, or + 8, sa, ea);
+        ctx.arc(cx, cy, or + 3, ea, sa, true);
+        ctx.fillStyle = '#ffd700';
+        ctx.shadowColor = 'rgba(240,136,62,0.5)';
+        ctx.shadowBlur = 12;
+        ctx.fill();
+        
+        // Внутреннее кольцо
+        ctx.beginPath();
+        ctx.arc(cx, cy, or - 2, sa, ea);
+        ctx.arc(cx, cy, ir + 2, ea, sa, true);
+        ctx.fillStyle = '#ffd700';
+        ctx.fill();
+        
+        ctx.shadowBlur = 0;
     }
+    
+    // Обводки
+    ctx.strokeStyle = '#2a3a5c';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(cx, cy, or + 8, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(cx, cy, or + 3, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(cx, cy, or, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(cx, cy, ir, 0, Math.PI * 2);
+    ctx.stroke();
+    
+    // Центр
+    ctx.beginPath();
+    ctx.arc(cx, cy, ir - 4, 0, Math.PI * 2);
+    ctx.fillStyle = '#08090d';
+    ctx.fill();
+    
+    // Стрелка
+    ctx.translate(cx, cy);
+    ctx.rotate(this.wheelAngle);
+    
+    ctx.beginPath();
+    ctx.moveTo(0, -(or + 6));
+    ctx.lineTo(0, -(ir + 2));
+    ctx.strokeStyle = '#ffd700';
+    ctx.lineWidth = 2.5;
+    ctx.lineCap = 'round';
+    ctx.shadowColor = '#ffd700';
+    ctx.shadowBlur = 10;
+    ctx.stroke();
+    
+    // Наконечник
+    ctx.beginPath();
+    ctx.moveTo(0, -(ir + 2));
+    ctx.lineTo(-5, -(ir - 6));
+    ctx.lineTo(5, -(ir - 6));
+    ctx.fillStyle = '#ffd700';
+    ctx.fill();
+    
+    ctx.shadowBlur = 0;
+    ctx.restore();
+}
 
     renderGiftList() { if (this.activeTab==='inventory') this.renderInventoryListInPanel(); else this.renderTargetsListInPanel(); }
 
