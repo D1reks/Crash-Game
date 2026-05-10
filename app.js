@@ -381,8 +381,8 @@ class UpgradeGame {
     if (!c) return;
     const ctx = c.getContext('2d');
     const w = c.width, h = c.height, cx = w/2, cy = h/2;
-    const or = Math.min(w, h)/2 - 12, rw = 22, ir = or - rw, cr = ir - 4;
-    const outerRingInner = or + 3, outerRingOuter = or + 8, arrowBaseRadius = outerRingInner + 2;
+    const or = Math.min(w, h)/2 - 10, rw = 26, ir = or - rw, cr = ir - 3;
+    const outerRingInner = or + 3, outerRingOuter = or + 9, arrowBaseRadius = outerRingInner + 2;
     
     ctx.clearRect(0, 0, w, h);
     
@@ -398,10 +398,6 @@ class UpgradeGame {
         grad.addColorStop(1, '#ffd700');
         ctx.fillStyle = grad;
         ctx.fill();
-        ctx.shadowColor = 'rgba(240,136,62,0.5)';
-        ctx.shadowBlur = 18;
-        ctx.fill();
-        ctx.shadowBlur = 0;
     }
     
     ctx.beginPath();
@@ -423,10 +419,6 @@ class UpgradeGame {
     ctx.strokeStyle = '#2a3a5c';
     ctx.lineWidth = 2;
     ctx.stroke();
-    ctx.shadowColor = 'rgba(100,140,255,0.3)';
-    ctx.shadowBlur = 12;
-    ctx.stroke();
-    ctx.shadowBlur = 0;
     
     if (this.currentChance > 0) {
         const sa = -Math.PI/2, ea = -Math.PI/2 + this.currentChance * Math.PI * 2;
@@ -440,38 +432,25 @@ class UpgradeGame {
         grad.addColorStop(1, '#ffd700');
         ctx.fillStyle = grad;
         ctx.fill();
-        ctx.shadowColor = 'rgba(240,136,62,0.5)';
-        ctx.shadowBlur = 18;
-        ctx.fill();
-        ctx.shadowBlur = 0;
     }
     
     ctx.beginPath();
     ctx.arc(cx, cy, ir, 0, Math.PI * 2);
     ctx.strokeStyle = '#2a3a5c';
     ctx.lineWidth = 2;
-    ctx.shadowColor = 'rgba(100,140,255,0.2)';
-    ctx.shadowBlur = 6;
     ctx.stroke();
-    ctx.shadowBlur = 0;
     
     ctx.beginPath();
     ctx.arc(cx, cy, or, 0, Math.PI * 2);
     ctx.strokeStyle = '#2a3a5c';
     ctx.lineWidth = 2;
-    ctx.shadowColor = 'rgba(100,140,255,0.2)';
-    ctx.shadowBlur = 6;
     ctx.stroke();
-    ctx.shadowBlur = 0;
     
     ctx.beginPath();
     ctx.arc(cx, cy, outerRingOuter, 0, Math.PI * 2);
     ctx.strokeStyle = '#2a3a5c';
     ctx.lineWidth = 1.5;
-    ctx.shadowColor = 'rgba(100,140,255,0.2)';
-    ctx.shadowBlur = 5;
     ctx.stroke();
-    ctx.shadowBlur = 0;
     
     ctx.beginPath();
     ctx.arc(cx, cy, cr, 0, Math.PI * 2);
@@ -493,33 +472,22 @@ class UpgradeGame {
     ctx.moveTo(baseX, baseY);
     ctx.lineTo(tipX, tipY);
     ctx.strokeStyle = '#ffd700';
-    ctx.lineWidth = 2.5;
+    ctx.lineWidth = 3.5;
     ctx.lineCap = 'round';
-    ctx.shadowColor = '#ffd700';
-    ctx.shadowBlur = 12;
     ctx.stroke();
-    ctx.shadowBlur = 0;
     
     ctx.beginPath();
     ctx.moveTo(tipX, tipY);
-    ctx.lineTo(-6, tipY - 10);
-    ctx.lineTo(6, tipY - 10);
+    ctx.lineTo(-7, tipY - 12);
+    ctx.lineTo(7, tipY - 12);
     ctx.closePath();
     ctx.fillStyle = '#ffd700';
     ctx.fill();
-    ctx.shadowColor = '#ffd700';
-    ctx.shadowBlur = 12;
-    ctx.fill();
-    ctx.shadowBlur = 0;
     
     ctx.beginPath();
-    ctx.arc(baseX, baseY, 3.5, 0, Math.PI * 2);
+    ctx.arc(baseX, baseY, 4.5, 0, Math.PI * 2);
     ctx.fillStyle = '#ffd700';
     ctx.fill();
-    ctx.shadowColor = '#ffd700';
-    ctx.shadowBlur = 10;
-    ctx.fill();
-    ctx.shadowBlur = 0;
     
     ctx.restore();
 }
