@@ -325,53 +325,57 @@ class UpgradeGame {
     }
 
     startUpgrade() {
-        const tc = this.getSelectedTotalCost();
-        if (this.isSpinning || !this.primaryGift || !this.targetGift || tc >= this.targetGift.price) return;
-        if (this.selectedGifts.some(g => !this.inventory.find(e => e.giftId === g.id))) return;
+    const tc = this.getSelectedTotalCost();
+    if (this.isSpinning || !this.primaryGift || !this.targetGift || tc >= this.targetGift.price) return;
+    if (this.selectedGifts.some(g => !this.inventory.find(e => e.giftId === g.id))) return;
+    
+    this.isSpinning = true;
+    const btn = document.getElementById('upgradeBtn');
+    btn.disabled = true; btn.classList.add('spinning'); btn.textContent = 'КРУТИМ...';
+    document.querySelectorAll('.quick-bet-btn').forEach(b => b.disabled = true);
+    if(tg) tg.HapticFeedback.impactOccurred('heavy');
+    
+    document.getElementById('app').classList.add('blurred');
+    document.getElementById('wheelModalChance').textContent = (this.currentChance * 100).toFixed(1) + '%';
+    document.getElementById('wheelModalOverlay').classList.add('show');
+    
+    const totalRot = this.spinType === 'fast' ? 3 + Math.floor(Math.random() * 3) : 5 + Math.floor(Math.random() * 5);
+    const ta = Math.random() * Math.PI * 2;
+    const totalAngle = totalRot * Math.PI * 2 + ta;
+    const dur = this.spinType === 'fast' ? 2500 : 5000;
+    const st = Date.now();
+    const sa = this.wheelAngle;
+    
+    // Плавный easeInOut: медленно разгоняется, равномерно в середине, плавно затухает
+    const easeSmooth = t => {
+        // easeInOutQuad — очень плавный
+        return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+    };
+    
+    const anim = () => {
+        const el = Date.now() - st;
+        const p = Math.min(el / dur, 1);
+        const ep = easeSmooth(p);
         
-        this.isSpinning = true;
-        const btn = document.getElementById('upgradeBtn');
-        btn.disabled = true; btn.classList.add('spinning'); btn.textContent = 'КРУТИМ...';
-        document.querySelectorAll('.quick-bet-btn').forEach(b => b.disabled = true);
-        if(tg) tg.HapticFeedback.impactOccurred('heavy');
+        this.wheelAngle = sa + totalAngle * ep;
+        this.drawWheel();
         
-        document.getElementById('app').classList.add('blurred');
-        document.getElementById('wheelModalChance').textContent = (this.currentChance * 100).toFixed(1) + '%';
-        document.getElementById('wheelModalOverlay').classList.add('show');
-        
-        const totalRot = this.spinType === 'fast' ? 3 + Math.floor(Math.random() * 3) : 5 + Math.floor(Math.random() * 5);
-        const ta = Math.random() * Math.PI * 2;
-        const totalAngle = totalRot * Math.PI * 2 + ta;
-        const dur = this.spinType === 'fast' ? 2500 : 5000;
-        const st = Date.now();
-        const sa = this.wheelAngle;
-        
-        const easeUpgrader = t => {
-            if (t < 0.15) return 2.22 * t * t;
-            else if (t < 0.7) { const mid = (t - 0.15) / 0.55; return 0.05 + 0.7 * mid + 0.05 * Math.sin(mid * Math.PI); }
-            else { const end = (t - 0.7) / 0.3; return 0.75 + 0.25 * (1 - Math.pow(1 - end, 4)); }
-        };
-        
-        const anim = () => {
-            const el = Date.now() - st;
-            const p = Math.min(el / dur, 1);
-            const ep = easeUpgrader(p);
-            this.wheelAngle = sa + totalAngle * ep;
-            this.drawWheel();
-            if (this.soundEnabled && p < 0.95) {
-                const tickP = Math.floor(this.wheelAngle / (Math.PI / 4));
-                if (tickP !== this._lastTick) {
-                    this._lastTick = tickP;
-                    const vol = p < 0.7 ? 0.015 : 0.015 * (1 - (p - 0.7) / 0.3);
-                    this.playBeep(250 + (1 - ep) * 500, vol);
-                }
+        if (this.soundEnabled && p < 0.95) {
+            const tickP = Math.floor(this.wheelAngle / (Math.PI / 4));
+            if (tickP !== this._lastTick) {
+                this._lastTick = tickP;
+                // Громкость затухает к концу
+                const vol = p < 0.8 ? 0.015 : 0.015 * (1 - (p - 0.8) / 0.2);
+                this.playBeep(250 + (1 - ep) * 500, vol);
             }
-            if (p < 1) this.wheelAnimationId = requestAnimationFrame(anim);
-            else { this._lastTick = 0; this.onSpinComplete(); }
-        };
-        this._lastTick = 0;
-        this.wheelAnimationId = requestAnimationFrame(anim);
-    }
+        }
+        
+        if (p < 1) this.wheelAnimationId = requestAnimationFrame(anim);
+        else { this._lastTick = 0; this.onSpinComplete(); }
+    };
+    this._lastTick = 0;
+    this.wheelAnimationId = requestAnimationFrame(anim);
+}
 
     onSpinComplete() {
         const na = ((this.wheelAngle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
