@@ -273,19 +273,19 @@ class UpgradeGame {
     const st = Date.now();
     const sa = this.wheelAngle;
     
-    // Кастомный easing с пиковой скоростью ×2 в середине
+    // Кастомный easing: медленно → быстро (×2, коротко) → медленно
     const easeCustom = t => {
-        if (t < 0.3) {
-            // Медленный старт: 0 → 0.15
-            return 0.5 * (t / 0.3) * (t / 0.3);
-        } else if (t < 0.7) {
-            // Быстрая середина: 0.15 → 0.85 (в 2 раза быстрее линейной)
-            const mid = (t - 0.3) / 0.4;
-            return 0.15 + 0.7 * mid;
+        if (t < 0.4) {
+            // Медленный разгон: 0 → 0.2
+            return 0.5 * (t / 0.4) * (t / 0.4);
+        } else if (t < 0.6) {
+            // Быстрая середина: 0.2 → 0.8 (в 2 раза быстрее, короткий промежуток)
+            const mid = (t - 0.4) / 0.2;
+            return 0.2 + 0.6 * mid;
         } else {
-            // Медленное завершение: 0.85 → 1
-            const end = (t - 0.7) / 0.3;
-            return 0.85 + 0.15 * (1 - (1 - end) * (1 - end));
+            // Медленное завершение: 0.8 → 1
+            const end = (t - 0.6) / 0.4;
+            return 0.8 + 0.2 * (1 - (1 - end) * (1 - end));
         }
     };
     
@@ -298,7 +298,6 @@ class UpgradeGame {
         this.drawWheel();
         
         if (this.soundEnabled && p < 0.95) {
-            const speed = ep > 0.15 && ep < 0.85 ? 2 : 1;
             const tickP = Math.floor(this.wheelAngle / (Math.PI / 4));
             if (tickP !== this._lastTick) {
                 this._lastTick = tickP;
@@ -315,7 +314,7 @@ class UpgradeGame {
     };
     this._lastTick = 0;
     this.wheelAnimationId = requestAnimationFrame(anim);
-}f
+}
 
     onSpinComplete() {
         const na = ((this.wheelAngle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
