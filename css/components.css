@@ -49,7 +49,7 @@
 }
 .center-result-chance-modal { font-size: 14px; font-weight: 600; margin-top: 4px; opacity: 0.9; }
 
-/* Overlays */
+/* Магазин */
 .shop-overlay {
     position: fixed; top: 0; left: 50%; transform: translate(-50%, 0);
     width: 100%; max-width: 450px; height: 100vh; background: #08090d;
@@ -58,58 +58,33 @@
 }
 .shop-overlay.show { opacity: 1; pointer-events: all; }
 .shop-header {
-    padding: 16px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: #08090d;
-    border-bottom: none;
-    flex-shrink: 0;
+    padding: 16px; display: flex; justify-content: space-between; align-items: center;
+    background: #08090d; border-bottom: none; flex-shrink: 0;
     box-shadow: 0 2px 8px rgba(255, 255, 255, 0.04);
 }
 .shop-title { color: #d0daf0; font-size: 18px; font-weight: 600; text-shadow: 0 0 10px rgba(200, 210, 255, 0.2); }
 .close-btn { background: none; border: none; color: #6b7daa; font-size: 22px; cursor: pointer; padding: 4px 8px; text-shadow: 0 0 8px rgba(100, 140, 255, 0.3); }
 
 .shop-search-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 12px;
-    background: #08090d;
-    border-bottom: none;
-    flex-shrink: 0;
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 12px; background: #08090d;
+    border-bottom: none; flex-shrink: 0;
 }
 .shop-search-input-wrapper { flex: 1; }
 .shop-search-input {
-    width: 100%;
-    background: rgba(255, 255, 255, 0.04);
-    border: none;
-    border-radius: 8px;
-    padding: 9px 12px;
-    color: #d0daf0;
-    font-size: 13px;
-    outline: none;
-    transition: all 0.2s;
+    width: 100%; background: rgba(255, 255, 255, 0.04);
+    border: none; border-radius: 8px;
+    padding: 9px 12px; color: #d0daf0;
+    font-size: 13px; outline: none; transition: all 0.2s;
 }
-.shop-search-input:focus {
-    background: rgba(255, 255, 255, 0.06);
-    box-shadow: 0 0 10px rgba(255, 215, 0, 0.1);
-}
+.shop-search-input:focus { background: rgba(255, 255, 255, 0.06); box-shadow: 0 0 10px rgba(255, 215, 0, 0.1); }
 .shop-search-input::placeholder { color: #5a6070; }
 .shop-sort-btns { display: flex; gap: 4px; }
 .shop-sort-btn {
-    background: transparent;
-    border: none;
-    color: #ffffff;
-    width: 32px;
-    height: 32px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 16px;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    background: transparent; border: none; color: #ffffff;
+    width: 32px; height: 32px; border-radius: 6px; cursor: pointer;
+    font-size: 16px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
     transition: all 0.2s;
 }
 .shop-sort-btn:active { background: rgba(255, 255, 255, 0.06); color: #ffd700; }
@@ -120,16 +95,9 @@
     display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
 }
 .shop-item {
-    background: transparent;
-    border: none;
-    border-radius: 10px;
-    padding: 10px 6px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 6px;
-    cursor: pointer;
-    transition: all 0.2s;
+    background: transparent; border: none; border-radius: 10px;
+    padding: 10px 6px; display: flex; flex-direction: column; align-items: center;
+    gap: 6px; cursor: pointer; transition: all 0.2s;
 }
 .shop-item:active { background: rgba(255, 255, 255, 0.03); }
 .shop-item-icon { width: 44px; height: 44px; object-fit: contain; filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.25)); }
@@ -141,6 +109,7 @@
 }
 .shop-item-price { color: #ffd700; font-weight: bold; font-size: 12px; text-shadow: 0 0 8px rgba(255, 215, 0, 0.3); }
 
+/* Модалка покупки */
 .buy-modal-overlay {
     position: fixed; top: 0; left: 50%; transform: translate(-50%, 0);
     width: 100%; max-width: 450px; height: 100vh;
@@ -150,10 +119,8 @@
 }
 .buy-modal-overlay.show { opacity: 1; pointer-events: all; }
 .buy-modal-card {
-    background: #08090d;
-    border-radius: 16px; padding: 24px; text-align: center;
-    max-width: 280px; width: 90%;
-    border: 1px solid #1e2a45;
+    background: #08090d; border-radius: 16px; padding: 24px; text-align: center;
+    max-width: 280px; width: 90%; border: 1px solid #1e2a45;
     box-shadow: 0 0 30px rgba(0, 0, 0, 0.4);
 }
 .buy-modal-icon { width: 64px; height: 64px; object-fit: contain; filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.4)); }
@@ -170,10 +137,14 @@
 .buy-modal-confirm:active { transform: scale(0.98); box-shadow: 0 0 30px rgba(255, 215, 0, 0.5); }
 .buy-modal-confirm:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: none; }
 .buy-modal-cancel {
-    flex: 1; background: #111827; border: 1px solid #2a3a5c; color: #a0b4e0;
+    flex: 1; background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08); color: #a0b4e0;
     padding: 12px; border-radius: 10px; font-weight: 600; cursor: pointer; font-size: 13px;
+    transition: all 0.2s;
 }
+.buy-modal-cancel:active { background: rgba(255, 255, 255, 0.08); }
 
+/* Пополнение баланса */
 .balance-topup-overlay {
     position: fixed; top: 0; left: 50%; transform: translate(-50%, 0);
     width: 100%; max-width: 450px; height: 100vh;
@@ -183,31 +154,59 @@
 }
 .balance-topup-overlay.show { opacity: 1; pointer-events: all; }
 .topup-card {
-    background: #08090d;
-    border-radius: 16px; padding: 24px; text-align: center;
-    max-width: 300px; border: 1px solid #1e2a45;
+    background: #08090d; border-radius: 16px; padding: 24px; text-align: center;
+    max-width: 300px; width: 90%; border: 1px solid #1e2a45;
     box-shadow: 0 0 30px rgba(0, 0, 0, 0.4);
 }
 .topup-card h3 {
-    color: #ffffff;
-    margin-bottom: 16px;
-    font-size: 18px;
+    color: #ffffff; margin-bottom: 16px; font-size: 18px;
     text-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
 }
-.topup-option {
-    background: rgba(255, 255, 255, 0.04);
-    border: none;
-    border-radius: 10px;
-    padding: 12px; margin-bottom: 10px; cursor: pointer; transition: all 0.2s;
-    color: #d0daf0; font-weight: 600;
+
+.topup-select-wrapper { position: relative; margin-bottom: 12px; }
+.topup-select {
+    width: 100%; background: rgba(255, 255, 255, 0.04);
+    border: none; border-radius: 10px;
+    padding: 12px 36px 12px 14px; color: #d0daf0;
+    font-size: 14px; font-weight: 600;
+    appearance: none; -webkit-appearance: none;
+    cursor: pointer; outline: none;
     box-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
-    text-shadow: 0 0 5px rgba(200, 210, 255, 0.2);
 }
-.topup-option:active {
-    background: rgba(255, 255, 255, 0.08);
-    box-shadow: 0 0 18px rgba(255, 215, 0, 0.1);
+.topup-select option { background: #0d111f; color: #d0daf0; }
+.topup-select-arrow {
+    position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+    color: #ffd700; font-size: 10px; pointer-events: none;
 }
 
+.topup-method-info {
+    display: flex; align-items: center; justify-content: center;
+    gap: 10px; margin-bottom: 16px; padding: 10px;
+    background: rgba(255, 255, 255, 0.03); border-radius: 10px;
+}
+.topup-method-icon { width: 32px; height: 32px; object-fit: contain; }
+.topup-method-info span { color: #a0b4e0; font-size: 13px; }
+
+.topup-confirm-btn {
+    width: 100%; padding: 12px; border-radius: 10px;
+    font-weight: 700; font-size: 14px; border: none; cursor: pointer;
+    text-transform: uppercase; letter-spacing: 1px;
+    background: linear-gradient(135deg, #f0883e, #f5c842, #ffd700);
+    color: #0a0f1a; margin-bottom: 10px; transition: all 0.25s;
+    box-shadow: 0 0 20px rgba(240, 136, 62, 0.3);
+}
+.topup-confirm-btn:active { transform: scale(0.98); box-shadow: 0 0 30px rgba(255, 215, 0, 0.5); }
+
+.topup-cancel-btn {
+    width: 100%; padding: 12px; border-radius: 10px;
+    font-weight: 600; font-size: 13px; cursor: pointer;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08); color: #a0b4e0;
+    transition: all 0.2s;
+}
+.topup-cancel-btn:active { background: rgba(255, 255, 255, 0.08); }
+
+/* Продажа */
 .sell-overlay {
     position: fixed; top: 0; left: 50%; transform: translate(-50%, 0);
     width: 100%; max-width: 450px; height: 100vh; background: rgba(6, 8, 13, 0.95);
@@ -234,6 +233,7 @@
     padding: 10px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 13px;
 }
 
+/* Настройки */
 .settings-overlay {
     position: fixed; top: 0; left: 50%; transform: translate(-50%, 0);
     width: 100%; max-width: 450px; height: 100vh; background: rgba(6, 8, 13, 0.95);
@@ -242,44 +242,21 @@
 }
 .settings-overlay.show { opacity: 1; pointer-events: all; }
 .settings-card {
-    background: #08090d;
-    border-radius: 16px;
-    padding: 20px;
-    max-width: 360px;
-    width: 90%;
-    max-height: 80vh;
-    overflow-y: auto;
-    border: 1px solid #1e2a45;
-    box-shadow: 0 0 30px rgba(0, 0, 0, 0.4);
+    background: #08090d; border-radius: 16px; padding: 20px;
+    max-width: 360px; width: 90%; max-height: 80vh; overflow-y: auto;
+    border: 1px solid #1e2a45; box-shadow: 0 0 30px rgba(0, 0, 0, 0.4);
 }
-.settings-card h3 {
-    color: #ffd700;
-    margin-bottom: 16px;
-    font-size: 18px;
-    text-align: center;
-    text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
-}
+.settings-card h3 { color: #ffd700; margin-bottom: 16px; font-size: 18px; text-align: center; text-shadow: 0 0 10px rgba(255, 215, 0, 0.3); }
 .settings-section { margin-bottom: 16px; }
 .settings-section h4 {
-    color: #a0b4e0;
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-bottom: 8px;
-    text-shadow: 0 0 5px rgba(160, 180, 224, 0.2);
+    color: #a0b4e0; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;
+    margin-bottom: 8px; text-shadow: 0 0 5px rgba(160, 180, 224, 0.2);
 }
 .settings-row { display: flex; gap: 8px; margin-bottom: 8px; }
 .settings-row input[type="number"] {
-    flex: 1;
-    background: rgba(255, 255, 255, 0.03);
-    border: none;
-    border-radius: 8px;
-    padding: 8px;
-    color: #d0daf0;
-    font-size: 14px;
-    text-align: center;
-    outline: none;
-    transition: all 0.2s;
+    flex: 1; background: rgba(255, 255, 255, 0.03); border: none;
+    border-radius: 8px; padding: 8px; color: #d0daf0; font-size: 14px;
+    text-align: center; outline: none; transition: all 0.2s;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
 }
 .settings-row input[type="number"]:focus {
@@ -288,16 +265,9 @@
 }
 .settings-radio-group { display: flex; flex-direction: column; gap: 6px; }
 .settings-radio-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 12px;
-    background: rgba(255, 255, 255, 0.03);
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-    transition: all 0.2s;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+    display: flex; align-items: center; gap: 10px; padding: 10px 12px;
+    background: rgba(255, 255, 255, 0.03); border: none; border-radius: 10px;
+    cursor: pointer; transition: all 0.2s; box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
 }
 .settings-radio-item:active {
     background: radial-gradient(ellipse at center, rgba(240, 136, 62, 0.15) 0%, rgba(240, 136, 62, 0.03) 60%, rgba(255, 255, 255, 0.03) 100%);
@@ -307,21 +277,11 @@
 .settings-radio-item label { flex: 1; color: #d0daf0; font-size: 13px; cursor: pointer; }
 .settings-radio-item .radio-desc { color: #6b7daa; font-size: 10px; margin-top: 2px; }
 .settings-save-btn {
-    width: 100%;
-    padding: 12px;
-    border-radius: 10px;
-    font-weight: 700;
-    font-size: 14px;
-    border: none;
-    cursor: pointer;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    background: linear-gradient(135deg, #f0883e, #f5c842, #ffd700);
-    color: #0a0f1a;
-    border: 1px solid #f5c84260;
-    transition: all 0.25s;
-    box-shadow: 0 0 20px rgba(240, 136, 62, 0.3);
-    margin-top: 8px;
+    width: 100%; padding: 12px; border-radius: 10px; font-weight: 700; font-size: 14px;
+    border: none; cursor: pointer; text-transform: uppercase; letter-spacing: 1px;
+    background: linear-gradient(135deg, #f0883e, #f5c842, #ffd700); color: #0a0f1a;
+    border: 1px solid #f5c84260; transition: all 0.25s;
+    box-shadow: 0 0 20px rgba(240, 136, 62, 0.3); margin-top: 8px;
 }
 .settings-save-btn:active { transform: scale(0.98); box-shadow: 0 0 30px rgba(255, 215, 0, 0.5); }
 

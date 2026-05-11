@@ -168,13 +168,24 @@
         </div>
 
         <div class="balance-topup-overlay" id="balanceTopupOverlay">
-            <div class="topup-card">
-                <h3>Пополнить баланс</h3>
-                <div class="topup-option" id="topupGifts">Подарками в Telegram</div>
-                <div class="topup-option" id="topupStars">Звездами</div>
-                <button class="close-btn" id="closeTopupBtn" style="margin-top:10px; width:100%;">Отмена</button>
-            </div>
+    <div class="topup-card">
+        <h3>Варианты пополнения</h3>
+        <div class="topup-select-wrapper">
+            <select class="topup-select" id="topupMethod">
+                <option value="stars">⭐ Звезды Telegram</option>
+                <option value="gifts">🎁 Подарками Telegram</option>
+                <option value="ton">💎 TON</option>
+            </select>
+            <div class="topup-select-arrow">▼</div>
         </div>
+        <div class="topup-method-info" id="topupMethodInfo">
+            <img src="images/deposit_stars_icon.png" alt="" class="topup-method-icon" id="topupMethodIcon">
+            <span id="topupMethodLabel">Пополнение звёздами</span>
+        </div>
+        <button class="topup-confirm-btn" id="topupConfirmBtn">Пополнить</button>
+        <button class="topup-cancel-btn" id="closeTopupBtn">Отмена</button>
+    </div>
+</div>
 
         <div class="sell-overlay" id="sellOverlay">
             <div class="sell-card">

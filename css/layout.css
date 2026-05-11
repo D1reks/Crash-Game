@@ -71,18 +71,6 @@
     text-shadow: 0 0 10px rgba(255, 215, 0, 0.4);
 }
 
-.chance-display-inline {
-    text-align: center; padding: 6px 0 2px 0; flex-shrink: 0;
-}
-.chance-percent-inline {
-    font-size: 18px; font-weight: 800; color: #ffd700;
-    text-shadow: 0 0 16px rgba(255, 215, 0, 0.5), 0 0 32px rgba(255, 215, 0, 0.2);
-}
-.chance-label-inline {
-    font-size: 7px; color: #6b7daa; letter-spacing: 2px;
-    text-shadow: 0 0 8px rgba(100, 140, 255, 0.3);
-}
-
 .gift-selection-row {
     display: flex; gap: 12px; width: 100%; align-items: stretch;
     padding: 0 12px; margin-top: 10px; flex: 1; min-height: 0;
