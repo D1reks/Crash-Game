@@ -245,8 +245,7 @@ class UpgradeGame {
     // Пополнение баланса
     document.getElementById('balanceContainer').addEventListener('click', () => {
         document.getElementById('topupMethod').value = 'stars';
-        document.getElementById('topupMethodIcon').src = 'images/deposit_stars_icon.png';
-        document.getElementById('topupMethodLabel').textContent = 'Пополнение звёздами';
+        document.getElementById('topupSelectIcon').src = 'images/deposit_stars_icon.png';
         document.getElementById('balanceTopupOverlay').classList.add('show');
     });
     document.getElementById('closeTopupBtn').addEventListener('click', () => document.getElementById('balanceTopupOverlay').classList.remove('show'));
@@ -266,19 +265,9 @@ class UpgradeGame {
         }
     });
     document.getElementById('topupMethod').addEventListener('change', (e) => {
-        const method = e.target.value;
-        const icon = document.getElementById('topupMethodIcon');
-        const label = document.getElementById('topupMethodLabel');
-        if (method === 'stars') {
-            icon.src = 'images/deposit_stars_icon.png';
-            label.textContent = 'Пополнение звёздами';
-        } else if (method === 'gifts') {
-            icon.src = 'images/gifts icons/Plush Pepe.png';
-            label.textContent = 'Пополнение подарками';
-        } else if (method === 'ton') {
-            icon.src = 'images/deposit_ton_icon.png';
-            label.textContent = 'Пополнение через TON';
-        }
+        const selected = e.target.options[e.target.selectedIndex];
+        const icon = selected.dataset.icon;
+        document.getElementById('topupSelectIcon').src = icon;
     });
     
     // Магазин
