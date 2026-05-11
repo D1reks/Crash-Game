@@ -252,56 +252,70 @@ class UpgradeGame {
     }
 
     startUpgrade() {
-        const tc = this.getSelectedTotalCost();
-        if (this.isSpinning || !this.primaryGift || !this.targetGift || tc >= this.targetGift.price) return;
-        if (this.selectedGifts.some(g => !this.inventory.find(e => e.giftId === g.id))) return;
+    const tc = this.getSelectedTotalCost();
+    if (this.isSpinning || !this.primaryGift || !this.targetGift || tc >= this.targetGift.price) return;
+    if (this.selectedGifts.some(g => !this.inventory.find(e => e.giftId === g.id))) return;
+    
+    this.isSpinning = true;
+    const btn = document.getElementById('upgradeBtn');
+    btn.disabled = true; btn.classList.add('spinning'); btn.textContent = 'КРУТИМ...';
+    document.querySelectorAll('.quick-bet-btn').forEach(b => b.disabled = true);
+    if(tg) tg.HapticFeedback.impactOccurred('heavy');
+    
+    document.getElementById('app').classList.add('blurred');
+    document.getElementById('wheelModalChance').textContent = (this.currentChance * 100).toFixed(1) + '%';
+    document.getElementById('wheelModalOverlay').classList.add('show');
+    
+    const totalRot = this.spinType === 'fast' ? 3 + Math.floor(Math.random() * 3) : 5 + Math.floor(Math.random() * 5);
+    const ta = Math.random() * Math.PI * 2;
+    const totalAngle = totalRot * Math.PI * 2 + ta;
+    const dur = this.spinType === 'fast' ? 2500 : 5000;
+    const st = Date.now();
+    const sa = this.wheelAngle;
+    
+    // Кастомный easing с пиковой скоростью ×2 в середине
+    const easeCustom = t => {
+        if (t < 0.3) {
+            // Медленный старт: 0 → 0.15
+            return 0.5 * (t / 0.3) * (t / 0.3);
+        } else if (t < 0.7) {
+            // Быстрая середина: 0.15 → 0.85 (в 2 раза быстрее линейной)
+            const mid = (t - 0.3) / 0.4;
+            return 0.15 + 0.7 * mid;
+        } else {
+            // Медленное завершение: 0.85 → 1
+            const end = (t - 0.7) / 0.3;
+            return 0.85 + 0.15 * (1 - (1 - end) * (1 - end));
+        }
+    };
+    
+    const anim = () => {
+        const el = Date.now() - st;
+        const p = Math.min(el / dur, 1);
+        const ep = easeCustom(p);
         
-        this.isSpinning = true;
-        const btn = document.getElementById('upgradeBtn');
-        btn.disabled = true; btn.classList.add('spinning'); btn.textContent = 'КРУТИМ...';
-        document.querySelectorAll('.quick-bet-btn').forEach(b => b.disabled = true);
-        if(tg) tg.HapticFeedback.impactOccurred('heavy');
+        this.wheelAngle = sa + totalAngle * ep;
+        this.drawWheel();
         
-        document.getElementById('app').classList.add('blurred');
-        document.getElementById('wheelModalChance').textContent = (this.currentChance * 100).toFixed(1) + '%';
-        document.getElementById('wheelModalOverlay').classList.add('show');
-        
-        const totalRot = this.spinType === 'fast' ? 3 + Math.floor(Math.random() * 3) : 5 + Math.floor(Math.random() * 5);
-        const ta = Math.random() * Math.PI * 2;
-        const totalAngle = totalRot * Math.PI * 2 + ta;
-        const dur = this.spinType === 'fast' ? 2500 : 5000;
-        const st = Date.now();
-        const sa = this.wheelAngle;
-        
-        // Кастомный easing: медленно → быстро → медленно
-        const easeInOutCubic = t => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-        
-        let lastTick = 0;
-        const tickInterval = 0.08;
-        
-        const anim = () => {
-            const el = Date.now() - st;
-            const p = Math.min(el / dur, 1);
-            const ep = easeInOutCubic(p);
-            
-            this.wheelAngle = sa + totalAngle * ep;
-            this.drawWheel();
-            
-            // Тиканье при смене четверти оборота
-            const currentTick = Math.floor(this.wheelAngle / (Math.PI / 2));
-            if (this.soundEnabled && currentTick !== lastTick && p < 0.95) {
-                lastTick = currentTick;
-                this.playBeep(200 + (1 - ep) * 600, 0.015);
+        if (this.soundEnabled && p < 0.95) {
+            const speed = ep > 0.15 && ep < 0.85 ? 2 : 1;
+            const tickP = Math.floor(this.wheelAngle / (Math.PI / 4));
+            if (tickP !== this._lastTick) {
+                this._lastTick = tickP;
+                this.playBeep(300 + (1 - ep) * 500, 0.012);
             }
-            
-            if (p < 1) {
-                this.wheelAnimationId = requestAnimationFrame(anim);
-            } else {
-                this.onSpinComplete();
-            }
-        };
-        this.wheelAnimationId = requestAnimationFrame(anim);
-    }
+        }
+        
+        if (p < 1) {
+            this.wheelAnimationId = requestAnimationFrame(anim);
+        } else {
+            this._lastTick = 0;
+            this.onSpinComplete();
+        }
+    };
+    this._lastTick = 0;
+    this.wheelAnimationId = requestAnimationFrame(anim);
+}f
 
     onSpinComplete() {
         const na = ((this.wheelAngle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
@@ -421,122 +435,123 @@ class UpgradeGame {
     }
 
     drawWheel() {
-        const c = document.getElementById('wheelCanvas');
-        if (!c) return;
-        const ctx = c.getContext('2d');
-        const w = c.width, h = c.height, cx = w/2, cy = h/2;
-        const or = Math.min(w, h)/2 - 10, rw = 26, ir = or - rw, cr = ir - 3;
-        const outerRingInner = or + 3, outerRingOuter = or + 9, arrowBaseRadius = outerRingInner + 2;
-        
-        ctx.clearRect(0, 0, w, h);
-        
-        // Старт снизу
-        const startAngle = Math.PI / 2;
-        
-        // Фон внешнего кольца
+    const c = document.getElementById('wheelCanvas');
+    if (!c) return;
+    const ctx = c.getContext('2d');
+    const w = c.width, h = c.height, cx = w/2, cy = h/2;
+    const or = Math.min(w, h)/2 - 10, rw = 26, ir = or - rw, cr = ir - 3;
+    const outerRingInner = or + 3, outerRingOuter = or + 9, arrowBaseRadius = outerRingInner + 2;
+    
+    ctx.clearRect(0, 0, w, h);
+    
+    const startAngle = Math.PI / 2; // низ
+    
+    // Фон внешнего кольца
+    ctx.beginPath();
+    ctx.arc(cx, cy, outerRingOuter, 0, Math.PI * 2);
+    ctx.arc(cx, cy, outerRingInner, 0, Math.PI * 2, true);
+    ctx.closePath();
+    ctx.fillStyle = '#0d111f';
+    ctx.fill();
+    
+    // Заливка внешнего кольца — снизу в обе стороны
+    if (this.currentChance > 0) {
+        const halfArc = this.currentChance * Math.PI;
+        const sa = startAngle - halfArc;
+        const ea = startAngle + halfArc;
         ctx.beginPath();
-        ctx.arc(cx, cy, outerRingOuter, 0, Math.PI * 2);
-        ctx.arc(cx, cy, outerRingInner, 0, Math.PI * 2, true);
+        ctx.arc(cx, cy, outerRingOuter, sa, ea);
+        ctx.arc(cx, cy, outerRingInner, ea, sa, true);
         ctx.closePath();
-        ctx.fillStyle = '#0d111f';
+        const grad = ctx.createLinearGradient(cx, cy + or, cx, cy - or);
+        grad.addColorStop(0, '#f0883e');
+        grad.addColorStop(0.5, '#f5c842');
+        grad.addColorStop(1, '#3fb950');
+        ctx.fillStyle = grad;
         ctx.fill();
-        
-        // Заливка внешнего кольца (снизу вверх)
-        if (this.currentChance > 0) {
-            const sa = startAngle;
-            const ea = startAngle + this.currentChance * Math.PI * 2;
-            ctx.beginPath();
-            ctx.arc(cx, cy, outerRingOuter, sa, ea);
-            ctx.arc(cx, cy, outerRingInner, ea, sa, true);
-            ctx.closePath();
-            const grad = ctx.createLinearGradient(cx, cy + or, cx, cy - or);
-            grad.addColorStop(0, '#f0883e');
-            grad.addColorStop(0.5, '#f5c842');
-            grad.addColorStop(1, '#3fb950');
-            ctx.fillStyle = grad;
-            ctx.fill();
-        }
-        
-        // Фон основного кольца
-        ctx.beginPath();
-        ctx.arc(cx, cy, or, 0, Math.PI * 2);
-        ctx.arc(cx, cy, ir, 0, Math.PI * 2, true);
-        ctx.closePath();
-        ctx.fillStyle = '#0d111f';
-        ctx.fill();
-        
-        // Заливка основного кольца (снизу вверх)
-        if (this.currentChance > 0) {
-            const sa = startAngle;
-            const ea = startAngle + this.currentChance * Math.PI * 2;
-            ctx.beginPath();
-            ctx.arc(cx, cy, or - 2, sa, ea);
-            ctx.arc(cx, cy, ir + 2, ea, sa, true);
-            ctx.closePath();
-            const grad = ctx.createLinearGradient(cx, cy + or, cx, cy - or);
-            grad.addColorStop(0, '#f0883e');
-            grad.addColorStop(0.5, '#f5c842');
-            grad.addColorStop(1, '#3fb950');
-            ctx.fillStyle = grad;
-            ctx.fill();
-        }
-        
-        // Обводки
-        ctx.strokeStyle = '#2a3a5c';
-        ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        ctx.arc(cx, cy, outerRingOuter, 0, Math.PI * 2);
-        ctx.stroke();
-        
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.arc(cx, cy, or, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.arc(cx, cy, ir, 0, Math.PI * 2);
-        ctx.stroke();
-        
-        // Центр
-        ctx.beginPath();
-        ctx.arc(cx, cy, cr, 0, Math.PI * 2);
-        ctx.fillStyle = '#08090d';
-        ctx.fill();
-        ctx.strokeStyle = '#2a3a5c';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-        
-        // Стрелка
-        ctx.save();
-        ctx.translate(cx, cy);
-        ctx.rotate(this.wheelAngle);
-        
-        const tipRadius = ir + 2;
-        const tipX = 0, tipY = -tipRadius;
-        const baseX = 0, baseY = -arrowBaseRadius;
-        
-        ctx.beginPath();
-        ctx.moveTo(baseX, baseY);
-        ctx.lineTo(tipX, tipY);
-        ctx.strokeStyle = '#ffd700';
-        ctx.lineWidth = 3.5;
-        ctx.lineCap = 'round';
-        ctx.stroke();
-        
-        ctx.beginPath();
-        ctx.moveTo(tipX, tipY);
-        ctx.lineTo(-7, tipY - 12);
-        ctx.lineTo(7, tipY - 12);
-        ctx.closePath();
-        ctx.fillStyle = '#ffd700';
-        ctx.fill();
-        
-        ctx.beginPath();
-        ctx.arc(baseX, baseY, 4.5, 0, Math.PI * 2);
-        ctx.fillStyle = '#ffd700';
-        ctx.fill();
-        
-        ctx.restore();
     }
+    
+    // Фон основного кольца
+    ctx.beginPath();
+    ctx.arc(cx, cy, or, 0, Math.PI * 2);
+    ctx.arc(cx, cy, ir, 0, Math.PI * 2, true);
+    ctx.closePath();
+    ctx.fillStyle = '#0d111f';
+    ctx.fill();
+    
+    // Заливка основного кольца — снизу в обе стороны
+    if (this.currentChance > 0) {
+        const halfArc = this.currentChance * Math.PI;
+        const sa = startAngle - halfArc;
+        const ea = startAngle + halfArc;
+        ctx.beginPath();
+        ctx.arc(cx, cy, or - 2, sa, ea);
+        ctx.arc(cx, cy, ir + 2, ea, sa, true);
+        ctx.closePath();
+        const grad = ctx.createLinearGradient(cx, cy + or, cx, cy - or);
+        grad.addColorStop(0, '#f0883e');
+        grad.addColorStop(0.5, '#f5c842');
+        grad.addColorStop(1, '#3fb950');
+        ctx.fillStyle = grad;
+        ctx.fill();
+    }
+    
+    // Обводки
+    ctx.strokeStyle = '#2a3a5c';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(cx, cy, outerRingOuter, 0, Math.PI * 2);
+    ctx.stroke();
+    
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(cx, cy, or, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(cx, cy, ir, 0, Math.PI * 2);
+    ctx.stroke();
+    
+    // Центр
+    ctx.beginPath();
+    ctx.arc(cx, cy, cr, 0, Math.PI * 2);
+    ctx.fillStyle = '#08090d';
+    ctx.fill();
+    ctx.strokeStyle = '#2a3a5c';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    
+    // Стрелка
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(this.wheelAngle);
+    
+    const tipRadius = ir + 2;
+    const tipX = 0, tipY = -tipRadius;
+    const baseX = 0, baseY = -arrowBaseRadius;
+    
+    ctx.beginPath();
+    ctx.moveTo(baseX, baseY);
+    ctx.lineTo(tipX, tipY);
+    ctx.strokeStyle = '#ffd700';
+    ctx.lineWidth = 3.5;
+    ctx.lineCap = 'round';
+    ctx.stroke();
+    
+    ctx.beginPath();
+    ctx.moveTo(tipX, tipY);
+    ctx.lineTo(-7, tipY - 12);
+    ctx.lineTo(7, tipY - 12);
+    ctx.closePath();
+    ctx.fillStyle = '#ffd700';
+    ctx.fill();
+    
+    ctx.beginPath();
+    ctx.arc(baseX, baseY, 4.5, 0, Math.PI * 2);
+    ctx.fillStyle = '#ffd700';
+    ctx.fill();
+    
+    ctx.restore();
+}
 
     renderGiftList() { if (this.activeTab==='inventory') this.renderInventoryListInPanel(); else this.renderTargetsListInPanel(); }
 
