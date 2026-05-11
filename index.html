@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>UPGIFT • Gift Upgrade Game</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="css/reset.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/components.css">
 </head>
 <body>
     <div id="preloader">
@@ -140,6 +142,15 @@
             <div class="shop-header">
                 <span class="shop-title">Магазин подарков</span>
                 <button class="close-btn" id="closeShopBtn">✕</button>
+            </div>
+            <div class="shop-search-row">
+                <div class="shop-search-input-wrapper">
+                    <input type="text" class="shop-search-input" id="shopSearchInput" placeholder="Поиск подарка...">
+                </div>
+                <div class="shop-sort-btns">
+                    <button class="shop-sort-btn" id="sortAsc">▲</button>
+                    <button class="shop-sort-btn" id="sortDesc">▼</button>
+                </div>
             </div>
             <div class="shop-items" id="shopItems"></div>
         </div>

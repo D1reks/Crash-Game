@@ -1,0 +1,316 @@
+#app {
+    width: 100%;
+    max-width: 450px;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    background: #08090d;
+    box-shadow: 0 0 60px rgba(100, 100, 255, 0.1), 0 0 120px rgba(100, 100, 255, 0.03);
+    overflow: hidden;
+    transition: filter 0.4s ease;
+}
+
+#preloader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #08090d;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    transition: opacity 0.3s ease;
+}
+#preloader.hide { opacity: 0; pointer-events: none; }
+.preloader-content { text-align: center; }
+.preloader-spinner {
+    width: 50px; height: 50px; margin: 0 auto 16px;
+    border: 3px solid #1e2a45; border-top-color: #ffd700; border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.preloader-text {
+    color: #ffd700; font-size: 20px; font-weight: 800; letter-spacing: 3px; text-transform: uppercase;
+    text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+    animation: pulse-text 1.5s ease-in-out infinite;
+}
+@keyframes pulse-text { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
+
+.header {
+    padding: 10px 16px; display: flex; justify-content: space-between; align-items: center;
+    background: #08090d; border-bottom: none; z-index: 10; flex-shrink: 0;
+}
+.header-left { display: flex; align-items: center; }
+.header-logo {
+    color: #ffffff; font-weight: 800; font-size: 20px; letter-spacing: 2px;
+    text-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+}
+.header-right { display: flex; align-items: center; gap: 8px; }
+
+.icon-btn {
+    background: transparent; border: none; border-radius: 10px;
+    width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: all 0.2s; box-shadow: none; padding: 6px; flex-shrink: 0;
+}
+.icon-btn:active { background: rgba(255, 215, 0, 0.08); box-shadow: none; }
+.icon-img { width: 24px; height: 24px; object-fit: contain; }
+
+.balance-container {
+    display: flex; align-items: center; gap: 6px;
+    background: rgba(255, 215, 0, 0.08); padding: 6px 14px; border-radius: 30px;
+    cursor: pointer; transition: all 0.2s;
+    box-shadow: 0 0 12px rgba(255, 215, 0, 0.06); border: none;
+}
+.balance-container:active { background: rgba(255, 215, 0, 0.14); }
+.balance {
+    color: #ffd700; font-weight: bold; font-size: 18px;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.4);
+}
+
+/* Шанс над карточками */
+.chance-display-inline {
+    text-align: center; padding: 6px 0 2px 0; flex-shrink: 0;
+}
+.chance-percent-inline {
+    font-size: 18px; font-weight: 800; color: #ffd700;
+    text-shadow: 0 0 16px rgba(255, 215, 0, 0.5), 0 0 32px rgba(255, 215, 0, 0.2);
+}
+.chance-label-inline {
+    font-size: 7px; color: #6b7daa; letter-spacing: 2px;
+    text-shadow: 0 0 8px rgba(100, 140, 255, 0.3);
+}
+
+/* Карточки */
+.gift-selection-row {
+    display: flex; gap: 12px; width: 100%; align-items: stretch;
+    padding: 0 12px; margin-top: 10px; flex: 1; min-height: 0;
+}
+.gift-card-wrapper { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.gift-card {
+    width: 100%; flex: 1; background: rgba(255, 255, 255, 0.03);
+    border: none; border-radius: 14px; padding: 10px;
+    display: flex; align-items: center; justify-content: center;
+    min-width: 0; cursor: pointer; transition: all 0.25s;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.4);
+    min-height: 120px; position: relative; overflow: hidden;
+}
+.gift-card.current-gift { box-shadow: 0 0 20px rgba(63, 185, 80, 0.15); }
+.gift-card.target-gift {
+    background: radial-gradient(ellipse at center, rgba(240, 136, 62, 0.15) 0%, rgba(240, 136, 62, 0.03) 60%, rgba(255, 255, 255, 0.03) 100%);
+    box-shadow: 0 0 20px rgba(240, 136, 62, 0.2);
+}
+.gift-card.empty-card { background: rgba(255, 255, 255, 0.03); box-shadow: 0 0 10px rgba(0, 0, 0, 0.3); }
+.gift-card.spinning-disabled { pointer-events: none; opacity: 0.7; }
+
+.multi-gift-grid {
+    display: flex; flex-wrap: wrap; gap: 2px; justify-content: center;
+    align-items: center; width: 100%; height: 100%; padding: 2px;
+}
+.multi-gift-item { position: relative; display: flex; align-items: center; justify-content: center; }
+.multi-gift-item .gift-icon { max-height: 65px; }
+.multi-gift-item:only-child .gift-icon { max-height: 90px !important; }
+
+.gift-icon {
+    width: 100%; height: 100%; max-height: 90px;
+    object-fit: contain;
+    filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.3));
+}
+
+/* Шанс внутри карточки цели */
+.target-chance-inside {
+    display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
+    position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%);
+    opacity: 0.6; pointer-events: none;
+}
+.chance-percent-inside {
+    font-size: 14px; font-weight: 800; color: #ffd700;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.4), 0 0 20px rgba(255, 215, 0, 0.15);
+}
+.chance-label-inside {
+    font-size: 6px; color: #6b7daa; letter-spacing: 2px;
+    text-shadow: 0 0 6px rgba(100, 140, 255, 0.2);
+}
+
+.gift-info-outside {
+    display: flex; flex-direction: column; align-items: center; gap: 1px;
+    text-align: center; min-height: 28px;
+}
+.gift-name-outside {
+    color: #d0daf0; font-size: 11px; font-weight: 600; text-align: center;
+    text-shadow: 0 0 8px rgba(200, 210, 255, 0.2);
+    max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.gift-price-outside {
+    color: #ffd700; font-size: 12px; font-weight: bold;
+    text-shadow: 0 0 8px rgba(255, 215, 0, 0.3);
+}
+
+/* Стрелки */
+.placeholder-arrows {
+    display: flex; flex-direction: column; gap: 3px; align-items: center;
+    justify-content: center; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+}
+.placeholder-arrow {
+    color: #ffd700; font-weight: bold; opacity: 0.8;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.5); line-height: 0.8; display: inline-block;
+}
+.placeholder-arrow:nth-child(1),
+.placeholder-arrow:nth-child(3) { font-size: 18px; }
+.placeholder-arrow:nth-child(2) { font-size: 26px; }
+
+.left-arrows .placeholder-arrow {
+    transform: scaleX(2.2) rotate(-90deg);
+    animation: arrow-wave-left 2.5s ease-in-out infinite;
+}
+.right-arrows .placeholder-arrow {
+    transform: scaleX(2.2) rotate(90deg);
+    animation: arrow-wave-right 2.5s ease-in-out infinite;
+}
+.left-arrows .placeholder-arrow:nth-child(1),
+.right-arrows .placeholder-arrow:nth-child(1) { animation-delay: 0s; }
+.left-arrows .placeholder-arrow:nth-child(2),
+.right-arrows .placeholder-arrow:nth-child(2) { animation-delay: 0.3s; }
+.left-arrows .placeholder-arrow:nth-child(3),
+.right-arrows .placeholder-arrow:nth-child(3) { animation-delay: 0.6s; }
+
+@keyframes arrow-wave-left {
+    0%, 100% { transform: scaleX(2.2) rotate(-90deg) scale(1); opacity: 0.2; }
+    15% { transform: scaleX(2.2) rotate(-90deg) scale(1.5); opacity: 0.55; }
+    30% { transform: scaleX(2.2) rotate(-90deg) scale(1); opacity: 0.2; }
+}
+@keyframes arrow-wave-right {
+    0%, 100% { transform: scaleX(2.2) rotate(90deg) scale(1); opacity: 0.2; }
+    15% { transform: scaleX(2.2) rotate(90deg) scale(1.5); opacity: 0.55; }
+    30% { transform: scaleX(2.2) rotate(90deg) scale(1); opacity: 0.2; }
+}
+
+/* Кнопка */
+.upgrade-btn {
+    width: calc(100% - 24px); padding: 12px; border-radius: 12px;
+    font-weight: 700; font-size: 15px; border: none; cursor: pointer;
+    text-transform: uppercase; letter-spacing: 2px;
+    background: linear-gradient(135deg, #f0883e, #f5c842, #ffd700);
+    color: #0a0f1a; border: 1px solid #f5c84260; transition: all 0.25s;
+    box-shadow: 0 0 25px rgba(240, 136, 62, 0.4), 0 0 50px rgba(255, 215, 0, 0.2);
+    text-shadow: none; font-weight: 800; display: flex; align-items: center; justify-content: center;
+    margin: 6px auto 4px auto; box-sizing: border-box; flex-shrink: 0;
+}
+.upgrade-btn:active {
+    background: linear-gradient(135deg, #f5c842, #ffd700, #f0883e);
+    transform: scale(0.98); box-shadow: 0 0 40px rgba(255, 215, 0, 0.6);
+}
+.upgrade-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: 0 0 15px rgba(240, 136, 62, 0.1); }
+.upgrade-btn.spinning {
+    background: linear-gradient(135deg, #5a2a10, #c0501e); border-color: #f0883e;
+    color: white; animation: neon-pulse 0.6s ease-in-out infinite;
+    text-shadow: 0 0 8px rgba(255, 200, 100, 0.5);
+}
+@keyframes neon-pulse {
+    0%, 100% { box-shadow: 0 0 30px rgba(240, 136, 62, 0.4), 0 0 60px rgba(240, 136, 62, 0.15); }
+    50% { box-shadow: 0 0 50px rgba(240, 136, 62, 0.7), 0 0 90px rgba(240, 136, 62, 0.3); }
+}
+
+/* Быстрые кнопки */
+.quick-bet-row {
+    display: flex; align-items: center; gap: 6px;
+    padding: 0 12px; margin-bottom: 6px; width: 100%; box-sizing: border-box; flex-shrink: 0;
+}
+.quick-bet-buttons { display: flex; gap: 5px; flex: 1; min-width: 0; }
+.quick-bet-btn {
+    background: #111827; border: 1px solid #2a3a5c; color: #a0b4e0;
+    padding: 6px 0; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 10px;
+    transition: all 0.2s; box-shadow: 0 0 8px rgba(0, 0, 0, 0.4);
+    text-shadow: 0 0 6px rgba(160, 180, 224, 0.3); flex: 1; text-align: center; min-width: 0;
+}
+.quick-bet-btn:active { background: #1a2540; box-shadow: 0 0 18px rgba(100, 140, 255, 0.3); }
+.quick-bet-btn.active {
+    border-color: #ffd700; color: #ffd700; background: #1a2540;
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.3); text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+}
+.quick-bet-btn:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: none; }
+
+.quick-bet-settings-btn {
+    background: #111827; border: 1px solid #2a3a5c; border-radius: 8px;
+    min-width: 32px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: all 0.2s; box-shadow: 0 0 10px rgba(100, 140, 255, 0.1);
+    padding: 5px; flex-shrink: 0;
+}
+.quick-bet-settings-btn:active { background: #1a2540; box-shadow: 0 0 20px rgba(100, 140, 255, 0.25); }
+.settings-img { width: 100%; height: 100%; object-fit: contain; }
+
+/* Списки */
+.lists-row {
+    width: 100%; flex: 1; min-height: 140px; overflow: hidden;
+    padding: 0 12px 10px 12px; box-sizing: border-box;
+}
+.gift-list-panel {
+    width: 100%; height: 100%; background: #0d111f; border: 1px solid #1e2a45;
+    border-radius: 10px; overflow: hidden; display: flex; flex-direction: column;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.4);
+}
+.tab-header {
+    display: flex; background: #08090d; border-radius: 20px;
+    margin: 6px; padding: 2px; position: relative; flex-shrink: 0;
+}
+.tab-btn {
+    flex: 1; text-align: center; padding: 8px 0;
+    font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+    cursor: pointer; color: #6b7daa; border-radius: 18px;
+    position: relative; z-index: 1;
+    text-shadow: 0 0 8px rgba(100, 140, 255, 0.2); font-weight: 600;
+    transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+}
+.tab-btn.active {
+    background: #ffd700; color: #0a0f1a; text-shadow: none;
+    box-shadow: 0 0 16px rgba(255, 215, 0, 0.3); font-weight: 800;
+}
+#giftListContent { flex: 1; overflow-y: auto; scrollbar-width: thin; padding-bottom: 4px; }
+#giftListContent::-webkit-scrollbar { width: 3px; }
+#giftListContent::-webkit-scrollbar-thumb {
+    background: #1e2a45; border-radius: 3px; box-shadow: 0 0 5px rgba(100, 140, 255, 0.2);
+}
+.gift-list-item {
+    display: flex; align-items: center; gap: 12px; padding: 14px 12px;
+    cursor: pointer; transition: all 0.2s; border-bottom: 1px solid #0a0f1a;
+}
+.gift-list-item:hover,
+.gift-list-item:active { background: #111827; box-shadow: inset 0 0 15px rgba(100, 140, 255, 0.05); }
+.gift-list-item.selected-for-upgrade {
+    background: rgba(255, 215, 0, 0.08);
+    border-left: 4px solid #f0883e;
+    box-shadow: inset 0 0 20px rgba(240, 136, 62, 0.08);
+}
+.gift-icon-small {
+    width: 42px; height: 42px; object-fit: contain;
+    filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.2));
+}
+.gift-list-item-info { flex: 1; min-width: 0; }
+.gift-list-item-name {
+    color: #d0daf0; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    text-shadow: 0 0 5px rgba(200, 210, 255, 0.15);
+}
+.gift-list-item-price {
+    color: #ffd700; font-size: 12px; margin-top: 2px;
+    text-shadow: 0 0 6px rgba(255, 215, 0, 0.3);
+}
+.sell-icon-btn {
+    background: #3f1a1a; border: 1px solid #f8514960; color: #f85149;
+    padding: 6px 12px; border-radius: 5px; font-size: 12px; font-weight: 700;
+    cursor: pointer; transition: all 0.2s; text-transform: uppercase;
+}
+.sell-icon-btn:active { background: #5a2020; box-shadow: 0 0 12px rgba(248, 81, 73, 0.3); }
+
+/* Блюр */
+#app.blurred .header,
+#app.blurred .gift-selection-row,
+#app.blurred .upgrade-btn,
+#app.blurred .quick-bet-row,
+#app.blurred .lists-row {
+    filter: blur(6px);
+    transition: filter 0.4s ease;
+    pointer-events: none;
+}
