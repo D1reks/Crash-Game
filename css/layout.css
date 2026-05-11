@@ -71,7 +71,6 @@
     text-shadow: 0 0 10px rgba(255, 215, 0, 0.4);
 }
 
-/* Шанс над карточками */
 .chance-display-inline {
     text-align: center; padding: 6px 0 2px 0; flex-shrink: 0;
 }
@@ -84,7 +83,6 @@
     text-shadow: 0 0 8px rgba(100, 140, 255, 0.3);
 }
 
-/* Карточки */
 .gift-selection-row {
     display: flex; gap: 12px; width: 100%; align-items: stretch;
     padding: 0 12px; margin-top: 10px; flex: 1; min-height: 0;
@@ -120,7 +118,6 @@
     filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.3));
 }
 
-/* Шанс внутри карточки цели */
 .target-chance-inside {
     display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
     position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%);
@@ -149,7 +146,6 @@
     text-shadow: 0 0 8px rgba(255, 215, 0, 0.3);
 }
 
-/* Стрелки */
 .placeholder-arrows {
     display: flex; flex-direction: column; gap: 3px; align-items: center;
     justify-content: center; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
@@ -188,7 +184,6 @@
     30% { transform: scaleX(2.2) rotate(90deg) scale(1); opacity: 0.2; }
 }
 
-/* Кнопка */
 .upgrade-btn {
     width: calc(100% - 24px); padding: 12px; border-radius: 12px;
     font-weight: 700; font-size: 15px; border: none; cursor: pointer;
@@ -214,7 +209,6 @@
     50% { box-shadow: 0 0 50px rgba(240, 136, 62, 0.7), 0 0 90px rgba(240, 136, 62, 0.3); }
 }
 
-/* Быстрые кнопки */
 .quick-bet-row {
     display: flex; align-items: center; gap: 6px;
     padding: 0 12px; margin-bottom: 6px; width: 100%; box-sizing: border-box; flex-shrink: 0;
@@ -242,7 +236,6 @@
 .quick-bet-settings-btn:active { background: #1a2540; box-shadow: 0 0 20px rgba(100, 140, 255, 0.25); }
 .settings-img { width: 100%; height: 100%; object-fit: contain; }
 
-/* Списки */
 .lists-row {
     width: 100%; flex: 1; min-height: 140px; overflow: hidden;
     padding: 0 12px 10px 12px; box-sizing: border-box;
@@ -304,7 +297,6 @@
 }
 .sell-icon-btn:active { background: #5a2020; box-shadow: 0 0 12px rgba(248, 81, 73, 0.3); }
 
-/* Блюр */
 #app.blurred .header,
 #app.blurred .gift-selection-row,
 #app.blurred .upgrade-btn,
