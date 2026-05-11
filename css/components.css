@@ -199,37 +199,86 @@
 }
 .settings-overlay.show { opacity: 1; pointer-events: all; }
 .settings-card {
-    background: #0d111f; border-radius: 16px; padding: 20px; max-width: 360px;
-    width: 90%; max-height: 80vh; overflow-y: auto; border: 1px solid #2a3a5c;
-    box-shadow: 0 0 30px rgba(100, 140, 255, 0.1);
+    background: #08090d;
+    border-radius: 16px;
+    padding: 20px;
+    max-width: 360px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    border: 1px solid #1e2a45;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.4);
 }
-.settings-card h3 { color: #ffd700; margin-bottom: 16px; font-size: 18px; text-align: center; text-shadow: 0 0 10px rgba(255, 215, 0, 0.3); }
+.settings-card h3 {
+    color: #ffd700;
+    margin-bottom: 16px;
+    font-size: 18px;
+    text-align: center;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+}
 .settings-section { margin-bottom: 16px; }
 .settings-section h4 {
-    color: #a0b4e0; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;
-    margin-bottom: 8px; text-shadow: 0 0 5px rgba(160, 180, 224, 0.2);
+    color: #a0b4e0;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+    text-shadow: 0 0 5px rgba(160, 180, 224, 0.2);
 }
 .settings-row { display: flex; gap: 8px; margin-bottom: 8px; }
 .settings-row input[type="number"] {
-    flex: 1; background: #111827; border: 1px solid #2a3a5c; border-radius: 6px;
-    padding: 8px; color: #d0daf0; font-size: 14px; text-align: center; outline: none; transition: all 0.2s;
+    flex: 1;
+    background: rgba(255, 255, 255, 0.03);
+    border: none;
+    border-radius: 8px;
+    padding: 8px;
+    color: #d0daf0;
+    font-size: 14px;
+    text-align: center;
+    outline: none;
+    transition: all 0.2s;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
 }
-.settings-row input[type="number"]:focus { border-color: #ffd700; box-shadow: 0 0 10px rgba(255, 215, 0, 0.2); }
+.settings-row input[type="number"]:focus {
+    background: radial-gradient(ellipse at center, rgba(240, 136, 62, 0.15) 0%, rgba(240, 136, 62, 0.03) 60%, rgba(255, 255, 255, 0.03) 100%);
+    box-shadow: 0 0 20px rgba(240, 136, 62, 0.2);
+}
 .settings-radio-group { display: flex; flex-direction: column; gap: 6px; }
 .settings-radio-item {
-    display: flex; align-items: center; gap: 10px; padding: 10px 12px;
-    background: #111827; border: 1px solid #2a3a5c; border-radius: 8px; cursor: pointer; transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
 }
-.settings-radio-item:active { background: #1a2540; }
+.settings-radio-item:active {
+    background: radial-gradient(ellipse at center, rgba(240, 136, 62, 0.15) 0%, rgba(240, 136, 62, 0.03) 60%, rgba(255, 255, 255, 0.03) 100%);
+    box-shadow: 0 0 20px rgba(240, 136, 62, 0.2);
+}
 .settings-radio-item input[type="radio"] { accent-color: #ffd700; }
 .settings-radio-item label { flex: 1; color: #d0daf0; font-size: 13px; cursor: pointer; }
 .settings-radio-item .radio-desc { color: #6b7daa; font-size: 10px; margin-top: 2px; }
 .settings-save-btn {
-    width: 100%; padding: 12px; border-radius: 10px; font-weight: 700; font-size: 14px;
-    border: none; cursor: pointer; text-transform: uppercase; letter-spacing: 1px;
-    background: linear-gradient(135deg, #f0883e, #f5c842, #ffd700); color: #0a0f1a;
-    border: 1px solid #f5c84260; transition: all 0.25s;
-    box-shadow: 0 0 20px rgba(240, 136, 62, 0.3); margin-top: 8px;
+    width: 100%;
+    padding: 12px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 14px;
+    border: none;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    background: linear-gradient(135deg, #f0883e, #f5c842, #ffd700);
+    color: #0a0f1a;
+    border: 1px solid #f5c84260;
+    transition: all 0.25s;
+    box-shadow: 0 0 20px rgba(240, 136, 62, 0.3);
+    margin-top: 8px;
 }
 .settings-save-btn:active { transform: scale(0.98); box-shadow: 0 0 30px rgba(255, 215, 0, 0.5); }
 
