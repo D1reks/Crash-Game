@@ -273,26 +273,26 @@ class UpgradeGame {
     const st = Date.now();
     const sa = this.wheelAngle;
     
-    // Кастомный easing: медленно → быстро (×2, коротко) → медленно (растянуто)
-    const easeCustom = t => {
-        if (t < 0.35) {
-            // Медленный разгон: 0 → 0.15
-            return 0.5 * (t / 0.35) * (t / 0.35);
-        } else if (t < 0.5) {
-            // Быстрая середина: 0.15 → 0.8 (короткий промежуток 15%)
-            const mid = (t - 0.35) / 0.15;
-            return 0.15 + 0.65 * mid;
+    // Upgrader.pro easing: плавный разгон → ровная скорость → плавное затухание
+    const easeUpgrader = t => {
+        if (t < 0.15) {
+            // Плавный разгон с низкой скоростью: 0 → 0.05
+            return 2.22 * t * t;
+        } else if (t < 0.7) {
+            // Основная фаза — почти линейная с лёгким ускорением: 0.05 → 0.75
+            const mid = (t - 0.15) / 0.55;
+            return 0.05 + 0.7 * mid + 0.05 * Math.sin(mid * Math.PI);
         } else {
-            // Медленное завершение: 0.8 → 1 (растянуто на 50% времени)
-            const end = (t - 0.5) / 0.5;
-            return 0.8 + 0.2 * (1 - (1 - end) * (1 - end));
+            // Долгое плавное затухание: 0.75 → 1
+            const end = (t - 0.7) / 0.3;
+            return 0.75 + 0.25 * (1 - Math.pow(1 - end, 4));
         }
     };
     
     const anim = () => {
         const el = Date.now() - st;
         const p = Math.min(el / dur, 1);
-        const ep = easeCustom(p);
+        const ep = easeUpgrader(p);
         
         this.wheelAngle = sa + totalAngle * ep;
         this.drawWheel();
@@ -301,7 +301,8 @@ class UpgradeGame {
             const tickP = Math.floor(this.wheelAngle / (Math.PI / 4));
             if (tickP !== this._lastTick) {
                 this._lastTick = tickP;
-                this.playBeep(300 + (1 - ep) * 500, 0.012);
+                const vol = p < 0.7 ? 0.015 : 0.015 * (1 - (p - 0.7) / 0.3);
+                this.playBeep(250 + (1 - ep) * 500, vol);
             }
         }
         
