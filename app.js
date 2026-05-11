@@ -1,3 +1,5 @@
+const BOT_TOKEN = '8735246963:AAGjkrD0XgQODWcy5d8XV4KIMwpNwJxdA4Y';
+
 let tg = null;
 if (window.Telegram && window.Telegram.WebApp) {
     tg = window.Telegram.WebApp;
@@ -6,20 +8,50 @@ if (window.Telegram && window.Telegram.WebApp) {
     tg.enableClosingConfirmation();
 }
 
-const ALL_GIFTS = [
-    { id: 'precious_peach', name: 'Precious Peach', icon: 'images/gifts icons/Precious Peach.png', price: 50 },
-    { id: 'desk_calendar', name: 'Desk Calendar', icon: 'images/gifts icons/Desk Calendar.png', price: 100 },
-    { id: 'bonded_ring', name: 'Bonded Ring', icon: 'images/gifts icons/Bonded Ring.png', price: 200 },
-    { id: 'durovs_cap', name: "Durov's Cap", icon: "images/gifts icons/Durov's Cap.png", price: 500 },
-    { id: 'swiss_watch', name: 'Swiss Watch', icon: 'images/gifts icons/Swiss Watch.png', price: 1000 },
-    { id: 'chill_flame', name: 'Chill Flame', icon: 'images/gifts icons/Chill Flame.png', price: 2500 },
-    { id: 'heart_locket', name: 'Heart Locket', icon: 'images/gifts icons/Heart Locket.png', price: 5000 },
-    { id: 'plush_pepe', name: 'Plush Pepe', icon: 'images/gifts icons/Plush Pepe.png', price: 10000 },
-    { id: 'scared_cat', name: 'Scared Cat', icon: 'images/gifts icons/Scared Cat.png', price: 25000 },
-    { id: 'witch_hat', name: 'Witch Hat', icon: 'images/gifts icons/Witch Hat.png', price: 50000 },
-    { id: 'toy_bear', name: 'Toy Bear', icon: 'images/gifts icons/Toy Bear.png', price: 100000 },
-    { id: 'loot_bag', name: 'Loot Bag', icon: 'images/gifts icons/Loot Bag.png', price: 250000 },
-];
+let ALL_GIFTS = [];
+
+async function loadGiftsFromTelegram() {
+    try {
+        const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getAvailableGifts`);
+        const data = await response.json();
+        
+        if (data.ok && data.result) {
+            ALL_GIFTS = data.result.map(gift => {
+                const fileId = gift.sticker?.thumbnail?.file_id || gift.sticker?.file_id;
+                return {
+                    id: gift.id,
+                    name: gift.name || gift.id.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+                    icon: fileId ? `https://api.telegram.org/file/bot${BOT_TOKEN}/${fileId}` : '',
+                    price: gift.star_count || 0
+                };
+            });
+            console.log('✅ Загружено подарков:', ALL_GIFTS.length);
+        } else {
+            console.warn('⚠️ Не удалось загрузить подарки через API, использую резервный список');
+            loadFallbackGifts();
+        }
+    } catch (e) {
+        console.warn('⚠️ Ошибка загрузки подарков через API:', e.message);
+        loadFallbackGifts();
+    }
+}
+
+function loadFallbackGifts() {
+    ALL_GIFTS = [
+        { id: 'precious_peach', name: 'Precious Peach', icon: 'images/gifts icons/Precious Peach.png', price: 50 },
+        { id: 'desk_calendar', name: 'Desk Calendar', icon: 'images/gifts icons/Desk Calendar.png', price: 100 },
+        { id: 'bonded_ring', name: 'Bonded Ring', icon: 'images/gifts icons/Bonded Ring.png', price: 200 },
+        { id: 'durovs_cap', name: "Durov's Cap", icon: "images/gifts icons/Durov's Cap.png", price: 500 },
+        { id: 'swiss_watch', name: 'Swiss Watch', icon: 'images/gifts icons/Swiss Watch.png', price: 1000 },
+        { id: 'chill_flame', name: 'Chill Flame', icon: 'images/gifts icons/Chill Flame.png', price: 2500 },
+        { id: 'heart_locket', name: 'Heart Locket', icon: 'images/gifts icons/Heart Locket.png', price: 5000 },
+        { id: 'plush_pepe', name: 'Plush Pepe', icon: 'images/gifts icons/Plush Pepe.png', price: 10000 },
+        { id: 'scared_cat', name: 'Scared Cat', icon: 'images/gifts icons/Scared Cat.png', price: 25000 },
+        { id: 'witch_hat', name: 'Witch Hat', icon: 'images/gifts icons/Witch Hat.png', price: 50000 },
+        { id: 'toy_bear', name: 'Toy Bear', icon: 'images/gifts icons/Toy Bear.png', price: 100000 },
+        { id: 'loot_bag', name: 'Loot Bag', icon: 'images/gifts icons/Loot Bag.png', price: 250000 },
+    ];
+}
 
 class SparkParticle {
     constructor(x, y, vx, vy, life, color, size) {
@@ -100,6 +132,10 @@ class UpgradeGame {
     async init() {
         const pl = document.getElementById('preloader');
         if (pl) { pl.classList.add('hide'); setTimeout(() => { if (pl.parentNode) pl.remove(); }, 300); }
+        
+        await loadGiftsFromTelegram();
+        if (ALL_GIFTS.length === 0) loadFallbackGifts();
+        
         this.loadFromStorage(); this.deduplicateInventory();
         if (this.inventory.length > 0 && this.selectedGiftIds.length === 0) this.selectedGiftIds = [this.inventory[0].giftId];
         this.updateChance();
@@ -189,49 +225,36 @@ class UpgradeGame {
     playBeep(f, d, ty='sine') { if (!this.audioContext||!this.soundEnabled) return; const o = this.audioContext.createOscillator(), g = this.audioContext.createGain(); o.connect(g); g.connect(this.audioContext.destination); o.frequency.value = f; o.type = ty; g.gain.setValueAtTime(0.05, this.audioContext.currentTime); g.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime+d); o.start(); o.stop(this.audioContext.currentTime+d); }
 
     showResultText(success, chance) {
-    const wmc = document.getElementById('wheelModalChance');
-    const cr = document.getElementById('centerResult'), rt = document.getElementById('centerResultText'), rc = document.getElementById('centerResultChance');
-    
-    // Скрываем шанс
-    wmc.style.opacity = '0';
-    
-    if (success) { rt.textContent = 'УСПЕШНО'; rt.style.color = '#5ff57a'; rt.style.textShadow = '0 0 20px #5ff57a, 0 0 40px #3fb950'; rc.textContent = `Шанс: ${(chance*100).toFixed(1)}%`; rc.style.color = '#5ff57a'; }
-    else { rt.textContent = 'НЕ ПОВЕЗЛО'; rt.style.color = '#ff6b6b'; rt.style.textShadow = '0 0 20px #ff6b6b, 0 0 40px #f85149'; rc.textContent = `Шанс: ${(chance*100).toFixed(1)}%`; rc.style.color = '#ff6b6b'; }
-    rt.style.animation = 'none'; rt.offsetHeight; rt.style.animation = 'result-pop 0.4s ease-out';
-    cr.classList.add('show');
-    
-    const sc = document.getElementById('sparkCanvas');
-    const colors = success ? ['#5ff57a','#3fb950','#a5f5b0','#ffffff','#7dff90'] : ['#ff6b6b','#f85149','#ff9999','#ffffff','#ff4444'];
-    this.sparkSystem.emit(sc.width/2, sc.height/2, 40, colors);
-    
-    if (this.resultTimeout) clearTimeout(this.resultTimeout);
-    this.resultTimeout = setTimeout(() => {
-        cr.classList.remove('show');
-        wmc.style.opacity = '1'; // Показываем шанс обратно
-    }, 1800);
-}
+        const wmc = document.getElementById('wheelModalChance');
+        const cr = document.getElementById('centerResult'), rt = document.getElementById('centerResultText'), rc = document.getElementById('centerResultChance');
+        wmc.style.opacity = '0';
+        if (success) { rt.textContent = 'УСПЕХ!'; rt.style.color = '#5ff57a'; rt.style.textShadow = '0 0 20px #5ff57a, 0 0 40px #3fb950'; rc.textContent = `Шанс: ${(chance*100).toFixed(1)}%`; rc.style.color = '#5ff57a'; }
+        else { rt.textContent = 'ПРОВАЛ!'; rt.style.color = '#ff6b6b'; rt.style.textShadow = '0 0 20px #ff6b6b, 0 0 40px #f85149'; rc.textContent = `Шанс: ${(chance*100).toFixed(1)}%`; rc.style.color = '#ff6b6b'; }
+        rt.style.animation = 'none'; rt.offsetHeight; rt.style.animation = 'result-pop 0.4s ease-out';
+        cr.classList.add('show');
+        const sc = document.getElementById('sparkCanvas');
+        const colors = success ? ['#5ff57a','#3fb950','#a5f5b0','#ffffff','#7dff90'] : ['#ff6b6b','#f85149','#ff9999','#ffffff','#ff4444'];
+        this.sparkSystem.emit(sc.width/2, sc.height/2, 40, colors);
+        if (this.resultTimeout) clearTimeout(this.resultTimeout);
+        this.resultTimeout = setTimeout(() => { cr.classList.remove('show'); wmc.style.opacity = '1'; }, 1800);
+    }
 
     startUpgrade() {
         const tc = this.getSelectedTotalCost();
         if (this.isSpinning || !this.primaryGift || !this.targetGift || tc >= this.targetGift.price) return;
         if (this.selectedGifts.some(g => !this.inventory.find(e => e.giftId === g.id))) return;
-        
         this.isSpinning = true;
         const btn = document.getElementById('upgradeBtn');
         btn.disabled = true; btn.classList.add('spinning'); btn.textContent = 'КРУТИМ...';
         document.querySelectorAll('.quick-bet-btn').forEach(b => b.disabled = true);
-        
         if(tg) tg.HapticFeedback.impactOccurred('heavy');
-        
         document.getElementById('app').classList.add('blurred');
         document.getElementById('wheelModalChance').textContent = (this.currentChance * 100).toFixed(1) + '%';
         document.getElementById('wheelModalOverlay').classList.add('show');
-        
         const totalRot = this.spinType==='fast' ? 3+Math.floor(Math.random()*3) : 5+Math.floor(Math.random()*5);
         const ta = Math.random()*Math.PI*2, totalAngle = totalRot*Math.PI*2+ta;
         const dur = this.spinType==='fast'?2000:4000, st = Date.now(), sa = this.wheelAngle;
         const ease = t => 1 - Math.pow(1-t, 3);
-        
         const anim = () => {
             const el = Date.now()-st, p = Math.min(el/dur, 1), ep = ease(p);
             this.wheelAngle = sa + totalAngle*ep;
@@ -248,10 +271,8 @@ class UpgradeGame {
         const se = this.currentChance*Math.PI*2, win = na <= se, sc = this.currentChance;
         this.wheelAngle = 0;
         this.drawWheel();
-        
         if (win) this.onUpgradeSuccess(sc);
         else this.onUpgradeFail(sc);
-        
         setTimeout(() => {
             document.getElementById('wheelModalOverlay').classList.remove('show');
             document.getElementById('app').classList.remove('blurred');
@@ -300,7 +321,7 @@ class UpgradeGame {
 
     renderAll() {
         document.getElementById('balance').textContent = this.balance.toLocaleString();
-        this.renderCurrentGiftCard(); this.renderGiftCard('targetGiftCard', this.targetGift, false);
+        this.renderCurrentGiftCard(); this.renderTargetGiftCard();
         document.getElementById('chancePercent').textContent = (this.currentChance*100).toFixed(1)+'%';
         this.renderGiftList();
         const ub = document.getElementById('upgradeBtn'), tc = this.getSelectedTotalCost();
@@ -328,169 +349,153 @@ class UpgradeGame {
         }
     }
 
-    renderGiftCard(cardId, gift, isCurrent) {
-    if (isCurrent) return;
-    const card = document.getElementById(cardId);
-    
-    // Сохраняем блок шанса если он есть
-    const existingChance = card.querySelector('.target-chance-inside');
-    
-    card.innerHTML = '';
-    card.className = 'gift-card';
-    
-    if (gift) { 
-        card.classList.add('target-gift'); 
-        const img = document.createElement('img'); 
-        img.className = 'gift-icon'; 
-        img.src = gift.icon; 
-        img.alt = gift.name; 
-        card.appendChild(img);
-        
-        // Восстанавливаем или создаём блок шанса
-        if (existingChance) {
-            card.appendChild(existingChance);
-        } else {
-            const chanceDiv = document.createElement('div');
-            chanceDiv.className = 'target-chance-inside';
-            chanceDiv.id = 'chanceDisplayInline';
-            chanceDiv.innerHTML = `
-                <div class="chance-percent-inside" id="chancePercent">0%</div>
-                <div class="chance-label-inside">ШАНС</div>
-            `;
-            card.appendChild(chanceDiv);
+    renderTargetGiftCard() {
+        const card = document.getElementById('targetGiftCard'), no = document.getElementById('targetGiftNameOutside'), po = document.getElementById('targetGiftPriceOutside');
+        const existingChance = card.querySelector('.target-chance-inside');
+        card.innerHTML = ''; card.className = 'gift-card';
+        const gift = this.targetGift;
+        if (gift) { 
+            card.classList.add('target-gift'); 
+            const img = document.createElement('img'); 
+            img.className = 'gift-icon'; 
+            img.src = gift.icon; 
+            img.alt = gift.name; 
+            card.appendChild(img);
+            if (existingChance) { card.appendChild(existingChance); }
+            else {
+                const chanceDiv = document.createElement('div');
+                chanceDiv.className = 'target-chance-inside';
+                chanceDiv.id = 'chanceDisplayInline';
+                chanceDiv.innerHTML = `<div class="chance-percent-inside" id="chancePercent">${(this.currentChance*100).toFixed(1)}%</div><div class="chance-label-inside">ШАНС</div>`;
+                card.appendChild(chanceDiv);
+            }
+            no.textContent = gift.name;
+            po.innerHTML = gift.price + ' <span class="star-icon-small"></span>';
+        } else { 
+            card.classList.add('empty-card'); 
+            const arrows = document.createElement('div'); 
+            arrows.className = 'placeholder-arrows right-arrows'; 
+            for (let i=0;i<3;i++) { const a = document.createElement('span'); a.className = 'placeholder-arrow'; a.textContent = '❱'; arrows.appendChild(a); } 
+            card.appendChild(arrows); 
+            no.textContent = ''; po.textContent = ''; 
         }
-    } else { 
-        card.classList.add('empty-card'); 
-        const arrows = document.createElement('div'); 
-        arrows.className = 'placeholder-arrows right-arrows'; 
-        for (let i=0;i<3;i++) { 
-            const a = document.createElement('span'); 
-            a.className = 'placeholder-arrow'; 
-            a.textContent = '❱'; 
-            arrows.appendChild(a); 
-        } 
-        card.appendChild(arrows); 
     }
-    
-    document.getElementById('targetGiftNameOutside').textContent = gift ? gift.name : '';
-    document.getElementById('targetGiftPriceOutside').innerHTML = gift ? gift.price + ' <span class="star-icon-small"></span>' : '';
-}
 
-   drawWheel() {
-    const c = document.getElementById('wheelCanvas');
-    if (!c) return;
-    const ctx = c.getContext('2d');
-    const w = c.width, h = c.height, cx = w/2, cy = h/2;
-    const or = Math.min(w, h)/2 - 10, rw = 26, ir = or - rw, cr = ir - 3;
-    const outerRingInner = or + 3, outerRingOuter = or + 9, arrowBaseRadius = outerRingInner + 2;
-    
-    ctx.clearRect(0, 0, w, h);
-    
-    if (this.currentChance > 0) {
-        const sa = -Math.PI/2, ea = -Math.PI/2 + this.currentChance * Math.PI * 2;
+    drawWheel() {
+        const c = document.getElementById('wheelCanvas');
+        if (!c) return;
+        const ctx = c.getContext('2d');
+        const w = c.width, h = c.height, cx = w/2, cy = h/2;
+        const or = Math.min(w, h)/2 - 10, rw = 26, ir = or - rw, cr = ir - 3;
+        const outerRingInner = or + 3, outerRingOuter = or + 9, arrowBaseRadius = outerRingInner + 2;
+        
+        ctx.clearRect(0, 0, w, h);
+        
+        if (this.currentChance > 0) {
+            const sa = -Math.PI/2, ea = -Math.PI/2 + this.currentChance * Math.PI * 2;
+            ctx.beginPath();
+            ctx.arc(cx, cy, outerRingOuter, sa, ea);
+            ctx.arc(cx, cy, outerRingInner, ea, sa, true);
+            ctx.closePath();
+            const grad = ctx.createLinearGradient(cx - or, cy - or, cx + or, cy + or);
+            grad.addColorStop(0, '#f0883e');
+            grad.addColorStop(0.5, '#f5c842');
+            grad.addColorStop(1, '#ffd700');
+            ctx.fillStyle = grad;
+            ctx.fill();
+        }
+        
         ctx.beginPath();
-        ctx.arc(cx, cy, outerRingOuter, sa, ea);
-        ctx.arc(cx, cy, outerRingInner, ea, sa, true);
+        ctx.arc(cx, cy, outerRingOuter, 0, Math.PI * 2);
+        ctx.arc(cx, cy, outerRingInner, 0, Math.PI * 2, true);
         ctx.closePath();
-        const grad = ctx.createLinearGradient(cx - or, cy - or, cx + or, cy + or);
-        grad.addColorStop(0, '#f0883e');
-        grad.addColorStop(0.5, '#f5c842');
-        grad.addColorStop(1, '#ffd700');
-        ctx.fillStyle = grad;
+        ctx.fillStyle = '#0d111f';
         ctx.fill();
-    }
-    
-    ctx.beginPath();
-    ctx.arc(cx, cy, outerRingOuter, 0, Math.PI * 2);
-    ctx.arc(cx, cy, outerRingInner, 0, Math.PI * 2, true);
-    ctx.closePath();
-    ctx.fillStyle = '#0d111f';
-    ctx.fill();
-    ctx.strokeStyle = '#2a3a5c';
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
-    
-    ctx.beginPath();
-    ctx.arc(cx, cy, or, 0, Math.PI * 2);
-    ctx.arc(cx, cy, ir, 0, Math.PI * 2, true);
-    ctx.closePath();
-    ctx.fillStyle = '#0d111f';
-    ctx.fill();
-    ctx.strokeStyle = '#2a3a5c';
-    ctx.lineWidth = 2;
-    ctx.stroke();
-    
-    if (this.currentChance > 0) {
-        const sa = -Math.PI/2, ea = -Math.PI/2 + this.currentChance * Math.PI * 2;
+        ctx.strokeStyle = '#2a3a5c';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+        
         ctx.beginPath();
-        ctx.arc(cx, cy, or - 2, sa, ea);
-        ctx.arc(cx, cy, ir + 2, ea, sa, true);
+        ctx.arc(cx, cy, or, 0, Math.PI * 2);
+        ctx.arc(cx, cy, ir, 0, Math.PI * 2, true);
         ctx.closePath();
-        const grad = ctx.createLinearGradient(cx - or, cy - or, cx + or, cy + or);
-        grad.addColorStop(0, '#f0883e');
-        grad.addColorStop(0.5, '#f5c842');
-        grad.addColorStop(1, '#ffd700');
-        ctx.fillStyle = grad;
+        ctx.fillStyle = '#0d111f';
         ctx.fill();
+        ctx.strokeStyle = '#2a3a5c';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        
+        if (this.currentChance > 0) {
+            const sa = -Math.PI/2, ea = -Math.PI/2 + this.currentChance * Math.PI * 2;
+            ctx.beginPath();
+            ctx.arc(cx, cy, or - 2, sa, ea);
+            ctx.arc(cx, cy, ir + 2, ea, sa, true);
+            ctx.closePath();
+            const grad = ctx.createLinearGradient(cx - or, cy - or, cx + or, cy + or);
+            grad.addColorStop(0, '#f0883e');
+            grad.addColorStop(0.5, '#f5c842');
+            grad.addColorStop(1, '#ffd700');
+            ctx.fillStyle = grad;
+            ctx.fill();
+        }
+        
+        ctx.beginPath();
+        ctx.arc(cx, cy, ir, 0, Math.PI * 2);
+        ctx.strokeStyle = '#2a3a5c';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        
+        ctx.beginPath();
+        ctx.arc(cx, cy, or, 0, Math.PI * 2);
+        ctx.strokeStyle = '#2a3a5c';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        
+        ctx.beginPath();
+        ctx.arc(cx, cy, outerRingOuter, 0, Math.PI * 2);
+        ctx.strokeStyle = '#2a3a5c';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+        
+        ctx.beginPath();
+        ctx.arc(cx, cy, cr, 0, Math.PI * 2);
+        ctx.fillStyle = '#08090d';
+        ctx.fill();
+        ctx.strokeStyle = '#2a3a5c';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.rotate(this.wheelAngle);
+        
+        const tipRadius = ir + 2;
+        const tipX = 0, tipY = -tipRadius;
+        const baseX = 0, baseY = -arrowBaseRadius;
+        
+        ctx.beginPath();
+        ctx.moveTo(baseX, baseY);
+        ctx.lineTo(tipX, tipY);
+        ctx.strokeStyle = '#ffd700';
+        ctx.lineWidth = 3.5;
+        ctx.lineCap = 'round';
+        ctx.stroke();
+        
+        ctx.beginPath();
+        ctx.moveTo(tipX, tipY);
+        ctx.lineTo(-7, tipY - 12);
+        ctx.lineTo(7, tipY - 12);
+        ctx.closePath();
+        ctx.fillStyle = '#ffd700';
+        ctx.fill();
+        
+        ctx.beginPath();
+        ctx.arc(baseX, baseY, 4.5, 0, Math.PI * 2);
+        ctx.fillStyle = '#ffd700';
+        ctx.fill();
+        
+        ctx.restore();
     }
-    
-    ctx.beginPath();
-    ctx.arc(cx, cy, ir, 0, Math.PI * 2);
-    ctx.strokeStyle = '#2a3a5c';
-    ctx.lineWidth = 2;
-    ctx.stroke();
-    
-    ctx.beginPath();
-    ctx.arc(cx, cy, or, 0, Math.PI * 2);
-    ctx.strokeStyle = '#2a3a5c';
-    ctx.lineWidth = 2;
-    ctx.stroke();
-    
-    ctx.beginPath();
-    ctx.arc(cx, cy, outerRingOuter, 0, Math.PI * 2);
-    ctx.strokeStyle = '#2a3a5c';
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
-    
-    ctx.beginPath();
-    ctx.arc(cx, cy, cr, 0, Math.PI * 2);
-    ctx.fillStyle = '#08090d';
-    ctx.fill();
-    ctx.strokeStyle = '#2a3a5c';
-    ctx.lineWidth = 2;
-    ctx.stroke();
-    
-    ctx.save();
-    ctx.translate(cx, cy);
-    ctx.rotate(this.wheelAngle);
-    
-    const tipRadius = ir + 2;
-    const tipX = 0, tipY = -tipRadius;
-    const baseX = 0, baseY = -arrowBaseRadius;
-    
-    ctx.beginPath();
-    ctx.moveTo(baseX, baseY);
-    ctx.lineTo(tipX, tipY);
-    ctx.strokeStyle = '#ffd700';
-    ctx.lineWidth = 3.5;
-    ctx.lineCap = 'round';
-    ctx.stroke();
-    
-    ctx.beginPath();
-    ctx.moveTo(tipX, tipY);
-    ctx.lineTo(-7, tipY - 12);
-    ctx.lineTo(7, tipY - 12);
-    ctx.closePath();
-    ctx.fillStyle = '#ffd700';
-    ctx.fill();
-    
-    ctx.beginPath();
-    ctx.arc(baseX, baseY, 4.5, 0, Math.PI * 2);
-    ctx.fillStyle = '#ffd700';
-    ctx.fill();
-    
-    ctx.restore();
-}
 
     renderGiftList() { if (this.activeTab==='inventory') this.renderInventoryListInPanel(); else this.renderTargetsListInPanel(); }
 
@@ -573,7 +578,14 @@ class UpgradeGame {
     }
 }
 
-const game = new UpgradeGame();
+async function startApp() {
+    await loadGiftsFromTelegram();
+    if (ALL_GIFTS.length === 0) loadFallbackGifts();
+    const game = new UpgradeGame();
+}
+
+startApp();
+
 function setVH() { const vh = window.innerHeight * 0.01; document.documentElement.style.setProperty('--vh', `${vh}px`); }
 setVH();
 window.addEventListener('resize', setVH);
