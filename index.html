@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>UPGIFT • Gift Upgrade Game</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="reset.css">
+    <link rel="stylesheet" href="layout.css">
+    <link rel="stylesheet" href="components.css">
 </head>
 <body>
     <div id="preloader">
@@ -73,6 +75,7 @@
             </div>
         </div>
 
+        <!-- Модальное колесо -->
         <div class="wheel-modal-overlay" id="wheelModalOverlay">
             <div class="wheel-modal-content">
                 <div class="wheel-container-modal" id="wheelContainer">
@@ -87,6 +90,7 @@
             </div>
         </div>
 
+        <!-- Настройки -->
         <div class="settings-overlay" id="settingsOverlay">
             <div class="settings-card">
                 <h3>Настройки</h3>
@@ -136,23 +140,65 @@
             </div>
         </div>
 
+        <!-- Магазин -->
         <div class="shop-overlay" id="shopOverlay">
             <div class="shop-header">
                 <span class="shop-title">Магазин подарков</span>
                 <button class="close-btn" id="closeShopBtn">✕</button>
             </div>
+            <div class="shop-search-row">
+                <div class="shop-search-input-wrapper">
+                    <input type="text" class="shop-search-input" id="shopSearchInput" placeholder="Поиск подарков...">
+                </div>
+                <div class="shop-sort-btns">
+                    <button class="shop-sort-btn active" id="sortAsc">↑</button>
+                    <button class="shop-sort-btn" id="sortDesc">↓</button>
+                </div>
+            </div>
             <div class="shop-items" id="shopItems"></div>
         </div>
 
-        <div class="balance-topup-overlay" id="balanceTopupOverlay">
-            <div class="topup-card">
-                <h3>Пополнить баланс</h3>
-                <div class="topup-option" id="topupGifts">Подарками в Telegram</div>
-                <div class="topup-option" id="topupStars">Звездами</div>
-                <button class="close-btn" id="closeTopupBtn" style="margin-top:10px; width:100%;">Отмена</button>
+        <!-- Модалка покупки -->
+        <div class="buy-modal-overlay" id="buyModalOverlay">
+            <div class="buy-modal-card">
+                <img class="buy-modal-icon" id="buyModalIcon" src="" alt="">
+                <div class="buy-modal-name" id="buyModalName"></div>
+                <div class="buy-modal-price" id="buyModalPrice"></div>
+                <div class="buy-modal-buttons">
+                    <button class="buy-modal-confirm" id="buyModalConfirm">Купить</button>
+                    <button class="buy-modal-cancel" id="buyModalCancel">Отмена</button>
+                </div>
             </div>
         </div>
 
+        <!-- Пополнение баланса -->
+        <div class="balance-topup-overlay" id="balanceTopupOverlay">
+            <div class="topup-card">
+                <h3>Пополнить баланс</h3>
+                <div class="topup-custom-select" id="topupCustomSelect">
+                    <div class="topup-select-header" id="topupSelectHeader">
+                        <img class="topup-select-icon" id="topupSelectIcon" src="images/deposit_stars_icon.png" alt="">
+                        <span class="topup-select-text" id="topupSelectText">Звезды Telegram</span>
+                        <span class="topup-select-arrow">▼</span>
+                    </div>
+                    <div class="topup-select-dropdown">
+                        <div class="topup-select-option" data-value="stars" data-icon="images/deposit_stars_icon.png">
+                            <img src="images/deposit_stars_icon.png" alt=""> Звезды Telegram
+                        </div>
+                        <div class="topup-select-option" data-value="gifts" data-icon="images/deposit_gifts_icon.png">
+                            <img src="images/deposit_gifts_icon.png" alt=""> Подарками Telegram
+                        </div>
+                        <div class="topup-select-option" data-value="ton" data-icon="images/deposit_ton_icon.png">
+                            <img src="images/deposit_ton_icon.png" alt=""> TON
+                        </div>
+                    </div>
+                </div>
+                <button class="topup-confirm-btn" id="topupConfirmBtn">Пополнить</button>
+                <button class="topup-cancel-btn" id="closeTopupBtn">Отмена</button>
+            </div>
+        </div>
+
+        <!-- Продажа -->
         <div class="sell-overlay" id="sellOverlay">
             <div class="sell-card">
                 <div class="sell-emoji" id="sellEmoji"></div>
