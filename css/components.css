@@ -52,7 +52,7 @@
 /* Overlays */
 .shop-overlay {
     position: fixed; top: 0; left: 50%; transform: translate(-50%, 0);
-    width: 100%; max-width: 450px; height: 100vh; background: #080c14;
+    width: 100%; max-width: 450px; height: 100vh; background: #08090d;
     z-index: 150; opacity: 0; pointer-events: none; transition: opacity 0.2s;
     display: flex; flex-direction: column;
 }
