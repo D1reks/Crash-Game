@@ -335,6 +335,55 @@
 }
 .settings-save-btn:active { transform: scale(0.98); box-shadow: 0 0 30px rgba(255, 215, 0, 0.5); }
 
+/* Градиентные кнопки шансов */
+.chance-btn-35 {
+    background: rgba(255, 255, 255, 0.04);
+    color: #a0b4e0;
+    border: 2px solid transparent;
+    border-image: linear-gradient(to right, #e74c3c 0%, #e74c3c 50%, #ffffff 100%) 1;
+    text-shadow: none;
+}
+.chance-btn-35:active { background: rgba(255, 255, 255, 0.08); }
+.chance-btn-35.active {
+    background: rgba(255, 255, 255, 0.04);
+    color: #ffd700;
+    border-color: #ff4444;
+    border-image: none;
+    box-shadow: 0 0 16px rgba(231, 76, 60, 0.4);
+}
+
+.chance-btn-55 {
+    background: rgba(255, 255, 255, 0.04);
+    color: #a0b4e0;
+    border: 2px solid transparent;
+    border-image: linear-gradient(to right, #f0883e 0%, #f5c842 50%, #ffffff 100%) 1;
+    text-shadow: none;
+}
+.chance-btn-55:active { background: rgba(255, 255, 255, 0.08); }
+.chance-btn-55.active {
+    background: rgba(255, 255, 255, 0.04);
+    color: #ffd700;
+    border-color: #ffd700;
+    border-image: none;
+    box-shadow: 0 0 16px rgba(255, 215, 0, 0.4);
+}
+
+.chance-btn-75 {
+    background: rgba(255, 255, 255, 0.04);
+    color: #a0b4e0;
+    border: 2px solid transparent;
+    border-image: linear-gradient(to right, #2ecc71 0%, #2ecc71 50%, #ffffff 100%) 1;
+    text-shadow: none;
+}
+.chance-btn-75:active { background: rgba(255, 255, 255, 0.08); }
+.chance-btn-75.active {
+    background: rgba(255, 255, 255, 0.04);
+    color: #ffd700;
+    border-color: #5ff57a;
+    border-image: none;
+    box-shadow: 0 0 16px rgba(46, 204, 113, 0.4);
+}
+
 /* Звёзды */
 .star-icon {
     display: inline-block; width: 18px; height: 18px; position: relative; vertical-align: middle;
@@ -354,30 +403,3 @@
     clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
     filter: drop-shadow(0 0 3px #ffd700) drop-shadow(0 0 6px #ffaa00);
 }
-
-.chance-btn-35 {
-    background: linear-gradient(to right, #e74c3c 0%, #e74c3c 50%, #ffffff 100%);
-    color: #ffffff;
-    border: 1px solid #e74c3c60;
-    text-shadow: 0 0 4px rgba(0,0,0,0.5);
-}
-.chance-btn-35:active { background: linear-gradient(to right, #c0392b 0%, #c0392b 50%, #e0e0e0 100%); }
-.chance-btn-35.active { border-color: #ff4444; color: #ffffff; box-shadow: 0 0 20px rgba(231, 76, 60, 0.4); }
-
-.chance-btn-55 {
-    background: linear-gradient(to right, #f0883e 0%, #f5c842 50%, #ffffff 100%);
-    color: #0a0f1a;
-    border: 1px solid #f5c84260;
-    text-shadow: none;
-}
-.chance-btn-55:active { background: linear-gradient(to right, #d07030 0%, #e0b830 50%, #e0e0e0 100%); }
-.chance-btn-55.active { border-color: #ffd700; color: #0a0f1a; box-shadow: 0 0 20px rgba(255, 215, 0, 0.4); }
-
-.chance-btn-75 {
-    background: linear-gradient(to right, #2ecc71 0%, #2ecc71 50%, #ffffff 100%);
-    color: #ffffff;
-    border: 1px solid #2ecc7160;
-    text-shadow: 0 0 4px rgba(0,0,0,0.5);
-}
-.chance-btn-75:active { background: linear-gradient(to right, #27ae60 0%, #27ae60 50%, #e0e0e0 100%); }
-.chance-btn-75.active { border-color: #5ff57a; color: #ffffff; box-shadow: 0 0 20px rgba(46, 204, 113, 0.4); }

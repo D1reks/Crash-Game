@@ -112,7 +112,7 @@
     align-items: center;
     justify-content: flex-end;
     position: absolute;
-    bottom: 1px;
+    bottom: 15px;
     left: 50%;
     transform: translateX(-50%);
     opacity: 0.6;
