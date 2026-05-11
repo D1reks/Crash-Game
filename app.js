@@ -16,22 +16,33 @@ async function loadGiftsFromTelegram() {
         const data = await response.json();
         
         if (data.ok && data.result) {
-            ALL_GIFTS = data.result.map(gift => {
-                const fileId = gift.sticker?.thumbnail?.file_id || gift.sticker?.file_id;
+            const giftsWithIcons = await Promise.all(data.result.map(async (gift) => {
+                let iconUrl = '';
+                const fileId = gift.sticker?.file_id;
+                if (fileId) {
+                    try {
+                        const fileRes = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getFile?file_id=${fileId}`);
+                        const fileData = await fileRes.json();
+                        if (fileData.ok && fileData.result.file_path) {
+                            iconUrl = `https://api.telegram.org/file/bot${BOT_TOKEN}/${fileData.result.file_path}`;
+                        }
+                    } catch(e) {}
+                }
                 return {
                     id: gift.id,
                     name: gift.name || gift.id.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
-                    icon: fileId ? `https://api.telegram.org/file/bot${BOT_TOKEN}/${fileId}` : '',
+                    icon: iconUrl,
                     price: gift.star_count || 0
                 };
-            });
-            console.log('✅ Загружено подарков:', ALL_GIFTS.length);
+            }));
+            
+            ALL_GIFTS = giftsWithIcons.filter(g => g.price > 0);
+            console.log('✅ Загружено подарков из API:', ALL_GIFTS.length);
         } else {
-            console.warn('⚠️ Не удалось загрузить подарки через API, использую резервный список');
-            loadFallbackGifts();
+            throw new Error('API response not ok');
         }
     } catch (e) {
-        console.warn('⚠️ Ошибка загрузки подарков через API:', e.message);
+        console.warn('⚠️ Ошибка API, использую резервный список:', e.message);
         loadFallbackGifts();
     }
 }
@@ -133,8 +144,9 @@ class UpgradeGame {
         const pl = document.getElementById('preloader');
         if (pl) { pl.classList.add('hide'); setTimeout(() => { if (pl.parentNode) pl.remove(); }, 300); }
         
-        await loadGiftsFromTelegram();
-        if (ALL_GIFTS.length === 0) loadFallbackGifts();
+        if (ALL_GIFTS.length === 0) {
+            await loadGiftsFromTelegram();
+        }
         
         this.loadFromStorage(); this.deduplicateInventory();
         if (this.inventory.length > 0 && this.selectedGiftIds.length === 0) this.selectedGiftIds = [this.inventory[0].giftId];
@@ -322,7 +334,9 @@ class UpgradeGame {
     renderAll() {
         document.getElementById('balance').textContent = this.balance.toLocaleString();
         this.renderCurrentGiftCard(); this.renderTargetGiftCard();
-        document.getElementById('chancePercent').textContent = (this.currentChance*100).toFixed(1)+'%';
+        if (document.getElementById('chancePercent')) {
+            document.getElementById('chancePercent').textContent = (this.currentChance*100).toFixed(1)+'%';
+        }
         this.renderGiftList();
         const ub = document.getElementById('upgradeBtn'), tc = this.getSelectedTotalCost();
         const canUpgrade = !this.isSpinning && this.primaryGift && this.targetGift && this.targetGift.price > tc && this.selectedGifts.every(g => this.inventory.find(e => e.giftId===g.id));
@@ -337,7 +351,7 @@ class UpgradeGame {
             const grid = document.createElement('div'); grid.className = 'multi-gift-grid';
             const sg = this.selectedGifts.slice(0,9);
             const bs = sg.length<=3?55:sg.length<=6?45:38;
-            for (const g of sg) { const w = document.createElement('div'); w.className = 'multi-gift-item'; const img = document.createElement('img'); img.className = 'gift-icon'; img.src = g.icon; img.alt = g.name; img.style.maxHeight = bs+'px'; w.appendChild(img); grid.appendChild(w); }
+            for (const g of sg) { const w = document.createElement('div'); w.className = 'multi-gift-item'; const img = document.createElement('img'); img.className = 'gift-icon'; img.src = g.icon; img.alt = g.name; img.style.maxHeight = bs+'px'; img.onerror = function() { this.src = 'images/gifts icons/Precious Peach.png'; }; w.appendChild(img); grid.appendChild(w); }
             card.appendChild(grid);
             if (this.selectedGifts.length===1) { no.textContent = this.selectedGifts[0].name; po.innerHTML = this.selectedGifts[0].price+' <span class="star-icon-small"></span>'; }
             else { no.textContent = 'Выбрано: '+this.selectedGifts.length; po.innerHTML = this.getSelectedTotalCost()+' <span class="star-icon-small"></span>'; }
@@ -351,7 +365,6 @@ class UpgradeGame {
 
     renderTargetGiftCard() {
         const card = document.getElementById('targetGiftCard'), no = document.getElementById('targetGiftNameOutside'), po = document.getElementById('targetGiftPriceOutside');
-        const existingChance = card.querySelector('.target-chance-inside');
         card.innerHTML = ''; card.className = 'gift-card';
         const gift = this.targetGift;
         if (gift) { 
@@ -359,16 +372,13 @@ class UpgradeGame {
             const img = document.createElement('img'); 
             img.className = 'gift-icon'; 
             img.src = gift.icon; 
-            img.alt = gift.name; 
+            img.alt = gift.name;
+            img.onerror = function() { this.src = 'images/gifts icons/Precious Peach.png'; };
             card.appendChild(img);
-            if (existingChance) { card.appendChild(existingChance); }
-            else {
-                const chanceDiv = document.createElement('div');
-                chanceDiv.className = 'target-chance-inside';
-                chanceDiv.id = 'chanceDisplayInline';
-                chanceDiv.innerHTML = `<div class="chance-percent-inside" id="chancePercent">${(this.currentChance*100).toFixed(1)}%</div><div class="chance-label-inside">ШАНС</div>`;
-                card.appendChild(chanceDiv);
-            }
+            const chanceDiv = document.createElement('div');
+            chanceDiv.className = 'target-chance-inside';
+            chanceDiv.innerHTML = `<div class="chance-percent-inside" id="chancePercent">${(this.currentChance*100).toFixed(1)}%</div><div class="chance-label-inside">ШАНС</div>`;
+            card.appendChild(chanceDiv);
             no.textContent = gift.name;
             po.innerHTML = gift.price + ' <span class="star-icon-small"></span>';
         } else { 
@@ -505,7 +515,7 @@ class UpgradeGame {
         c.innerHTML = ig.map(g => {
             const isSel = this.selectedGiftIds.includes(g.id);
             return `<div class="gift-list-item ${isSel?'selected-for-upgrade':''}" data-gift-id="${g.id}">
-                <img src="${g.icon}" alt="${g.name}" class="gift-icon-small">
+                <img src="${g.icon}" alt="${g.name}" class="gift-icon-small" onerror="this.src='images/gifts icons/Precious Peach.png'">
                 <div class="gift-list-item-info"><div class="gift-list-item-name">${g.name}</div><div class="gift-list-item-price">${g.price} <span class="star-icon-small"></span></div></div>
                 <button class="sell-icon-btn" data-gift-id="${g.id}">Продать</button>
             </div>`;
@@ -527,7 +537,7 @@ class UpgradeGame {
             const isSel = g.id===this.targetGiftId;
             const ch = tc>0&&g.price>tc ? (tc/g.price*0.95*100).toFixed(1) : '0.0';
             return `<div class="gift-list-item" data-gift-id="${g.id}" style="${isSel?'background:#111827;border-left:3px solid #f0883e;box-shadow:inset 0 0 15px rgba(240,136,62,0.05)':''}">
-                <img src="${g.icon}" alt="${g.name}" class="gift-icon-small">
+                <img src="${g.icon}" alt="${g.name}" class="gift-icon-small" onerror="this.src='images/gifts icons/Precious Peach.png'">
                 <div class="gift-list-item-info"><div class="gift-list-item-name">${g.name} <span style="color:#6b7daa;font-size:10px;">${ch}%</span></div><div class="gift-list-item-price">${g.price} <span class="star-icon-small"></span></div></div>
             </div>`;
         }).join('');
@@ -542,7 +552,7 @@ class UpgradeGame {
         const gift = ALL_GIFTS.find(g => g.id===giftId);
         if (!gift || !this.inventory.find(e => e.giftId===giftId)) return;
         this.sellTargetGiftId = giftId;
-        document.getElementById('sellEmoji').innerHTML = `<img src="${gift.icon}" alt="${gift.name}" class="sell-icon">`;
+        document.getElementById('sellEmoji').innerHTML = `<img src="${gift.icon}" alt="${gift.name}" class="sell-icon" onerror="this.src='images/gifts icons/Precious Peach.png'">`;
         document.getElementById('sellName').textContent = gift.name;
         document.getElementById('sellPrice').innerHTML = gift.price+' <span class="star-icon-small"></span>';
         document.getElementById('sellOverlay').classList.add('show');
@@ -566,7 +576,7 @@ class UpgradeGame {
         const c = document.getElementById('shopItems');
         c.innerHTML = ALL_GIFTS.map(g => `
             <div class="shop-item">
-                <img src="${g.icon}" alt="${g.name}" class="shop-item-icon">
+                <img src="${g.icon}" alt="${g.name}" class="shop-item-icon" onerror="this.src='images/gifts icons/Precious Peach.png'">
                 <div class="shop-item-info"><h3>${g.name}</h3><p>Подарок для апгрейда</p></div>
                 <div style="text-align:right;"><div class="shop-item-price">${g.price} <span class="star-icon-small"></span></div>
                 <button class="buy-btn" data-gift-id="${g.id}" ${this.balance<g.price?'disabled':''}>Купить</button></div>
@@ -581,7 +591,7 @@ class UpgradeGame {
 async function startApp() {
     await loadGiftsFromTelegram();
     if (ALL_GIFTS.length === 0) loadFallbackGifts();
-    const game = new UpgradeGame();
+    window.game = new UpgradeGame();
 }
 
 startApp();
