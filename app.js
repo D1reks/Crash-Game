@@ -392,120 +392,117 @@ class UpgradeGame {
     }
 
     drawWheel() {
-        const c = document.getElementById('wheelCanvas');
-        if (!c) return;
-        const ctx = c.getContext('2d');
-        const w = c.width, h = c.height, cx = w/2, cy = h/2;
-        const or = Math.min(w, h)/2 - 10, rw = 26, ir = or - rw, cr = ir - 3;
-        const outerRingInner = or + 3, outerRingOuter = or + 9, arrowBaseRadius = outerRingInner + 2;
-        
-        ctx.clearRect(0, 0, w, h);
-        
-        if (this.currentChance > 0) {
-            const sa = -Math.PI/2, ea = -Math.PI/2 + this.currentChance * Math.PI * 2;
-            ctx.beginPath();
-            ctx.arc(cx, cy, outerRingOuter, sa, ea);
-            ctx.arc(cx, cy, outerRingInner, ea, sa, true);
-            ctx.closePath();
-            const grad = ctx.createLinearGradient(cx - or, cy - or, cx + or, cy + or);
-            grad.addColorStop(0, '#f0883e');
-            grad.addColorStop(0.5, '#f5c842');
-            grad.addColorStop(1, '#ffd700');
-            ctx.fillStyle = grad;
-            ctx.fill();
-        }
-        
+    const c = document.getElementById('wheelCanvas');
+    if (!c) return;
+    const ctx = c.getContext('2d');
+    const w = c.width, h = c.height, cx = w/2, cy = h/2;
+    const or = Math.min(w, h)/2 - 10, rw = 26, ir = or - rw, cr = ir - 3;
+    const outerRingInner = or + 3, outerRingOuter = or + 9, arrowBaseRadius = outerRingInner + 2;
+    
+    ctx.clearRect(0, 0, w, h);
+    
+    // 1. Сначала фон внешнего кольца
+    ctx.beginPath();
+    ctx.arc(cx, cy, outerRingOuter, 0, Math.PI * 2);
+    ctx.arc(cx, cy, outerRingInner, 0, Math.PI * 2, true);
+    ctx.closePath();
+    ctx.fillStyle = '#0d111f';
+    ctx.fill();
+    
+    // 2. Заливка шанса на внешнем кольце
+    if (this.currentChance > 0) {
+        const sa = -Math.PI/2, ea = -Math.PI/2 + this.currentChance * Math.PI * 2;
         ctx.beginPath();
-        ctx.arc(cx, cy, outerRingOuter, 0, Math.PI * 2);
-        ctx.arc(cx, cy, outerRingInner, 0, Math.PI * 2, true);
+        ctx.arc(cx, cy, outerRingOuter, sa, ea);
+        ctx.arc(cx, cy, outerRingInner, ea, sa, true);
         ctx.closePath();
-        ctx.fillStyle = '#0d111f';
+        const grad = ctx.createLinearGradient(cx - or, cy - or, cx + or, cy + or);
+        grad.addColorStop(0, '#f0883e');
+        grad.addColorStop(0.5, '#f5c842');
+        grad.addColorStop(1, '#ffd700');
+        ctx.fillStyle = grad;
         ctx.fill();
-        ctx.strokeStyle = '#2a3a5c';
-        ctx.lineWidth = 1.5;
-        ctx.stroke();
-        
-        ctx.beginPath();
-        ctx.arc(cx, cy, or, 0, Math.PI * 2);
-        ctx.arc(cx, cy, ir, 0, Math.PI * 2, true);
-        ctx.closePath();
-        ctx.fillStyle = '#0d111f';
-        ctx.fill();
-        ctx.strokeStyle = '#2a3a5c';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-        
-        if (this.currentChance > 0) {
-            const sa = -Math.PI/2, ea = -Math.PI/2 + this.currentChance * Math.PI * 2;
-            ctx.beginPath();
-            ctx.arc(cx, cy, or - 2, sa, ea);
-            ctx.arc(cx, cy, ir + 2, ea, sa, true);
-            ctx.closePath();
-            const grad = ctx.createLinearGradient(cx - or, cy - or, cx + or, cy + or);
-            grad.addColorStop(0, '#f0883e');
-            grad.addColorStop(0.5, '#f5c842');
-            grad.addColorStop(1, '#ffd700');
-            ctx.fillStyle = grad;
-            ctx.fill();
-        }
-        
-        ctx.beginPath();
-        ctx.arc(cx, cy, ir, 0, Math.PI * 2);
-        ctx.strokeStyle = '#2a3a5c';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-        
-        ctx.beginPath();
-        ctx.arc(cx, cy, or, 0, Math.PI * 2);
-        ctx.strokeStyle = '#2a3a5c';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-        
-        ctx.beginPath();
-        ctx.arc(cx, cy, outerRingOuter, 0, Math.PI * 2);
-        ctx.strokeStyle = '#2a3a5c';
-        ctx.lineWidth = 1.5;
-        ctx.stroke();
-        
-        ctx.beginPath();
-        ctx.arc(cx, cy, cr, 0, Math.PI * 2);
-        ctx.fillStyle = '#08090d';
-        ctx.fill();
-        ctx.strokeStyle = '#2a3a5c';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-        
-        ctx.save();
-        ctx.translate(cx, cy);
-        ctx.rotate(this.wheelAngle);
-        
-        const tipRadius = ir + 2;
-        const tipX = 0, tipY = -tipRadius;
-        const baseX = 0, baseY = -arrowBaseRadius;
-        
-        ctx.beginPath();
-        ctx.moveTo(baseX, baseY);
-        ctx.lineTo(tipX, tipY);
-        ctx.strokeStyle = '#ffd700';
-        ctx.lineWidth = 3.5;
-        ctx.lineCap = 'round';
-        ctx.stroke();
-        
-        ctx.beginPath();
-        ctx.moveTo(tipX, tipY);
-        ctx.lineTo(-7, tipY - 12);
-        ctx.lineTo(7, tipY - 12);
-        ctx.closePath();
-        ctx.fillStyle = '#ffd700';
-        ctx.fill();
-        
-        ctx.beginPath();
-        ctx.arc(baseX, baseY, 4.5, 0, Math.PI * 2);
-        ctx.fillStyle = '#ffd700';
-        ctx.fill();
-        
-        ctx.restore();
     }
+    
+    // 3. Фон основного кольца
+    ctx.beginPath();
+    ctx.arc(cx, cy, or, 0, Math.PI * 2);
+    ctx.arc(cx, cy, ir, 0, Math.PI * 2, true);
+    ctx.closePath();
+    ctx.fillStyle = '#0d111f';
+    ctx.fill();
+    
+    // 4. Заливка шанса на основном кольце
+    if (this.currentChance > 0) {
+        const sa = -Math.PI/2, ea = -Math.PI/2 + this.currentChance * Math.PI * 2;
+        ctx.beginPath();
+        ctx.arc(cx, cy, or - 2, sa, ea);
+        ctx.arc(cx, cy, ir + 2, ea, sa, true);
+        ctx.closePath();
+        const grad = ctx.createLinearGradient(cx - or, cy - or, cx + or, cy + or);
+        grad.addColorStop(0, '#f0883e');
+        grad.addColorStop(0.5, '#f5c842');
+        grad.addColorStop(1, '#ffd700');
+        ctx.fillStyle = grad;
+        ctx.fill();
+    }
+    
+    // 5. Обводки
+    ctx.strokeStyle = '#2a3a5c';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(cx, cy, outerRingOuter, 0, Math.PI * 2);
+    ctx.stroke();
+    
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(cx, cy, or, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(cx, cy, ir, 0, Math.PI * 2);
+    ctx.stroke();
+    
+    // 6. Центр
+    ctx.beginPath();
+    ctx.arc(cx, cy, cr, 0, Math.PI * 2);
+    ctx.fillStyle = '#08090d';
+    ctx.fill();
+    ctx.strokeStyle = '#2a3a5c';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    
+    // 7. Стрелка
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(this.wheelAngle);
+    
+    const tipRadius = ir + 2;
+    const tipX = 0, tipY = -tipRadius;
+    const baseX = 0, baseY = -arrowBaseRadius;
+    
+    ctx.beginPath();
+    ctx.moveTo(baseX, baseY);
+    ctx.lineTo(tipX, tipY);
+    ctx.strokeStyle = '#ffd700';
+    ctx.lineWidth = 3.5;
+    ctx.lineCap = 'round';
+    ctx.stroke();
+    
+    ctx.beginPath();
+    ctx.moveTo(tipX, tipY);
+    ctx.lineTo(-7, tipY - 12);
+    ctx.lineTo(7, tipY - 12);
+    ctx.closePath();
+    ctx.fillStyle = '#ffd700';
+    ctx.fill();
+    
+    ctx.beginPath();
+    ctx.arc(baseX, baseY, 4.5, 0, Math.PI * 2);
+    ctx.fillStyle = '#ffd700';
+    ctx.fill();
+    
+    ctx.restore();
+}
 
     renderGiftList() { if (this.activeTab==='inventory') this.renderInventoryListInPanel(); else this.renderTargetsListInPanel(); }
 
