@@ -243,31 +243,49 @@ class UpgradeGame {
     });
     
     // Пополнение баланса
+    let selectedTopupMethod = 'stars';
     document.getElementById('balanceContainer').addEventListener('click', () => {
-        document.getElementById('topupMethod').value = 'stars';
+        selectedTopupMethod = 'stars';
         document.getElementById('topupSelectIcon').src = 'images/deposit_stars_icon.png';
+        document.getElementById('topupSelectText').textContent = 'Звезды Telegram';
+        document.getElementById('topupCustomSelect').classList.remove('open');
         document.getElementById('balanceTopupOverlay').classList.add('show');
     });
     document.getElementById('closeTopupBtn').addEventListener('click', () => document.getElementById('balanceTopupOverlay').classList.remove('show'));
+    
+    document.getElementById('topupSelectHeader').addEventListener('click', () => {
+        document.getElementById('topupCustomSelect').classList.toggle('open');
+    });
+    
+    document.querySelectorAll('.topup-select-option').forEach(opt => {
+        opt.addEventListener('click', (e) => {
+            selectedTopupMethod = opt.dataset.value;
+            document.getElementById('topupSelectIcon').src = opt.dataset.icon;
+            document.getElementById('topupSelectText').textContent = opt.textContent.trim();
+            document.getElementById('topupCustomSelect').classList.remove('open');
+        });
+    });
+    
     document.getElementById('topupConfirmBtn').addEventListener('click', () => {
-        const method = document.getElementById('topupMethod').value;
-        if (method === 'stars') {
+        if (selectedTopupMethod === 'stars') {
             this.balance += 500;
             this.renderAll(); this.saveToStorage();
             document.getElementById('balanceTopupOverlay').classList.remove('show');
             if(tg) tg.HapticFeedback.notificationOccurred('success');
-        } else if (method === 'gifts') {
+        } else if (selectedTopupMethod === 'gifts') {
             alert('Функция пополнения подарками Telegram будет доступна с интеграцией бота.');
             document.getElementById('balanceTopupOverlay').classList.remove('show');
-        } else if (method === 'ton') {
+        } else if (selectedTopupMethod === 'ton') {
             alert('Оплата через TON будет доступна в следующем обновлении.');
             document.getElementById('balanceTopupOverlay').classList.remove('show');
         }
     });
-    document.getElementById('topupMethod').addEventListener('change', (e) => {
-        const selected = e.target.options[e.target.selectedIndex];
-        const icon = selected.dataset.icon;
-        document.getElementById('topupSelectIcon').src = icon;
+    
+    // Закрытие выпадашки при клике вне
+    document.getElementById('balanceTopupOverlay').addEventListener('click', (e) => {
+        if (!e.target.closest('#topupCustomSelect')) {
+            document.getElementById('topupCustomSelect').classList.remove('open');
+        }
     });
     
     // Магазин

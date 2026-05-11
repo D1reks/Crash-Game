@@ -159,77 +159,99 @@
     box-shadow: 0 0 30px rgba(0, 0, 0, 0.4);
 }
 .topup-card h3 {
-    color: #ffffff; margin-bottom: 16px; font-size: 18px;
+    color: #ffffff; margin-bottom: 20px; font-size: 18px;
     text-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
 }
 
-.topup-select-wrapper {
+.topup-custom-select {
     position: relative;
     margin-bottom: 16px;
+    z-index: 5;
 }
-.topup-select {
-    width: 100%;
+.topup-select-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
     background: rgba(255, 255, 255, 0.04);
     border: none;
     border-radius: 10px;
-    padding: 14px 44px 14px 44px;
+    padding: 12px 14px;
+    cursor: pointer;
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s;
+}
+.topup-select-header:active { background: rgba(255, 255, 255, 0.06); }
+.topup-select-header .topup-select-icon { width: 22px; height: 22px; object-fit: contain; flex-shrink: 0; }
+.topup-select-header .topup-select-text { flex: 1; color: #d0daf0; font-size: 14px; font-weight: 600; text-align: left; }
+.topup-select-header .topup-select-arrow { color: #ffd700; font-size: 10px; transition: transform 0.2s; flex-shrink: 0; }
+.topup-custom-select.open .topup-select-arrow { transform: rotate(180deg); }
+
+.topup-select-dropdown {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    background: rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 10px;
+    overflow: hidden;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-8px);
+    transition: all 0.2s;
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
+    z-index: 10;
+}
+.topup-custom-select.open .topup-select-dropdown {
+    opacity: 1;
+    pointer-events: all;
+    transform: translateY(0);
+}
+
+.topup-select-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
     color: #d0daf0;
     font-size: 14px;
     font-weight: 600;
-    appearance: none;
-    -webkit-appearance: none;
     cursor: pointer;
-    outline: none;
-    box-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
+    transition: all 0.15s;
 }
-
-.topup-select-icon {
-    position: absolute;
-    left: 12px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 22px;
-    height: 22px;
-    object-fit: contain;
-    pointer-events: none;
-}
-.topup-select option {
-    background: #0d111f;
-    color: #d0daf0;
-}
-.topup-select-arrow {
-    position: absolute;
-    right: 14px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #ffd700;
-    font-size: 10px;
-    pointer-events: none;
-}
-
-.topup-method-info {
-    display: flex; align-items: center; justify-content: center;
-    gap: 10px; margin-bottom: 16px; padding: 10px;
-    background: rgba(255, 255, 255, 0.03); border-radius: 10px;
-}
-.topup-method-icon { width: 32px; height: 32px; object-fit: contain; }
-.topup-method-info span { color: #a0b4e0; font-size: 13px; }
+.topup-select-option:hover,
+.topup-select-option:active { background: rgba(255, 255, 255, 0.06); color: #ffd700; }
+.topup-select-option img { width: 22px; height: 22px; object-fit: contain; }
 
 .topup-confirm-btn {
-    width: 100%; padding: 12px; border-radius: 10px;
-    font-weight: 700; font-size: 14px; border: none; cursor: pointer;
-    text-transform: uppercase; letter-spacing: 1px;
+    width: 100%;
+    padding: 14px;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 15px;
+    border: none;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 2px;
     background: linear-gradient(135deg, #f0883e, #f5c842, #ffd700);
-    color: #0a0f1a; margin-bottom: 10px; transition: all 0.25s;
-    box-shadow: 0 0 20px rgba(240, 136, 62, 0.3);
+    color: #0a0f1a;
+    margin-bottom: 10px;
+    transition: all 0.25s;
+    box-shadow: 0 0 25px rgba(240, 136, 62, 0.4), 0 0 50px rgba(255, 215, 0, 0.2);
 }
-.topup-confirm-btn:active { transform: scale(0.98); box-shadow: 0 0 30px rgba(255, 215, 0, 0.5); }
+.topup-confirm-btn:active { transform: scale(0.98); box-shadow: 0 0 40px rgba(255, 215, 0, 0.6); }
 
 .topup-cancel-btn {
-    width: 100%; padding: 12px; border-radius: 10px;
-    font-weight: 600; font-size: 13px; cursor: pointer;
+    width: 100%;
+    padding: 12px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
     background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.08); color: #a0b4e0;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: #a0b4e0;
     transition: all 0.2s;
 }
 .topup-cancel-btn:active { background: rgba(255, 255, 255, 0.08); }
