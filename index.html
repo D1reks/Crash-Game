@@ -57,8 +57,8 @@
                 <button class="quick-bet-btn" data-fraction="1/4">x4</button>
                 <button class="quick-bet-btn" data-fraction="1/8">x8</button>
                 <button class="quick-bet-btn" data-fraction="35/100">35%</button>
-<button class="quick-bet-btn" data-fraction="55/100">55%</button>
-<button class="quick-bet-btn" data-fraction="75/100">75%</button>
+                <button class="quick-bet-btn" data-fraction="55/100">55%</button>
+                <button class="quick-bet-btn" data-fraction="75/100">75%</button>
             </div>
             <button class="quick-bet-settings-btn" id="settingsBtn">
                 <img src="images/icon-settings.png" alt="Settings" class="settings-img">
@@ -82,7 +82,7 @@
                     <canvas class="wheel-canvas-modal" id="wheelCanvas" width="380" height="380"></canvas>
                     <canvas class="spark-canvas-modal" id="sparkCanvas" width="500" height="500"></canvas>
                     <div class="wheel-modal-chance" id="wheelModalChance">0%</div>
-					 <div class="wheel-modal-chance-label" id="wheelModalChanceLabel">ШАНС</div>
+                    <div class="wheel-modal-chance-label" id="wheelModalChanceLabel">ШАНС</div>
                     <div class="center-result-modal" id="centerResult">
                         <div class="center-result-text-modal" id="centerResultText">УСПЕХ</div>
                         <div class="center-result-chance-modal" id="centerResultChance"></div>
@@ -94,37 +94,51 @@
         <!-- Настройки -->
         <div class="settings-overlay" id="settingsOverlay">
             <div class="settings-card">
-    <h3>Настройки</h3>
-    <div class="settings-section">
-        <h4>Быстрый коэффициент</h4>
-        <div class="settings-row">
-            <input type="number" id="settingCoef1" min="2" max="100" placeholder="2">
-            <input type="number" id="settingCoef2" min="2" max="100" placeholder="4">
-            <input type="number" id="settingCoef3" min="2" max="100" placeholder="8">
-        </div>
-    </div>
-    <div class="settings-section">
-        <h4>Быстрый процент</h4>
-        <div class="settings-row">
-            <input type="number" id="settingPerc1" min="1" max="99" placeholder="35">
-            <input type="number" id="settingPerc2" min="1" max="99" placeholder="55">
-            <input type="number" id="settingPerc3" min="1" max="99" placeholder="75">
-        </div>
-    </div>
-    <div class="settings-section">
-        <h4>Звук в приложении</h4>
-        <div class="settings-radio-group" id="soundSettings">
-            ...
-        </div>
-    </div>
-    <div class="settings-section">
-        <h4>Прокрутка</h4>
-        <div class="settings-radio-group" id="spinSettings">
-            ...
-        </div>
-    </div>
-    <button class="settings-save-btn" id="settingsSaveBtn">Сохранить и закрыть</button>
-</div>
+                <h3>Настройки</h3>
+                <div class="settings-section">
+                    <h4>Быстрый коэффициент</h4>
+                    <div class="settings-row">
+                        <input type="number" id="settingCoef1" min="2" max="100" placeholder="2">
+                        <input type="number" id="settingCoef2" min="2" max="100" placeholder="4">
+                        <input type="number" id="settingCoef3" min="2" max="100" placeholder="8">
+                    </div>
+                </div>
+                <div class="settings-section">
+                    <h4>Быстрый процент</h4>
+                    <div class="settings-row">
+                        <input type="number" id="settingPerc1" min="1" max="99" placeholder="35">
+                        <input type="number" id="settingPerc2" min="1" max="99" placeholder="55">
+                        <input type="number" id="settingPerc3" min="1" max="99" placeholder="75">
+                    </div>
+                </div>
+                <div class="settings-section">
+                    <h4>Звук в приложении</h4>
+                    <div class="settings-radio-group" id="soundSettings">
+                        <div class="settings-radio-item" data-value="on">
+                            <input type="radio" name="sound" id="soundOn" value="on" checked>
+                            <label for="soundOn">Включен<br><span class="radio-desc">Звуковые эффекты включены</span></label>
+                        </div>
+                        <div class="settings-radio-item" data-value="off">
+                            <input type="radio" name="sound" id="soundOff" value="off">
+                            <label for="soundOff">Выключен<br><span class="radio-desc">Беззвучный режим</span></label>
+                        </div>
+                    </div>
+                </div>
+                <div class="settings-section">
+                    <h4>Прокрутка</h4>
+                    <div class="settings-radio-group" id="spinSettings">
+                        <div class="settings-radio-item" data-value="normal">
+                            <input type="radio" name="spinType" id="spinNormal" value="normal" checked>
+                            <label for="spinNormal">Обычная<br><span class="radio-desc">Стрелка крутится медленно</span></label>
+                        </div>
+                        <div class="settings-radio-item" data-value="fast">
+                            <input type="radio" name="spinType" id="spinFast" value="fast">
+                            <label for="spinFast">Ускоренная<br><span class="radio-desc">Быстрая прокрутка</span></label>
+                        </div>
+                    </div>
+                </div>
+                <button class="settings-save-btn" id="settingsSaveBtn">Сохранить и закрыть</button>
+            </div>
         </div>
 
         <!-- Магазин -->
@@ -173,8 +187,8 @@
                             <img src="images/deposit_stars_icon.png" alt=""> Звезды Telegram
                         </div>
                         <div class="topup-select-option" data-value="gifts" data-icon="images/gifts icons/Plush Pepe.png">
-    <img src="images/gifts icons/Plush Pepe.png" alt=""> Подарками Telegram
-</div>
+                            <img src="images/gifts icons/Plush Pepe.png" alt=""> Подарками Telegram
+                        </div>
                         <div class="topup-select-option" data-value="ton" data-icon="images/deposit_ton_icon.png">
                             <img src="images/deposit_ton_icon.png" alt=""> TON
                         </div>
