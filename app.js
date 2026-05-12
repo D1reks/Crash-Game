@@ -82,7 +82,6 @@ class UpgradeGame {
         this.sparkSystem = null; this.sellTargetGiftId = null; this.activeTab = 'inventory';
         this.quickCoefs = [2, 4, 8]; this.quickPercents = [35, 55, 75]; this.spinType = 'normal';
         this.shopSortOrder = 'asc'; this.buyTargetGiftId = null;
-		    this.sellTargetEntryIndex = null; // Добавь эту строку
         this.init();
     }
 
@@ -113,14 +112,14 @@ class UpgradeGame {
     }
 
     async init() {
+    // Скрываем прелоадер
     const pl = document.getElementById('preloader');
     if (pl) {
         pl.classList.add('hide');
         setTimeout(() => { if (pl.parentNode) pl.remove(); }, 300);
     }
     
-    this.loadFromStorage();
-    // this.deduplicateInventory(); // УБРАТЬ или закомментировать
+    this.loadFromStorage(); this.deduplicateInventory();
     if (this.inventory.length > 0 && this.selectedGiftIds.length === 0) this.selectedGiftIds = [this.inventory[0].giftId];
     this.updateChance();
     this.sparkSystem = new SparkSystem(document.getElementById('sparkCanvas'));
@@ -582,14 +581,15 @@ class UpgradeGame {
 
     renderInventoryListInPanel() {
     const c = document.getElementById('giftListContent');
-    const allEntries = this.inventory;
+    const allEntries = this.inventory; // Все экземпляры без группировки
     
     if (!allEntries.length) {
         c.innerHTML = '<div style="padding:20px;text-align:center;color:#6b7daa;font-size:12px;">Пусто</div>';
         return;
     }
     
-    // Сортируем: группируем одинаковые, старые сверху
+    // Показываем каждый подарок отдельной строкой
+    // Сортируем: сначала по giftId, затем по acquiredAt (старые сверху)
     const sorted = [...allEntries].sort((a, b) => {
         if (a.giftId !== b.giftId) return a.giftId.localeCompare(b.giftId);
         return (a.acquiredAt || 0) - (b.acquiredAt || 0);
@@ -605,7 +605,7 @@ class UpgradeGame {
                 <div class="gift-list-item-name">${g.name}</div>
                 <div class="gift-list-item-price">${g.price} <span class="star-icon-small"></span></div>
             </div>
-            <button class="sell-icon-btn" data-entry-index="${index}">Продать</button>
+            <button class="sell-icon-btn" data-entry-index="${index}" data-gift-id="${entry.giftId}">Продать</button>
         </div>`;
     }).join('');
     
@@ -619,6 +619,7 @@ class UpgradeGame {
         e.stopPropagation();
         const entryIdx = parseInt(btn.dataset.entryIndex);
         if (!isNaN(entryIdx)) {
+            // Продаём этот конкретный экземпляр
             this.sellSpecificEntry(entryIdx);
         }
     }));
@@ -630,14 +631,22 @@ sellSpecificEntry(entryIndex) {
     const gift = ALL_GIFTS.find(g => g.id === entry.giftId);
     if (!gift) return;
     
-    // Сохраняем индекс для продажи и открываем модалку
-    this.sellTargetEntryIndex = entryIndex;
-    this.sellTargetGiftId = entry.giftId;
+    // Удаляем этот экземпляр
+    this.inventory.splice(entryIndex, 1);
+    this.balance += gift.price;
     
-    document.getElementById('sellEmoji').innerHTML = `<img src="${gift.icon}" alt="${gift.name}" class="sell-icon" onerror="this.src='images/gifts icons/Precious Peach.png'">`;
-    document.getElementById('sellName').textContent = gift.name;
-    document.getElementById('sellPrice').innerHTML = gift.price+' <span class="star-icon-small"></span>';
-    document.getElementById('sellOverlay').classList.add('show');
+    // Убираем из выбранных, если был выбран
+    const si = this.selectedGiftIds.indexOf(entry.giftId);
+    if (si !== -1) this.selectedGiftIds.splice(si, 1);
+    
+    if (this.selectedGiftIds.length === 0 && this.inventory.length > 0) {
+        this.selectedGiftIds = [this.inventory[0].giftId];
+    }
+    
+    this.updateChance();
+    this.saveToStorage();
+    this.renderAll();
+    this.closeSellOverlay();
 }
 
     renderTargetsListInPanel() {
@@ -668,41 +677,19 @@ sellSpecificEntry(entryIndex) {
         document.getElementById('sellPrice').innerHTML = gift.price+' <span class="star-icon-small"></span>';
         document.getElementById('sellOverlay').classList.add('show');
     }
-    closeSellOverlay() { 
-    document.getElementById('sellOverlay').classList.remove('show'); 
-    this.sellTargetGiftId = null; 
-    this.sellTargetEntryIndex = null; // Добавь эту строку
-}
+    closeSellOverlay() { document.getElementById('sellOverlay').classList.remove('show'); this.sellTargetGiftId = null; }
     confirmSell() {
-    if (this.sellTargetEntryIndex === null && !this.sellTargetGiftId) return;
-    
-    let idx;
-    if (this.sellTargetEntryIndex !== null) {
-        // Продаём конкретный экземпляр по индексу
-        idx = this.sellTargetEntryIndex;
-    } else {
-        // Старое поведение (запасной вариант)
-        idx = this.inventory.findIndex(e => e.giftId === this.sellTargetGiftId);
+        if (!this.sellTargetGiftId) return;
+        const gift = ALL_GIFTS.find(g => g.id===this.sellTargetGiftId);
+        if (!gift) return;
+        const idx = this.inventory.findIndex(e => e.giftId===this.sellTargetGiftId);
+        if (idx===-1) return;
+        this.inventory.splice(idx,1); this.balance += gift.price;
+        const si = this.selectedGiftIds.indexOf(this.sellTargetGiftId);
+        if (si!==-1) this.selectedGiftIds.splice(si,1);
+        if (this.selectedGiftIds.length===0 && this.inventory.length>0) this.selectedGiftIds = [this.inventory[0].giftId];
+        this.updateChance(); this.saveToStorage(); this.renderAll(); this.closeSellOverlay();
     }
-    
-    if (idx === -1) return;
-    const gift = ALL_GIFTS.find(g => g.id === this.inventory[idx].giftId);
-    if (!gift) return;
-    
-    this.inventory.splice(idx, 1);
-    this.balance += gift.price;
-    
-    const si = this.selectedGiftIds.indexOf(gift.id);
-    if (si !== -1) this.selectedGiftIds.splice(si, 1);
-    if (this.selectedGiftIds.length === 0 && this.inventory.length > 0) {
-        this.selectedGiftIds = [this.inventory[0].giftId];
-    }
-    
-    this.updateChance();
-    this.saveToStorage();
-    this.renderAll();
-    this.closeSellOverlay();
-}
 
     renderShop() {
         const c = document.getElementById('shopItems');
