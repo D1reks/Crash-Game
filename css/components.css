@@ -345,7 +345,13 @@
     max-width: 360px; width: 90%; max-height: 80vh; overflow-y: auto;
     border: 1px solid #1e2a45; box-shadow: 0 0 30px rgba(0, 0, 0, 0.4);
 }
-.settings-card h3 { color: #ffd700; margin-bottom: 16px; font-size: 18px; text-align: center; text-shadow: 0 0 10px rgba(255, 215, 0, 0.3); }
+.settings-card h3 { 
+    color: #ffffff;  /* было #ffd700 */
+    margin-bottom: 16px; 
+    font-size: 18px; 
+    text-align: center; 
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);  /* было rgba(255, 215, 0, 0.3) */
+}
 .settings-section { margin-bottom: 16px; }
 .settings-section h4 {
     color: #a0b4e0; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;
