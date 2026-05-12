@@ -96,14 +96,15 @@ class UpgradeGame {
 
     calculateChance(totalCost, tp) { return totalCost >= tp ? 0 : (totalCost / tp) * 0.95; }
     getAllTargets() {
-        if (!this.primaryGift) return ALL_GIFTS;
         const tc = this.getSelectedTotalCost();
         return ALL_GIFTS.filter(g => g.price > tc);
     }
-    getSelectedTotalCost() { return this.selectedGifts.reduce((s, g) => s + g.price, 0); }
+    getSelectedTotalCost() { 
+        const giftsCost = this.selectedGifts.reduce((s, g) => s + g.price, 0);
+        return giftsCost + this.stakeAmount;
+    }
 
     findTargetByFraction(fr) {
-        if (!this.primaryGift) return null;
         const [n, d] = fr.split('/').map(Number), tc = n / d;
         const totalCost = this.getSelectedTotalCost();
         const cands = ALL_GIFTS.filter(g => g.price > totalCost);
@@ -130,8 +131,9 @@ class UpgradeGame {
     deduplicateInventory() { const s = new Set(); const u = []; for (const e of this.inventory) { if (!s.has(e.giftId)) { s.add(e.giftId); u.push(e); } } this.inventory = u; }
 
     updateChance() {
-        if (this.primaryGift && this.targetGift && this.targetGift.price > this.getSelectedTotalCost()) {
-            this.currentChance = this.calculateChance(this.getSelectedTotalCost(), this.targetGift.price);
+        const tc = this.getSelectedTotalCost();
+        if (this.targetGift && this.targetGift.price > tc) {
+            this.currentChance = this.calculateChance(tc, this.targetGift.price);
         } else { this.currentChance = 0; }
     }
 
@@ -149,7 +151,7 @@ class UpgradeGame {
         }
         c.innerHTML = h;
         c.querySelectorAll('.quick-bet-btn').forEach(b => b.addEventListener('click', e => {
-            if (this.isSpinning||!this.primaryGift) return;
+            if (this.isSpinning) return;
             const f = e.target.dataset.fraction, g = this.findTargetByFraction(f);
             if (g) { this.targetGiftId = g.id; this.updateChance(); this.renderAll(); this.highlightQuickButton(f); }
         }));
@@ -262,8 +264,8 @@ class UpgradeGame {
         
         document.getElementById('stakeSlider').addEventListener('input', (e) => {
             this.stakeAmount = parseInt(e.target.value) || 0;
-            document.querySelector('.stake-slider-label-right').textContent = 
-                'Актуальная выбранная сумма: ' + this.stakeAmount.toLocaleString();
+            this.updateChance();
+            this.renderAll();
         });
         
         document.body.addEventListener('click', () => { if (!this.soundEnabled) this.initAudio(); }, { once: true });
@@ -337,8 +339,10 @@ class UpgradeGame {
 
     startUpgrade() {
         const tc = this.getSelectedTotalCost();
-        if (this.isSpinning || !this.primaryGift || !this.targetGift || tc >= this.targetGift.price) return;
+        if (this.isSpinning || !this.targetGift || this.targetGift.price <= tc) return;
+        if (this.stakeAmount > 0 && this.stakeAmount > this.balance) return;
         if (this.selectedGifts.some(g => !this.inventory.find(e => e.giftId === g.id))) return;
+        if (this.selectedGifts.length === 0 && this.stakeAmount === 0) return;
         
         this.isSpinning = true;
         const btn = document.getElementById('upgradeBtn');
@@ -421,10 +425,22 @@ class UpgradeGame {
     }
 
     onUpgradeSuccess(sc) {
+        // Списываем баланс
+        if (this.stakeAmount > 0) {
+            this.balance -= this.stakeAmount;
+        }
+        // Удаляем выбранные подарки
+        for (const g of this.selectedGifts) { 
+            const idx = this.inventory.findIndex(e => e.giftId === g.id); 
+            if(idx !== -1) this.inventory.splice(idx, 1); 
+        }
+        // Добавляем целевой подарок
         const ng = this.targetGift;
-        for (const g of this.selectedGifts) { const idx = this.inventory.findIndex(e => e.giftId===g.id); if(idx!==-1) this.inventory.splice(idx,1); }
-        if (!this.inventory.find(e => e.giftId===ng.id)) this.inventory.push({ giftId: ng.id, acquiredAt: Date.now() });
-        this.selectedGiftIds = [ng.id]; this.updateChance();
+        if (!this.inventory.find(e => e.giftId === ng.id)) this.inventory.push({ giftId: ng.id, acquiredAt: Date.now() });
+        
+        this.selectedGiftIds = [ng.id]; 
+        this.stakeAmount = 0;
+        this.updateChance();
         this.history.unshift({ from: 'upgrade', to: ng.id, chance: sc, success: true, time: Date.now() });
         this.saveToStorage();
         this.showResultText(true, sc);
@@ -432,8 +448,17 @@ class UpgradeGame {
     }
 
     onUpgradeFail(sc) {
-        for (const g of this.selectedGifts) { const idx = this.inventory.findIndex(e => e.giftId===g.id); if(idx!==-1) this.inventory.splice(idx,1); }
-        this.selectedGiftIds = this.inventory.length>0 ? [this.inventory[0].giftId] : [];
+        // Списываем баланс
+        if (this.stakeAmount > 0) {
+            this.balance -= this.stakeAmount;
+        }
+        // Удаляем выбранные подарки
+        for (const g of this.selectedGifts) { 
+            const idx = this.inventory.findIndex(e => e.giftId === g.id); 
+            if(idx !== -1) this.inventory.splice(idx, 1); 
+        }
+        this.selectedGiftIds = this.inventory.length > 0 ? [this.inventory[0].giftId] : [];
+        this.stakeAmount = 0;
         this.updateChance();
         this.history.unshift({ from: 'upgrade', to: this.targetGift.id, chance: sc, success: false, time: Date.now() });
         this.saveToStorage();
@@ -442,9 +467,9 @@ class UpgradeGame {
     }
 
     toggleGiftSelection(giftId) {
-        if (!this.inventory.find(e => e.giftId===giftId)) return;
+        if (!this.inventory.find(e => e.giftId === giftId)) return;
         const idx = this.selectedGiftIds.indexOf(giftId);
-        if (idx!==-1) this.selectedGiftIds.splice(idx,1);
+        if (idx !== -1) this.selectedGiftIds.splice(idx, 1);
         else { if (this.selectedGiftIds.length >= 9) return; this.selectedGiftIds.push(giftId); }
         this.updateChance(); this.renderAll(); this.saveToStorage();
     }
@@ -458,7 +483,10 @@ class UpgradeGame {
         this.renderGiftList();
         this.updateStakeSlider();
         const ub = document.getElementById('upgradeBtn'), tc = this.getSelectedTotalCost();
-        const canUpgrade = !this.isSpinning && this.primaryGift && this.targetGift && this.targetGift.price > tc && this.selectedGifts.every(g => this.inventory.find(e => e.giftId===g.id));
+        const hasSelection = this.selectedGifts.length > 0 || this.stakeAmount > 0;
+        const canUpgrade = !this.isSpinning && hasSelection && this.targetGift && this.targetGift.price > tc 
+            && this.stakeAmount <= this.balance
+            && this.selectedGifts.every(g => this.inventory.find(e => e.giftId === g.id));
         ub.disabled = !canUpgrade;
         if (!this.isSpinning) { ub.classList.remove('spinning'); ub.textContent = 'Прокачать'; }
     }
@@ -468,27 +496,67 @@ class UpgradeGame {
         if (!slider) return;
         slider.max = this.balance;
         slider.value = Math.min(this.stakeAmount, this.balance);
+        
+        const pct = (slider.value / slider.max) * 100;
+        slider.style.background = `linear-gradient(to right, #f0883e 0%, #f5c842 ${pct}%, rgba(255,255,255,0.08) ${pct}%, rgba(255,255,255,0.08) 100%)`;
+        
         document.querySelector('.stake-slider-label-right').textContent = 
-            'Актуальная выбранная сумма: ' + this.stakeAmount.toLocaleString();
+            'Выбранная сумма: ' + this.stakeAmount.toLocaleString();
         document.querySelector('.stake-slider-label-left').textContent = 
-            'Сумма баланса: ' + this.balance.toLocaleString();
+            'Баланс: ' + this.balance.toLocaleString();
     }
 
     renderCurrentGiftCard() {
         const card = document.getElementById('currentGiftCard'), no = document.getElementById('currentGiftNameOutside'), po = document.getElementById('currentGiftPriceOutside');
         card.innerHTML = ''; card.className = 'gift-card current-gift';
-        if (this.selectedGifts.length > 0) {
+        
+        const hasGifts = this.selectedGifts.length > 0;
+        const hasStake = this.stakeAmount > 0;
+        
+        if (hasGifts || hasStake) {
             const grid = document.createElement('div'); grid.className = 'multi-gift-grid';
-            const sg = this.selectedGifts.slice(0,9);
-            const bs = sg.length<=3?65:sg.length<=6?50:40;
-            for (const g of sg) { const w = document.createElement('div'); w.className = 'multi-gift-item'; const img = document.createElement('img'); img.className = 'gift-icon'; img.src = g.icon; img.alt = g.name; img.style.maxHeight = bs+'px'; img.onerror = function() { this.src = 'images/gifts icons/Precious Peach.png'; }; w.appendChild(img); grid.appendChild(w); }
+            
+            if (hasGifts) {
+                const sg = this.selectedGifts.slice(0, 9);
+                const bs = sg.length <= 3 ? 55 : sg.length <= 6 ? 45 : 38;
+                for (const g of sg) { 
+                    const w = document.createElement('div'); w.className = 'multi-gift-item'; 
+                    const img = document.createElement('img'); img.className = 'gift-icon'; 
+                    img.src = g.icon; img.alt = g.name; img.style.maxHeight = bs + 'px'; 
+                    img.onerror = function() { this.src = 'images/gifts icons/Precious Peach.png'; }; 
+                    w.appendChild(img); grid.appendChild(w); 
+                }
+            }
+            
+            if (hasStake) {
+                const w = document.createElement('div'); w.className = 'multi-gift-item'; 
+                const img = document.createElement('img'); img.className = 'star-deposit-icon'; 
+                img.src = 'images/deposit_stars_icon.png'; img.alt = 'Stars'; 
+                img.style.maxHeight = '45px';
+                w.appendChild(img); grid.appendChild(w); 
+            }
+            
             card.appendChild(grid);
-            if (this.selectedGifts.length===1) { no.textContent = this.selectedGifts[0].name; po.innerHTML = this.selectedGifts[0].price+' <span class="star-icon-small"></span>'; }
-            else { no.textContent = 'Выбрано: '+this.selectedGifts.length; po.innerHTML = this.getSelectedTotalCost()+' <span class="star-icon-small"></span>'; }
+            
+            const total = this.getSelectedTotalCost();
+            const itemCount = this.selectedGifts.length + (hasStake ? 1 : 0);
+            
+            if (itemCount === 1) {
+                if (hasGifts && this.selectedGifts.length === 1 && !hasStake) {
+                    no.textContent = this.selectedGifts[0].name;
+                } else if (hasStake && !hasGifts) {
+                    no.textContent = 'Звёзды';
+                } else {
+                    no.textContent = 'Ставка';
+                }
+            } else {
+                no.textContent = 'Выбрано: ' + itemCount;
+            }
+            po.innerHTML = total + ' <span class="star-icon-small"></span>';
         } else {
             card.classList.add('empty-card');
             const arrows = document.createElement('div'); arrows.className = 'placeholder-arrows left-arrows';
-            for (let i=0;i<3;i++) { const a = document.createElement('span'); a.className = 'placeholder-arrow'; a.textContent = '❱'; arrows.appendChild(a); }
+            for (let i = 0; i < 3; i++) { const a = document.createElement('span'); a.className = 'placeholder-arrow'; a.textContent = '❱'; arrows.appendChild(a); }
             card.appendChild(arrows); no.textContent = ''; po.textContent = '';
         }
     }
@@ -715,27 +783,27 @@ class UpgradeGame {
         if (!filtered.length) { c.innerHTML = '<div style="padding:20px;text-align:center;color:#6b7daa;font-size:12px;">Нет подарков</div>'; return; }
         const tc = this.getSelectedTotalCost();
         c.innerHTML = filtered.map(g => {
-            const isSel = g.id===this.targetGiftId;
-            const ch = tc>0&&g.price>tc ? (tc/g.price*0.95*100).toFixed(1) : '0.0';
-            return `<div class="gift-list-item" data-gift-id="${g.id}" style="${isSel?'background:#111827;border-left:3px solid #f0883e;box-shadow:inset 0 0 15px rgba(240,136,62,0.05)':''}">
+            const isSel = g.id === this.targetGiftId;
+            const ch = tc > 0 && g.price > tc ? (tc / g.price * 0.95 * 100).toFixed(1) : '0.0';
+            return `<div class="gift-list-item" data-gift-id="${g.id}" style="${isSel ? 'background:#111827;border-left:3px solid #f0883e;box-shadow:inset 0 0 15px rgba(240,136,62,0.05)' : ''}">
                 <img src="${g.icon}" alt="${g.name}" class="gift-icon-small" onerror="this.src='images/gifts icons/Precious Peach.png'">
                 <div class="gift-list-item-info"><div class="gift-list-item-name">${g.name} <span style="color:#6b7daa;font-size:10px;">${ch}%</span></div><div class="gift-list-item-price">${g.price} <span class="star-icon-small"></span></div></div>
             </div>`;
         }).join('');
         c.querySelectorAll('.gift-list-item').forEach(item => item.addEventListener('click', () => {
             if (this.isSpinning) return;
-            const gid = item.dataset.giftId, tgt = ALL_GIFTS.find(g => g.id===gid);
-            if (tgt && (!this.primaryGift || tgt.price > this.getSelectedTotalCost())) { this.targetGiftId = gid; this.updateChance(); this.renderAll(); this.saveToStorage(); }
+            const gid = item.dataset.giftId, tgt = ALL_GIFTS.find(g => g.id === gid);
+            if (tgt && tgt.price > this.getSelectedTotalCost()) { this.targetGiftId = gid; this.updateChance(); this.renderAll(); this.saveToStorage(); }
         }));
     }
 
     openSellOverlay(giftId) {
-        const gift = ALL_GIFTS.find(g => g.id===giftId);
-        if (!gift || !this.inventory.find(e => e.giftId===giftId)) return;
+        const gift = ALL_GIFTS.find(g => g.id === giftId);
+        if (!gift || !this.inventory.find(e => e.giftId === giftId)) return;
         this.sellTargetGiftId = giftId;
         document.getElementById('sellEmoji').innerHTML = `<img src="${gift.icon}" alt="${gift.name}" class="sell-icon" onerror="this.src='images/gifts icons/Precious Peach.png'">`;
         document.getElementById('sellName').textContent = gift.name;
-        document.getElementById('sellPrice').innerHTML = gift.price+' <span class="star-icon-small"></span>';
+        document.getElementById('sellPrice').innerHTML = gift.price + ' <span class="star-icon-small"></span>';
         document.getElementById('sellOverlay').classList.add('show');
     }
     closeSellOverlay() { document.getElementById('sellOverlay').classList.remove('show'); this.sellTargetGiftId = null; this.sellTargetEntryIndex = null; }
@@ -818,7 +886,10 @@ class UpgradeGame {
             this.balance -= g.price;
             if (!this.inventory.find(en => en.giftId === g.id)) this.inventory.push({ giftId: g.id, acquiredAt: Date.now() });
             this.deduplicateInventory();
-            if (!this.primaryGift) { this.selectedGiftIds = [g.id]; this.updateChance(); }
+            if (this.selectedGifts.length === 0 && this.stakeAmount === 0 && this.inventory.length > 0) { 
+                this.selectedGiftIds = [g.id]; 
+                this.updateChance(); 
+            }
             this.saveToStorage(); this.renderAll(); this.renderShop();
         }
         this.closeBuyModal();

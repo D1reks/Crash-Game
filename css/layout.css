@@ -106,6 +106,12 @@
     filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.3));
 }
 
+.star-deposit-icon {
+    max-height: 55px;
+    object-fit: contain;
+    filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.4));
+}
+
 .target-chance-inside {
     display: flex;
     flex-direction: column;
@@ -252,9 +258,9 @@
     width: 100%;
     height: 6px;
     border-radius: 3px;
-    background: linear-gradient(90deg, #f0883e 0%, #f5c842 50%, #ffd700 100%);
+    background: rgba(255, 255, 255, 0.08);
     outline: none;
-    box-shadow: 0 0 10px rgba(240, 136, 62, 0.3);
+    box-shadow: none;
 }
 .stake-slider::-webkit-slider-thumb {
     -webkit-appearance: none;
@@ -305,7 +311,9 @@
     padding: 0 12px 10px 12px; box-sizing: border-box;
 }
 .gift-list-panel {
-    width: 100%; height: 100%; background: #08090d; border: 1px solid #1e2a45;
+    width: 100%; height: 100%; 
+    background: #0d111f; 
+    border: 1px solid #1e2a45;
     border-radius: 10px; overflow: hidden; display: flex; flex-direction: column;
     box-shadow: 0 0 15px rgba(0, 0, 0, 0.4);
 }
@@ -332,7 +340,7 @@
 }
 .gift-list-item {
     display: flex; align-items: center; gap: 12px; padding: 14px 12px;
-    cursor: pointer; transition: all 0.2s; border-bottom: 1px solid #1e2a45;
+    cursor: pointer; transition: all 0.2s; border-bottom: 1px solid #0a0f1a;
 }
 .gift-list-item:hover,
 .gift-list-item:active { background: #111827; box-shadow: inset 0 0 15px rgba(100, 140, 255, 0.05); }
