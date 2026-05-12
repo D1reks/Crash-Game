@@ -41,7 +41,7 @@
 @keyframes pulse-text { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
 
 .header {
-    padding: 6px 16px; display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 16px; display: flex; justify-content: space-between; align-items: center;
     background: #08090d; border-bottom: none; z-index: 10; flex-shrink: 0;
 }
 .header-left { display: flex; align-items: center; }
@@ -72,8 +72,8 @@
 }
 
 .gift-selection-row {
-    display: flex; gap: 10px; width: 100%;
-    padding: 0 12px; margin-top: 4px; flex: 0 0 auto; min-height: 0;
+    display: flex; gap: 12px; width: 100%; align-items: stretch;
+    padding: 0 12px; margin-top: 10px; flex: 1; min-height: 0;
 }
 .gift-card-wrapper { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; }
 .gift-card {
@@ -82,7 +82,7 @@
     display: flex; align-items: center; justify-content: center;
     min-width: 0; cursor: pointer; transition: all 0.25s;
     box-shadow: 0 0 15px rgba(0, 0, 0, 0.4);
-    min-height: 105px; position: relative; overflow: hidden;
+    min-height: 100px; position: relative; overflow: hidden;
 }
 .gift-card.current-gift { box-shadow: 0 0 20px rgba(63, 185, 80, 0.15); }
 .gift-card.target-gift {
@@ -97,11 +97,11 @@
     align-items: center; width: 100%; height: 100%; padding: 2px;
 }
 .multi-gift-item { position: relative; display: flex; align-items: center; justify-content: center; }
-.multi-gift-item .gift-icon { max-height: 45px; }
-.multi-gift-item:only-child .gift-icon { max-height: 70px !important; }
+.multi-gift-item .gift-icon { max-height: 55px; }
+.multi-gift-item:only-child .gift-icon { max-height: 78px !important; }
 
 .gift-icon {
-    width: 100%; height: 100%; max-height: 70px;
+    width: 100%; height: 100%; max-height: 78px;
     object-fit: contain;
     filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.3));
 }
@@ -197,14 +197,14 @@
 }
 
 .upgrade-btn {
-    width: calc(100% - 24px); padding: 10px; border-radius: 12px;
+    width: calc(100% - 24px); padding: 12px; border-radius: 12px;
     font-weight: 700; font-size: 15px; border: none; cursor: pointer;
     text-transform: uppercase; letter-spacing: 2px;
     background: linear-gradient(135deg, #f0883e, #f5c842, #ffd700);
     color: #0a0f1a; border: 1px solid #f5c84260; transition: all 0.25s;
     box-shadow: 0 0 25px rgba(240, 136, 62, 0.4), 0 0 50px rgba(255, 215, 0, 0.2);
     text-shadow: none; font-weight: 800; display: flex; align-items: center; justify-content: center;
-    margin: 4px auto 2px auto; box-sizing: border-box; flex-shrink: 0;
+    margin: 6px auto 4px auto; box-sizing: border-box; flex-shrink: 0;
 }
 .upgrade-btn:active {
     background: linear-gradient(135deg, #f5c842, #ffd700, #f0883e);
@@ -275,7 +275,7 @@
 
 .quick-bet-row {
     display: flex; align-items: center; gap: 6px;
-    padding: 0 12px; margin-bottom: 4px; width: 100%; box-sizing: border-box; flex-shrink: 0;
+    padding: 0 12px; margin-bottom: 6px; width: 100%; box-sizing: border-box; flex-shrink: 0;
 }
 .quick-bet-buttons { display: flex; gap: 5px; flex: 1; min-width: 0; }
 .quick-bet-btn {
@@ -301,12 +301,11 @@
 .settings-img { width: 100%; height: 100%; object-fit: contain; }
 
 .lists-row {
-    width: 100%; flex: 0 0 auto; height: 200px; overflow: hidden;
+    width: 100%; flex: 1; min-height: 140px; overflow: hidden;
     padding: 0 12px 10px 12px; box-sizing: border-box;
 }
 .gift-list-panel {
-    width: 100%; height: 100%; background: rgba(255, 255, 255, 0.04);
-    border: 1px solid #1e2a45;
+    width: 100%; height: 100%; background: #0d111f; border: 1px solid #1e2a45;
     border-radius: 10px; overflow: hidden; display: flex; flex-direction: column;
     box-shadow: 0 0 15px rgba(0, 0, 0, 0.4);
 }
@@ -320,7 +319,7 @@
     cursor: pointer; color: #6b7daa; border-radius: 18px;
     position: relative; z-index: 1;
     text-shadow: 0 0 8px rgba(100, 140, 255, 0.2); font-weight: 600;
-    transition: all 0.15s;
+    transition: background 0.15s, color 0.15s, box-shadow 0.15s;
 }
 .tab-btn.active {
     background: #ffd700; color: #0a0f1a; text-shadow: none;
