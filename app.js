@@ -354,32 +354,32 @@ class UpgradeGame {
 }
 
    onSpinComplete() {
-    // Нормализуем угол от 0 до 2*PI
     const na = ((this.wheelAngle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
     const halfArc = this.currentChance * Math.PI;
     
-    // Заливка в drawWheel():
-    // startAngle = PI/2 (6 часов, низ)
-    // halfArc = chance * PI
-    // sa = PI/2 - halfArc (вправо-вверх от низа)
-    // ea = PI/2 + halfArc (влево-вверх от низа)
-    const zoneCenter = Math.PI / 2; // 6 часов = низ
-    const zoneStart = (zoneCenter - halfArc + Math.PI * 2) % (Math.PI * 2);
-    const zoneEnd = (zoneCenter + halfArc) % (Math.PI * 2);
+    // Заливка: от (PI/2 - halfArc) до (PI/2 + halfArc) — низ + вверх в стороны
+    const zoneCenter = Math.PI / 2;
+    let zoneStart = (zoneCenter - halfArc + Math.PI * 2) % (Math.PI * 2);
+    let zoneEnd = (zoneCenter + halfArc) % (Math.PI * 2);
     
-    // Стрелка в нуле смотрит на -PI/2 (12 часов) в локальных координатах
-    // При вращении: фактический угол стрелки = (-PI/2 + wheelAngle) mod 2PI
+    // Реальный угол стрелки в канвасе после поворота:
+    // Стрелка нарисована на -PI/2 (12 часов) + доворот wheelAngle
     const arrowAngle = ((-Math.PI / 2 + na) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2);
     
     let win;
     if (zoneStart <= zoneEnd) {
         win = arrowAngle >= zoneStart && arrowAngle <= zoneEnd;
     } else {
-        // Зона пересекает 0
         win = arrowAngle >= zoneStart || arrowAngle <= zoneEnd;
     }
     
     const sc = this.currentChance;
+    
+    console.log('wheelAngle:', na.toFixed(2), 
+                'arrowAngle:', arrowAngle.toFixed(2),
+                'zone:', zoneStart.toFixed(2), '-', zoneEnd.toFixed(2),
+                'halfArc:', halfArc.toFixed(2),
+                'win:', win);
     
     this.wheelAngle = 0;
     this.drawWheel();
