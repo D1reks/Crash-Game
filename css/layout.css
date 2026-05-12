@@ -112,6 +112,10 @@
     filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.4));
 }
 
+.star-stake-icon {
+    filter: drop-shadow(0 0 12px rgba(255, 215, 0, 0.5)) drop-shadow(0 0 24px rgba(255, 180, 0, 0.3));
+}
+
 .target-chance-inside {
     display: flex;
     flex-direction: column;

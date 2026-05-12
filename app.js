@@ -550,7 +550,7 @@ renderCurrentGiftCard() {
         
         if (hasStake) {
             const w = document.createElement('div'); w.className = 'multi-gift-item'; 
-            const img = document.createElement('img'); img.className = 'gift-icon'; 
+            const img = document.createElement('img'); img.className = 'gift-icon star-stake-icon'; 
             img.src = 'images/stars.png'; img.alt = 'Stars'; 
             img.style.maxHeight = bs + 'px';
             w.appendChild(img); grid.appendChild(w); 
