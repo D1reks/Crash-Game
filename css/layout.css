@@ -41,7 +41,7 @@
 @keyframes pulse-text { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
 
 .header {
-    padding: 10px 16px; display: flex; justify-content: space-between; align-items: center;
+    padding: 6px 16px; display: flex; justify-content: space-between; align-items: center;
     background: #08090d; border-bottom: none; z-index: 10; flex-shrink: 0;
 }
 .header-left { display: flex; align-items: center; }
@@ -72,8 +72,8 @@
 }
 
 .gift-selection-row {
-    display: flex; gap: 12px; width: 100%; align-items: stretch;
-    padding: 0 12px; margin-top: 10px; flex: 1; min-height: 0;
+    display: flex; gap: 10px; width: 100%; align-items: stretch;
+    padding: 0 12px; margin-top: 4px; flex: 0 0 auto; min-height: 0;
 }
 .gift-card-wrapper { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; }
 .gift-card {
@@ -82,7 +82,7 @@
     display: flex; align-items: center; justify-content: center;
     min-width: 0; cursor: pointer; transition: all 0.25s;
     box-shadow: 0 0 15px rgba(0, 0, 0, 0.4);
-    min-height: 100px; position: relative; overflow: hidden;
+    min-height: 80px; position: relative; overflow: hidden;
 }
 .gift-card.current-gift { box-shadow: 0 0 20px rgba(63, 185, 80, 0.15); }
 .gift-card.target-gift {
@@ -97,11 +97,11 @@
     align-items: center; width: 100%; height: 100%; padding: 2px;
 }
 .multi-gift-item { position: relative; display: flex; align-items: center; justify-content: center; }
-.multi-gift-item .gift-icon { max-height: 55px; }
-.multi-gift-item:only-child .gift-icon { max-height: 78px !important; }
+.multi-gift-item .gift-icon { max-height: 42px; }
+.multi-gift-item:only-child .gift-icon { max-height: 60px !important; }
 
 .gift-icon {
-    width: 100%; height: 100%; max-height: 78px;
+    width: 100%; height: 100%; max-height: 60px;
     object-fit: contain;
     filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.3));
 }
@@ -139,6 +139,23 @@
 .gift-price-outside {
     color: #ffd700; font-size: 13px; font-weight: bold;
     text-shadow: 0 0 8px rgba(255, 215, 0, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+}
+.gift-price-outside .star-icon-small {
+    display: inline-block; 
+    width: 13px; 
+    height: 13px; 
+    position: relative; 
+    vertical-align: middle;
+    flex-shrink: 0;
+}
+.gift-price-outside .star-icon-small::before {
+    width: 13px; 
+    height: 13px;
+    filter: drop-shadow(0 0 3px #ffd700) drop-shadow(0 0 6px #ffaa00);
 }
 
 .placeholder-arrows {
@@ -180,14 +197,14 @@
 }
 
 .upgrade-btn {
-    width: calc(100% - 24px); padding: 12px; border-radius: 12px;
+    width: calc(100% - 24px); padding: 10px; border-radius: 12px;
     font-weight: 700; font-size: 15px; border: none; cursor: pointer;
     text-transform: uppercase; letter-spacing: 2px;
     background: linear-gradient(135deg, #f0883e, #f5c842, #ffd700);
     color: #0a0f1a; border: 1px solid #f5c84260; transition: all 0.25s;
     box-shadow: 0 0 25px rgba(240, 136, 62, 0.4), 0 0 50px rgba(255, 215, 0, 0.2);
     text-shadow: none; font-weight: 800; display: flex; align-items: center; justify-content: center;
-    margin: 6px auto 4px auto; box-sizing: border-box; flex-shrink: 0;
+    margin: 4px auto 2px auto; box-sizing: border-box; flex-shrink: 0;
 }
 .upgrade-btn:active {
     background: linear-gradient(135deg, #f5c842, #ffd700, #f0883e);
@@ -204,9 +221,61 @@
     50% { box-shadow: 0 0 50px rgba(240, 136, 62, 0.7), 0 0 90px rgba(240, 136, 62, 0.3); }
 }
 
+/* Ползунок суммы */
+.stake-slider-row {
+    width: calc(100% - 24px);
+    margin: 0 auto 2px auto;
+    padding: 6px 12px 2px 12px;
+    box-sizing: border-box;
+    flex-shrink: 0;
+    position: relative;
+}
+.stake-slider-label {
+    font-size: 8px;
+    font-weight: 600;
+    color: #f0883e;
+    text-shadow: 0 0 6px rgba(240, 136, 62, 0.4);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    position: absolute;
+    top: 0;
+}
+.stake-slider-label-left { left: 12px; }
+.stake-slider-label-right { right: 12px; text-align: right; }
+.stake-slider-container {
+    margin-top: 2px;
+    padding: 0;
+}
+.stake-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 6px;
+    border-radius: 3px;
+    background: linear-gradient(90deg, #f0883e 0%, #f5c842 50%, #ffd700 100%);
+    outline: none;
+    box-shadow: 0 0 10px rgba(240, 136, 62, 0.3);
+}
+.stake-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #f0883e, #f5c842, #ffd700);
+    cursor: pointer;
+    border: 2px solid #ffd700;
+    box-shadow: 0 0 16px rgba(255, 215, 0, 0.5), 0 0 32px rgba(240, 136, 62, 0.3);
+    transition: all 0.15s;
+}
+.stake-slider::-webkit-slider-thumb:active {
+    box-shadow: 0 0 24px rgba(255, 215, 0, 0.7), 0 0 40px rgba(240, 136, 62, 0.5);
+    transform: scale(1.1);
+}
+
 .quick-bet-row {
     display: flex; align-items: center; gap: 6px;
-    padding: 0 12px; margin-bottom: 6px; width: 100%; box-sizing: border-box; flex-shrink: 0;
+    padding: 0 12px; margin-bottom: 4px; width: 100%; box-sizing: border-box; flex-shrink: 0;
 }
 .quick-bet-buttons { display: flex; gap: 5px; flex: 1; min-width: 0; }
 .quick-bet-btn {
@@ -232,7 +301,7 @@
 .settings-img { width: 100%; height: 100%; object-fit: contain; }
 
 .lists-row {
-    width: 100%; flex: 1; min-height: 140px; overflow: hidden;
+    width: 100%; flex: 1; min-height: 120px; overflow: hidden;
     padding: 0 12px 10px 12px; box-sizing: border-box;
 }
 .gift-list-panel {
@@ -245,12 +314,12 @@
     margin: 6px; padding: 2px; position: relative; flex-shrink: 0;
 }
 .tab-btn {
-    flex: 1; text-align: center; padding: 8px 0;
-    font-size: 10px; letter-spacing: 2px; text-transform: uppercase;
+    flex: 1; text-align: center; padding: 6px 0;
+    font-size: 9px; letter-spacing: 1px; text-transform: uppercase;
     cursor: pointer; color: #6b7daa; border-radius: 18px;
     position: relative; z-index: 1;
     text-shadow: 0 0 8px rgba(100, 140, 255, 0.2); font-weight: 600;
-    transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+    transition: all 0.15s;
 }
 .tab-btn.active {
     background: #ffd700; color: #0a0f1a; text-shadow: none;
@@ -292,9 +361,17 @@
 }
 .sell-icon-btn:active { background: #5a2020; box-shadow: 0 0 12px rgba(248, 81, 73, 0.3); }
 
+.withdraw-icon-btn {
+    background: #1a2a1a; border: 1px solid #3fb95060; color: #3fb950;
+    padding: 6px 12px; border-radius: 5px; font-size: 12px; font-weight: 700;
+    cursor: pointer; transition: all 0.2s; text-transform: uppercase;
+}
+.withdraw-icon-btn:active { background: #2a3a2a; box-shadow: 0 0 12px rgba(63, 185, 80, 0.3); }
+
 #app.blurred .header,
 #app.blurred .gift-selection-row,
 #app.blurred .upgrade-btn,
+#app.blurred .stake-slider-row,
 #app.blurred .quick-bet-row,
 #app.blurred .lists-row {
     filter: blur(6px);

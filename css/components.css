@@ -32,6 +32,22 @@
     100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
 }
 
+.wheel-modal-chance-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #ffffff;
+    text-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+    letter-spacing: 3px;
+    position: absolute;
+    top: calc(50% + 28px);
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 4;
+    pointer-events: none;
+    opacity: 0.7;
+    transition: opacity 0.3s ease;
+}
+
 .center-result-modal {
     position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
     text-align: center; pointer-events: none; z-index: 6;
@@ -281,7 +297,6 @@
     justify-content: center;
     gap: 6px;
 }
-
 .sell-card .sell-price .star-icon-small {
     display: inline-block; 
     width: 20px; 
@@ -290,34 +305,9 @@
     vertical-align: middle;
     flex-shrink: 0;
 }
-
 .sell-card .sell-price .star-icon-small::before {
     width: 20px; 
     height: 20px;
-    filter: drop-shadow(0 0 3px #ffd700) drop-shadow(0 0 6px #ffaa00);
-}
-
-.gift-price-outside {
-    color: #ffd700; 
-    font-size: 13px; 
-    font-weight: bold;
-    text-shadow: 0 0 8px rgba(255, 215, 0, 0.3);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 4px;
-}
-.gift-price-outside .star-icon-small {
-    display: inline-block; 
-    width: 13px; 
-    height: 13px; 
-    position: relative; 
-    vertical-align: middle;
-    flex-shrink: 0;
-}
-.gift-price-outside .star-icon-small::before {
-    width: 13px; 
-    height: 13px;
     filter: drop-shadow(0 0 3px #ffd700) drop-shadow(0 0 6px #ffaa00);
 }
 .sell-buttons { display: flex; gap: 10px; }
@@ -346,11 +336,11 @@
     border: 1px solid #1e2a45; box-shadow: 0 0 30px rgba(0, 0, 0, 0.4);
 }
 .settings-card h3 { 
-    color: #ffffff;  /* было #ffd700 */
+    color: #ffffff;
     margin-bottom: 16px; 
     font-size: 18px; 
     text-align: center; 
-    text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);  /* было rgba(255, 215, 0, 0.3) */
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
 }
 .settings-section { margin-bottom: 16px; }
 .settings-section h4 {
@@ -390,6 +380,22 @@
 }
 .settings-save-btn:active { transform: scale(0.98); box-shadow: 0 0 30px rgba(255, 215, 0, 0.5); }
 
+/* Поле поиска в панели подарков */
+.gift-list-search-row {
+    display: flex; align-items: center;
+    padding: 6px 8px; background: #08090d;
+    border-bottom: none; flex-shrink: 0;
+}
+.gift-list-search-input-wrapper { flex: 1; }
+.gift-list-search-input {
+    width: 100%; background: rgba(255, 255, 255, 0.04);
+    border: none; border-radius: 8px;
+    padding: 7px 10px; color: #d0daf0;
+    font-size: 12px; outline: none; transition: all 0.2s;
+}
+.gift-list-search-input:focus { background: rgba(255, 255, 255, 0.06); box-shadow: 0 0 10px rgba(255, 215, 0, 0.1); }
+.gift-list-search-input::placeholder { color: #5a6070; }
+
 /* Звёзды */
 .star-icon {
     display: inline-block; width: 18px; height: 18px; position: relative; vertical-align: middle;
@@ -401,37 +407,11 @@
     filter: drop-shadow(0 0 4px #ffd700) drop-shadow(0 0 8px #ffaa00);
 }
 .star-icon-small {
-    display: inline-block; 
-    width: 10px; 
-    height: 10px; 
-    position: relative; 
-    vertical-align: middle;
+    display: inline-block; width: 10px; height: 10px; position: relative; vertical-align: middle;
 }
 .star-icon-small::before {
-    content: ''; 
-    position: absolute; 
-    top: 50%; 
-    left: 50%; 
-    transform: translate(-50%, -50%);
-    width: 10px; 
-    height: 10px; 
-    background: #ffd700;
+    content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    width: 10px; height: 10px; background: #ffd700;
     clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
     filter: drop-shadow(0 0 3px #ffd700) drop-shadow(0 0 6px #ffaa00);
-}
-
-.wheel-modal-chance-label {
-    font-size: 11px;
-    font-weight: 600;
-    color: #ffffff;
-    text-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
-    letter-spacing: 3px;
-    position: absolute;
-    top: calc(50% + 28px);
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 4;
-    pointer-events: none;
-    opacity: 0.7;
-    transition: opacity 0.3s ease;
 }
