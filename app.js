@@ -75,15 +75,16 @@ class SparkSystem {
 
 class UpgradeGame {
     constructor() {
-        this.balance = 1000; this.inventory = []; this.selectedGiftIds = []; this.targetGiftId = null;
-        this.currentChance = 0; this.history = []; this.isSpinning = false;
-        this.audioContext = null; this.soundEnabled = false;
-        this.wheelAngle = 0; this.wheelAnimationId = null; this.resultTimeout = null;
-        this.sparkSystem = null; this.sellTargetGiftId = null; this.activeTab = 'inventory';
-        this.quickCoefs = [2, 4, 8]; this.quickPercents = [35, 55, 75]; this.spinType = 'normal';
-        this.shopSortOrder = 'asc'; this.buyTargetGiftId = null;
-        this.init();
-    }
+    this.balance = 1000; this.inventory = []; this.selectedGiftIds = []; this.targetGiftId = null;
+    this.currentChance = 0; this.history = []; this.isSpinning = false;
+    this.audioContext = null; this.soundEnabled = false;
+    this.wheelAngle = 0; this.wheelAnimationId = null; this.resultTimeout = null;
+    this.sparkSystem = null; this.sellTargetGiftId = null; this.sellTargetEntryIndex = null; // ← добавить
+    this.activeTab = 'inventory';
+    this.quickCoefs = [2, 4, 8]; this.quickPercents = [35, 55, 75]; this.spinType = 'normal';
+    this.shopSortOrder = 'asc'; this.buyTargetGiftId = null;
+    this.init();
+}
 
     get selectedGifts() { return this.selectedGiftIds.map(id => ALL_GIFTS.find(g => g.id === id)).filter(Boolean); }
     get primaryGift() { return this.selectedGifts[0] || null; }
@@ -631,22 +632,15 @@ sellSpecificEntry(entryIndex) {
     const gift = ALL_GIFTS.find(g => g.id === entry.giftId);
     if (!gift) return;
     
-    // Удаляем этот экземпляр
-    this.inventory.splice(entryIndex, 1);
-    this.balance += gift.price;
+    // Сохраняем индекс и giftId для confirmSell
+    this.sellTargetEntryIndex = entryIndex;
+    this.sellTargetGiftId = entry.giftId;
     
-    // Убираем из выбранных, если был выбран
-    const si = this.selectedGiftIds.indexOf(entry.giftId);
-    if (si !== -1) this.selectedGiftIds.splice(si, 1);
-    
-    if (this.selectedGiftIds.length === 0 && this.inventory.length > 0) {
-        this.selectedGiftIds = [this.inventory[0].giftId];
-    }
-    
-    this.updateChance();
-    this.saveToStorage();
-    this.renderAll();
-    this.closeSellOverlay();
+    // Открываем модалку продажи
+    document.getElementById('sellEmoji').innerHTML = `<img src="${gift.icon}" alt="${gift.name}" class="sell-icon" onerror="this.src='images/gifts icons/Precious Peach.png'">`;
+    document.getElementById('sellName').textContent = gift.name;
+    document.getElementById('sellPrice').innerHTML = gift.price + ' <span class="star-icon-small"></span>';
+    document.getElementById('sellOverlay').classList.add('show');
 }
 
     renderTargetsListInPanel() {
@@ -677,19 +671,41 @@ sellSpecificEntry(entryIndex) {
         document.getElementById('sellPrice').innerHTML = gift.price+' <span class="star-icon-small"></span>';
         document.getElementById('sellOverlay').classList.add('show');
     }
-    closeSellOverlay() { document.getElementById('sellOverlay').classList.remove('show'); this.sellTargetGiftId = null; }
+    closeSellOverlay() { 
+    document.getElementById('sellOverlay').classList.remove('show'); 
+    this.sellTargetGiftId = null; 
+    this.sellTargetEntryIndex = null; 
+}
     confirmSell() {
-        if (!this.sellTargetGiftId) return;
-        const gift = ALL_GIFTS.find(g => g.id===this.sellTargetGiftId);
-        if (!gift) return;
-        const idx = this.inventory.findIndex(e => e.giftId===this.sellTargetGiftId);
-        if (idx===-1) return;
-        this.inventory.splice(idx,1); this.balance += gift.price;
-        const si = this.selectedGiftIds.indexOf(this.sellTargetGiftId);
-        if (si!==-1) this.selectedGiftIds.splice(si,1);
-        if (this.selectedGiftIds.length===0 && this.inventory.length>0) this.selectedGiftIds = [this.inventory[0].giftId];
-        this.updateChance(); this.saveToStorage(); this.renderAll(); this.closeSellOverlay();
+    let idx;
+    
+    // Если есть индекс конкретного экземпляра — продаём его
+    if (this.sellTargetEntryIndex !== null) {
+        idx = this.sellTargetEntryIndex;
+    } else if (this.sellTargetGiftId) {
+        // Старое поведение: ищем первый подходящий
+        idx = this.inventory.findIndex(e => e.giftId === this.sellTargetGiftId);
+    } else {
+        return;
     }
+    
+    const gift = ALL_GIFTS.find(g => g.id === this.inventory[idx]?.giftId);
+    if (!gift) return;
+    
+    this.inventory.splice(idx, 1);
+    this.balance += gift.price;
+    
+    const si = this.selectedGiftIds.indexOf(gift.id);
+    if (si !== -1) this.selectedGiftIds.splice(si, 1);
+    if (this.selectedGiftIds.length === 0 && this.inventory.length > 0) {
+        this.selectedGiftIds = [this.inventory[0].giftId];
+    }
+    
+    this.updateChance();
+    this.saveToStorage();
+    this.renderAll();
+    this.closeSellOverlay();
+}
 
     renderShop() {
         const c = document.getElementById('shopItems');
