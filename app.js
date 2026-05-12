@@ -158,13 +158,14 @@ class UpgradeGame {
 
     setupEventListeners() {
     document.getElementById('upgradeBtn').addEventListener('click', () => this.startUpgrade());
-    document.getElementById('currentGiftCard').addEventListener('click', () => { if (this.isSpinning) return; if (this.selectedGiftIds.length > 0) { this.selectedGiftIds = []; this.updateChance(); this.renderAll(); this.saveToStorage(); } });
-    document.getElementById('targetGiftCard').addEventListener('click', () => {
-        if (this.isSpinning) return;
-        const t = this.getAllTargets(); if (!t.length) return;
-        if (!this.targetGift) this.targetGiftId = t[0].id;
-        else { const ci = t.findIndex(g => g.id === this.targetGiftId); this.targetGiftId = t[(ci+1)%t.length].id; }
-        this.updateChance(); this.renderAll(); this.saveToStorage();
+    document.getElementById('currentGiftCard').addEventListener('click', () => { 
+        if (this.isSpinning) return; 
+        if (this.selectedGiftIds.length > 0) { 
+            this.selectedGiftIds = []; 
+            this.updateChance(); 
+            this.renderAll(); 
+            this.saveToStorage(); 
+        } 
     });
     
     let selectedTopupMethod = 'stars';
@@ -245,8 +246,18 @@ class UpgradeGame {
     document.getElementById('settingsSaveBtn').addEventListener('click', () => this.saveSettingsFromUI());
     document.getElementById('settingsOverlay').addEventListener('click', e => { if (e.target === document.getElementById('settingsOverlay')) document.getElementById('settingsOverlay').classList.remove('show'); });
     
-    document.getElementById('tabInventory').addEventListener('click', () => { this.activeTab='inventory'; document.getElementById('tabInventory').classList.add('active'); document.getElementById('tabTargets').classList.remove('active'); this.renderGiftList(); });
-    document.getElementById('tabTargets').addEventListener('click', () => { this.activeTab='targets'; document.getElementById('tabTargets').classList.add('active'); document.getElementById('tabInventory').classList.remove('active'); this.renderGiftList(); });
+    document.getElementById('tabInventory').addEventListener('click', () => { 
+        this.activeTab = 'inventory'; 
+        document.getElementById('tabInventory').classList.add('active'); 
+        document.getElementById('tabTargets').classList.remove('active'); 
+        this.renderGiftList(); 
+    });
+    document.getElementById('tabTargets').addEventListener('click', () => { 
+        this.activeTab = 'targets'; 
+        document.getElementById('tabTargets').classList.add('active'); 
+        document.getElementById('tabInventory').classList.remove('active'); 
+        this.renderGiftList(); 
+    });
     
     document.body.addEventListener('click', () => { if (!this.soundEnabled) this.initAudio(); }, { once: true });
 }
