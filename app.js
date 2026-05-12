@@ -348,11 +348,11 @@ class UpgradeGame {
     }
 
     startUpgrade() {
-        const tc = this.getSelectedTotalCost();
-        if (this.isSpinning || !this.targetGift || this.targetGift.price <= tc) return;
-        if (this.stakeAmount > 0 && this.stakeAmount > this.balance) return;
-        if (this.selectedGifts.some(g => !this.inventory.find(e => e.giftId === g.id))) return;
-        if (this.selectedGifts.length === 0 && this.stakeAmount === 0) return;
+            const tc = this.getSelectedTotalCost();
+    if (this.isSpinning || !this.targetGift || tc >= this.targetGift.price) return;
+    if (this.stakeAmount > this.balance) return;
+    if (this.selectedGifts.some(g => !this.inventory.find(e => e.giftId === g.id))) return;
+    if (this.selectedGifts.length === 0 && this.stakeAmount === 0) return;
         
         this.isSpinning = true;
         const btn = document.getElementById('upgradeBtn');
@@ -497,29 +497,31 @@ class UpgradeGame {
     }
 
     updateStakeSlider() {
-        const slider = document.getElementById('stakeSlider');
-        if (!slider) return;
-        
-        let maxStake = this.balance;
-        
-        if (this.targetGift) {
-            const giftsCost = this.selectedGifts.reduce((s, g) => s + g.price, 0);
-            const maxForTarget = Math.floor(this.targetGift.price / 0.95 - giftsCost);
-            if (maxForTarget < maxStake) maxStake = Math.max(0, maxForTarget);
-        }
-        
-        slider.max = maxStake;
-        this.stakeAmount = Math.min(this.stakeAmount, maxStake);
-        slider.value = this.stakeAmount;
-        
-        const pct = maxStake > 0 ? (slider.value / maxStake) * 100 : 0;
-        slider.style.background = `linear-gradient(to right, #f0883e 0%, #f5c842 ${pct}%, rgba(255,255,255,0.08) ${pct}%, rgba(255,255,255,0.08) 100%)`;
-        
-        document.querySelector('.stake-slider-label-right').textContent = 
-            'Выбранная сумма: ' + this.stakeAmount.toLocaleString();
-        document.querySelector('.stake-slider-label-left').textContent = 
-            'Баланс: ' + this.balance.toLocaleString();
+    const slider = document.getElementById('stakeSlider');
+    if (!slider) return;
+    
+    let maxStake = this.balance;
+    
+    if (this.targetGift) {
+        const giftsCost = this.selectedGifts.reduce((s, g) => s + g.price, 0);
+        // Максимальная ставка = цена цели - стоимость подарков - 1
+        // Чтобы сумма всегда была строго меньше цены цели
+        const maxForTarget = this.targetGift.price - giftsCost - 1;
+        if (maxForTarget < maxStake) maxStake = Math.max(0, maxForTarget);
     }
+    
+    slider.max = maxStake;
+    this.stakeAmount = Math.min(this.stakeAmount, maxStake);
+    slider.value = this.stakeAmount;
+    
+    const pct = maxStake > 0 ? (slider.value / maxStake) * 100 : 0;
+    slider.style.background = `linear-gradient(to right, #f0883e 0%, #f5c842 ${pct}%, rgba(255,255,255,0.08) ${pct}%, rgba(255,255,255,0.08) 100%)`;
+    
+    document.querySelector('.stake-slider-label-right').textContent = 
+        'Выбранная сумма: ' + this.stakeAmount.toLocaleString();
+    document.querySelector('.stake-slider-label-left').textContent = 
+        'Баланс: ' + this.balance.toLocaleString();
+}
 
     // В renderCurrentGiftCard() — иконка звёзд в квадрате выбранного
 renderCurrentGiftCard() {
