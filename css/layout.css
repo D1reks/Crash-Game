@@ -305,7 +305,7 @@
     padding: 0 12px 10px 12px; box-sizing: border-box;
 }
 .gift-list-panel {
-    width: 100%; height: 100%; background: #0d111f; border: 1px solid #1e2a45;
+    width: 100%; height: 100%; background: #08090d; border: 1px solid #1e2a45;
     border-radius: 10px; overflow: hidden; display: flex; flex-direction: column;
     box-shadow: 0 0 15px rgba(0, 0, 0, 0.4);
 }
