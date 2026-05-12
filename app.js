@@ -358,17 +358,20 @@ class UpgradeGame {
     const na = ((this.wheelAngle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
     const halfArc = this.currentChance * Math.PI;
     
-    // Заливка начинается снизу (6 часов = PI*1.5) и идёт вверх
-    // Центр зоны успеха = 6 часов = PI * 1.5
-    const zoneCenter = Math.PI * 1.5; // 270 градусов = низ колеса
+    // Заливка: от (PI/2 - halfArc) до (PI/2 + halfArc)
+    // То есть симметрично вокруг 12 часов
+    const zoneStart = (Math.PI / 2 - halfArc + Math.PI * 2) % (Math.PI * 2);
+    const zoneEnd = (Math.PI / 2 + halfArc) % (Math.PI * 2);
     
-    // Приводим na к системе отсчёта от центра зоны
-    let naFromCenter = na - zoneCenter;
-    if (naFromCenter < 0) naFromCenter += Math.PI * 2;
-    if (naFromCenter >= Math.PI * 2) naFromCenter -= Math.PI * 2;
+    let win;
+    if (zoneStart <= zoneEnd) {
+        // Зона не пересекает 0 градусов
+        win = na >= zoneStart && na <= zoneEnd;
+    } else {
+        // Зона пересекает 0 градусов (когда halfArc > PI/2, т.е. шанс > 50%)
+        win = na >= zoneStart || na <= zoneEnd;
+    }
     
-    // Успех: na в диапазоне zoneCenter ± halfArc
-    const win = naFromCenter <= halfArc || naFromCenter >= (Math.PI * 2 - halfArc);
     const sc = this.currentChance;
     
     this.wheelAngle = 0;
