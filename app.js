@@ -507,59 +507,62 @@ class UpgradeGame {
     }
 
     renderCurrentGiftCard() {
-        const card = document.getElementById('currentGiftCard'), no = document.getElementById('currentGiftNameOutside'), po = document.getElementById('currentGiftPriceOutside');
-        card.innerHTML = ''; card.className = 'gift-card current-gift';
+    const card = document.getElementById('currentGiftCard'), no = document.getElementById('currentGiftNameOutside'), po = document.getElementById('currentGiftPriceOutside');
+    card.innerHTML = ''; card.className = 'gift-card current-gift';
+    
+    const hasGifts = this.selectedGifts.length > 0;
+    const hasStake = this.stakeAmount > 0;
+    
+    if (hasGifts || hasStake) {
+        const grid = document.createElement('div'); grid.className = 'multi-gift-grid';
         
-        const hasGifts = this.selectedGifts.length > 0;
-        const hasStake = this.stakeAmount > 0;
+        // Вычисляем размер иконок в зависимости от общего количества элементов
+        const totalItems = this.selectedGifts.length + (hasStake ? 1 : 0);
+        const bs = totalItems <= 3 ? 55 : totalItems <= 6 ? 45 : 38;
         
-        if (hasGifts || hasStake) {
-            const grid = document.createElement('div'); grid.className = 'multi-gift-grid';
-            
-            if (hasGifts) {
-                const sg = this.selectedGifts.slice(0, 9);
-                const bs = sg.length <= 3 ? 55 : sg.length <= 6 ? 45 : 38;
-                for (const g of sg) { 
-                    const w = document.createElement('div'); w.className = 'multi-gift-item'; 
-                    const img = document.createElement('img'); img.className = 'gift-icon'; 
-                    img.src = g.icon; img.alt = g.name; img.style.maxHeight = bs + 'px'; 
-                    img.onerror = function() { this.src = 'images/gifts icons/Precious Peach.png'; }; 
-                    w.appendChild(img); grid.appendChild(w); 
-                }
-            }
-            
-            if (hasStake) {
+        if (hasGifts) {
+            const sg = this.selectedGifts.slice(0, 9);
+            for (const g of sg) { 
                 const w = document.createElement('div'); w.className = 'multi-gift-item'; 
-                const img = document.createElement('img'); img.className = 'star-deposit-icon'; 
-                img.src = 'images/deposit_stars_icon.png'; img.alt = 'Stars'; 
-                img.style.maxHeight = '45px';
+                const img = document.createElement('img'); img.className = 'gift-icon'; 
+                img.src = g.icon; img.alt = g.name; img.style.maxHeight = bs + 'px'; 
+                img.onerror = function() { this.src = 'images/gifts icons/Precious Peach.png'; }; 
                 w.appendChild(img); grid.appendChild(w); 
             }
-            
-            card.appendChild(grid);
-            
-            const total = this.getSelectedTotalCost();
-            const itemCount = this.selectedGifts.length + (hasStake ? 1 : 0);
-            
-            if (itemCount === 1) {
-                if (hasGifts && this.selectedGifts.length === 1 && !hasStake) {
-                    no.textContent = this.selectedGifts[0].name;
-                } else if (hasStake && !hasGifts) {
-                    no.textContent = 'Звёзды';
-                } else {
-                    no.textContent = 'Ставка';
-                }
-            } else {
-                no.textContent = 'Выбрано: ' + itemCount;
-            }
-            po.innerHTML = total + ' <span class="star-icon-small"></span>';
-        } else {
-            card.classList.add('empty-card');
-            const arrows = document.createElement('div'); arrows.className = 'placeholder-arrows left-arrows';
-            for (let i = 0; i < 3; i++) { const a = document.createElement('span'); a.className = 'placeholder-arrow'; a.textContent = '❱'; arrows.appendChild(a); }
-            card.appendChild(arrows); no.textContent = ''; po.textContent = '';
         }
+        
+        if (hasStake) {
+            const w = document.createElement('div'); w.className = 'multi-gift-item'; 
+            const img = document.createElement('img'); img.className = 'gift-icon'; 
+            img.src = 'images/deposit_stars_icon.png'; img.alt = 'Stars'; 
+            img.style.maxHeight = bs + 'px';
+            w.appendChild(img); grid.appendChild(w); 
+        }
+        
+        card.appendChild(grid);
+        
+        const total = this.getSelectedTotalCost();
+        const itemCount = this.selectedGifts.length + (hasStake ? 1 : 0);
+        
+        if (itemCount === 1) {
+            if (hasGifts && this.selectedGifts.length === 1 && !hasStake) {
+                no.textContent = this.selectedGifts[0].name;
+            } else if (hasStake && !hasGifts) {
+                no.textContent = 'Звёзды';
+            } else {
+                no.textContent = 'Ставка';
+            }
+        } else {
+            no.textContent = 'Выбрано: ' + itemCount;
+        }
+        po.innerHTML = total + ' <span class="star-icon-small"></span>';
+    } else {
+        card.classList.add('empty-card');
+        const arrows = document.createElement('div'); arrows.className = 'placeholder-arrows left-arrows';
+        for (let i = 0; i < 3; i++) { const a = document.createElement('span'); a.className = 'placeholder-arrow'; a.textContent = '❱'; arrows.appendChild(a); }
+        card.appendChild(arrows); no.textContent = ''; po.textContent = '';
     }
+}
 
     renderTargetGiftCard() {
         const card = document.getElementById('targetGiftCard'), no = document.getElementById('targetGiftNameOutside'), po = document.getElementById('targetGiftPriceOutside');
