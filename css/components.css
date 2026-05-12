@@ -383,7 +383,7 @@
 /* Поле поиска в панели подарков */
 .gift-list-search-row {
     display: flex; align-items: center;
-    padding: 6px 8px; background: #08090d;
+    padding: 6px 8px; background: rgba(255, 255, 255, 0.04);
     border-bottom: none; flex-shrink: 0;
 }
 .gift-list-search-input-wrapper { flex: 1; }
