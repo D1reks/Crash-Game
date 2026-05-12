@@ -79,7 +79,7 @@ class UpgradeGame {
         this.currentChance = 0; this.history = []; this.isSpinning = false;
         this.audioContext = null; this.soundEnabled = false;
         this.wheelAngle = 0; this.wheelAnimationId = null; this.resultTimeout = null;
-        this.sparkSystem = null; this.sellTargetGiftId = null; this.sellTargetEntryIndex = null; 
+        this.sparkSystem = null; this.sellTargetGiftId = null; this.sellTargetEntryIndex = null;
         this.activeTab = 'inventory';
         this.quickCoefs = [2, 4, 8]; this.quickPercents = [35, 55, 75]; this.spinType = 'normal';
         this.shopSortOrder = 'asc'; this.buyTargetGiftId = null;
@@ -249,21 +249,12 @@ class UpgradeGame {
             this.activeTab = 'inventory'; 
             document.getElementById('tabInventory').classList.add('active'); 
             document.getElementById('tabTargets').classList.remove('active'); 
-            document.getElementById('tabWithdraw').classList.remove('active'); 
             this.renderGiftList(); 
         });
         document.getElementById('tabTargets').addEventListener('click', () => { 
             this.activeTab = 'targets'; 
             document.getElementById('tabTargets').classList.add('active'); 
             document.getElementById('tabInventory').classList.remove('active'); 
-            document.getElementById('tabWithdraw').classList.remove('active'); 
-            this.renderGiftList(); 
-        });
-        document.getElementById('tabWithdraw').addEventListener('click', () => { 
-            this.activeTab = 'withdraw'; 
-            document.getElementById('tabWithdraw').classList.add('active'); 
-            document.getElementById('tabInventory').classList.remove('active'); 
-            document.getElementById('tabTargets').classList.remove('active'); 
             this.renderGiftList(); 
         });
         
@@ -489,7 +480,7 @@ class UpgradeGame {
         if (this.selectedGifts.length > 0) {
             const grid = document.createElement('div'); grid.className = 'multi-gift-grid';
             const sg = this.selectedGifts.slice(0,9);
-            const bs = sg.length<=3?42:sg.length<=6?38:32;
+            const bs = sg.length<=3?65:sg.length<=6?50:40;
             for (const g of sg) { const w = document.createElement('div'); w.className = 'multi-gift-item'; const img = document.createElement('img'); img.className = 'gift-icon'; img.src = g.icon; img.alt = g.name; img.style.maxHeight = bs+'px'; img.onerror = function() { this.src = 'images/gifts icons/Precious Peach.png'; }; w.appendChild(img); grid.appendChild(w); }
             card.appendChild(grid);
             if (this.selectedGifts.length===1) { no.textContent = this.selectedGifts[0].name; po.innerHTML = this.selectedGifts[0].price+' <span class="star-icon-small"></span>'; }
@@ -645,7 +636,6 @@ class UpgradeGame {
     renderGiftList() { 
         if (this.activeTab === 'inventory') this.renderInventoryListInPanel(); 
         else if (this.activeTab === 'targets') this.renderTargetsListInPanel(); 
-        else if (this.activeTab === 'withdraw') this.renderWithdrawListInPanel(); 
     }
 
     renderInventoryListInPanel() {
@@ -679,22 +669,25 @@ class UpgradeGame {
                     <div class="gift-list-item-name">${g.name}</div>
                     <div class="gift-list-item-price">${g.price} <span class="star-icon-small"></span></div>
                 </div>
+                <button class="withdraw-icon-btn" data-entry-index="${realIndex}">Вывести</button>
                 <button class="sell-icon-btn" data-entry-index="${realIndex}">Продать</button>
             </div>`;
         }).join('');
         
         c.querySelectorAll('.gift-list-item').forEach(item => {
             item.addEventListener('click', (e) => {
-                if (e.target.closest('.sell-icon-btn')) return;
+                if (e.target.closest('.sell-icon-btn') || e.target.closest('.withdraw-icon-btn')) return;
                 this.toggleGiftSelection(item.dataset.giftId);
             });
         });
         c.querySelectorAll('.sell-icon-btn').forEach(btn => btn.addEventListener('click', e => {
             e.stopPropagation();
             const entryIdx = parseInt(btn.dataset.entryIndex);
-            if (!isNaN(entryIdx)) {
-                this.sellSpecificEntry(entryIdx);
-            }
+            if (!isNaN(entryIdx)) this.sellSpecificEntry(entryIdx);
+        }));
+        c.querySelectorAll('.withdraw-icon-btn').forEach(btn => btn.addEventListener('click', e => {
+            e.stopPropagation();
+            alert('Функция вывода будет доступна с интеграцией бота Telegram.');
         }));
     }
 
@@ -733,46 +726,6 @@ class UpgradeGame {
             if (this.isSpinning) return;
             const gid = item.dataset.giftId, tgt = ALL_GIFTS.find(g => g.id===gid);
             if (tgt && (!this.primaryGift || tgt.price > this.getSelectedTotalCost())) { this.targetGiftId = gid; this.updateChance(); this.renderAll(); this.saveToStorage(); }
-        }));
-    }
-
-    renderWithdrawListInPanel() {
-        const c = document.getElementById('giftListContent');
-        const allEntries = this.inventory;
-        const search = (document.getElementById('giftListSearchInput')?.value || '').toLowerCase();
-        
-        if (!allEntries.length) {
-            c.innerHTML = '<div style="padding:20px;text-align:center;color:#6b7daa;font-size:12px;">Нет подарков для вывода</div>';
-            return;
-        }
-        
-        const sorted = [...allEntries].sort((a, b) => {
-            if (a.giftId !== b.giftId) return a.giftId.localeCompare(b.giftId);
-            return (a.acquiredAt || 0) - (b.acquiredAt || 0);
-        });
-        
-        const filtered = sorted.filter(entry => {
-            const g = ALL_GIFTS.find(x => x.id === entry.giftId);
-            return g && g.name.toLowerCase().includes(search);
-        });
-        
-        c.innerHTML = filtered.map((entry) => {
-            const g = ALL_GIFTS.find(x => x.id === entry.giftId);
-            if (!g) return '';
-            const realIndex = sorted.indexOf(entry);
-            return `<div class="gift-list-item" data-entry-index="${realIndex}" data-gift-id="${entry.giftId}">
-                <img src="${g.icon}" alt="${g.name}" class="gift-icon-small" onerror="this.src='images/gifts icons/Precious Peach.png'">
-                <div class="gift-list-item-info">
-                    <div class="gift-list-item-name">${g.name}</div>
-                    <div class="gift-list-item-price">${g.price} <span class="star-icon-small"></span></div>
-                </div>
-                <button class="withdraw-icon-btn" data-entry-index="${realIndex}">Вывести</button>
-            </div>`;
-        }).join('');
-        
-        c.querySelectorAll('.withdraw-icon-btn').forEach(btn => btn.addEventListener('click', e => {
-            e.stopPropagation();
-            alert('Функция вывода будет доступна с интеграцией бота Telegram.');
         }));
     }
 
