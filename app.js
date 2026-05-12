@@ -9,13 +9,6 @@
 
 let ALL_GIFTS = [];
 
-// let iconsLoaded = 0;
-// let iconsTotal = 0;
-// function showImagePreloader() { ... }
-// function hideImagePreloader() { ... }
-// function updatePreloaderProgress() { ... }
-// async function loadGiftsFromTelegram() { ... }
-
 function loadFallbackGifts() {
     ALL_GIFTS = [
         { id: 'precious_peach', name: 'Precious Peach', icon: 'images/gifts icons/Precious Peach.png', price: 50 },
@@ -123,6 +116,7 @@ class UpgradeGame {
         
         this.loadFromStorage(); this.deduplicateInventory();
         if (this.inventory.length > 0 && this.selectedGiftIds.length === 0) this.selectedGiftIds = [this.inventory[0].giftId];
+        // targetGiftId не выбираем автоматически — остаётся null
         this.updateChance();
         this.sparkSystem = new SparkSystem(document.getElementById('sparkCanvas'));
         this.loadSettings(); this.renderQuickButtons(); this.setupEventListeners(); this.renderAll();
@@ -132,9 +126,24 @@ class UpgradeGame {
 
     updateChance() {
         const tc = this.getSelectedTotalCost();
+        
+        // Авто-выбор следующей цели если шанс >= 100%
+        if (this.targetGift && tc > 0) {
+            if (tc >= this.targetGift.price / 0.95) {
+                const allTargets = ALL_GIFTS.filter(g => g.price > tc).sort((a, b) => a.price - b.price);
+                if (allTargets.length > 0) {
+                    this.targetGiftId = allTargets[0].id;
+                    this.updateChance();
+                    return;
+                }
+            }
+        }
+        
         if (this.targetGift && this.targetGift.price > tc) {
             this.currentChance = this.calculateChance(tc, this.targetGift.price);
-        } else { this.currentChance = 0; }
+        } else {
+            this.currentChance = 0;
+        }
     }
 
     loadFromStorage() { try { const s = localStorage.getItem('upgrade_stars_v12'); if (s) { const d = JSON.parse(s); this.balance = d.balance||1000; this.inventory = d.inventory||[]; this.history = d.history||[]; this.selectedGiftIds = d.selectedGiftIds||[]; this.targetGiftId = d.targetGiftId||null; } } catch(e){} }
@@ -158,118 +167,119 @@ class UpgradeGame {
     }
 
     setupEventListeners() {
-        document.getElementById('upgradeBtn').addEventListener('click', () => this.startUpgrade());
-        document.getElementById('currentGiftCard').addEventListener('click', () => { 
-            if (this.isSpinning) return; 
-            if (this.selectedGiftIds.length > 0) { 
-                this.selectedGiftIds = []; 
-                this.updateChance(); 
-                this.renderAll(); 
-                this.saveToStorage(); 
-            } 
-        });
-        
-        let selectedTopupMethod = 'stars';
-        document.getElementById('balanceContainer').addEventListener('click', () => {
-            selectedTopupMethod = 'stars';
-            document.getElementById('topupSelectIcon').src = 'images/deposit_stars_icon.png';
-            document.getElementById('topupSelectText').textContent = 'Звезды Telegram';
+    document.getElementById('upgradeBtn').addEventListener('click', () => this.startUpgrade());
+    document.getElementById('currentGiftCard').addEventListener('click', () => { 
+        if (this.isSpinning) return; 
+        if (this.selectedGiftIds.length > 0) { 
+            this.selectedGiftIds = []; 
+            this.updateChance(); 
+            this.renderAll(); 
+            this.saveToStorage(); 
+        } 
+    });
+    
+    let selectedTopupMethod = 'stars';
+    document.getElementById('balanceContainer').addEventListener('click', () => {
+        selectedTopupMethod = 'stars';
+        document.getElementById('topupSelectIcon').src = 'images/deposit_stars_icon.png';
+        document.getElementById('topupSelectText').textContent = 'Звезды Telegram';
+        document.getElementById('topupCustomSelect').classList.remove('open');
+        document.getElementById('balanceTopupOverlay').classList.add('show');
+    });
+    document.getElementById('closeTopupBtn').addEventListener('click', () => document.getElementById('balanceTopupOverlay').classList.remove('show'));
+    
+    document.getElementById('topupSelectHeader').addEventListener('click', () => {
+        document.getElementById('topupCustomSelect').classList.toggle('open');
+    });
+    
+    document.querySelectorAll('.topup-select-option').forEach(opt => {
+        opt.addEventListener('click', (e) => {
+            selectedTopupMethod = opt.dataset.value;
+            document.getElementById('topupSelectIcon').src = opt.dataset.icon;
+            document.getElementById('topupSelectText').textContent = opt.textContent.trim();
             document.getElementById('topupCustomSelect').classList.remove('open');
-            document.getElementById('balanceTopupOverlay').classList.add('show');
         });
-        document.getElementById('closeTopupBtn').addEventListener('click', () => document.getElementById('balanceTopupOverlay').classList.remove('show'));
-        
-        document.getElementById('topupSelectHeader').addEventListener('click', () => {
-            document.getElementById('topupCustomSelect').classList.toggle('open');
-        });
-        
-        document.querySelectorAll('.topup-select-option').forEach(opt => {
-            opt.addEventListener('click', (e) => {
-                selectedTopupMethod = opt.dataset.value;
-                document.getElementById('topupSelectIcon').src = opt.dataset.icon;
-                document.getElementById('topupSelectText').textContent = opt.textContent.trim();
-                document.getElementById('topupCustomSelect').classList.remove('open');
-            });
-        });
-        
-        document.getElementById('topupConfirmBtn').addEventListener('click', () => {
-            if (selectedTopupMethod === 'stars') {
-                this.balance += 500;
-                this.renderAll(); this.saveToStorage();
-                document.getElementById('balanceTopupOverlay').classList.remove('show');
-            } else if (selectedTopupMethod === 'gifts') {
-                alert('Функция пополнения подарками Telegram будет доступна с интеграцией бота.');
-                document.getElementById('balanceTopupOverlay').classList.remove('show');
-            } else if (selectedTopupMethod === 'ton') {
-                alert('Оплата через TON будет доступна в следующем обновлении.');
-                document.getElementById('balanceTopupOverlay').classList.remove('show');
-            }
-        });
-        
-        document.getElementById('balanceTopupOverlay').addEventListener('click', (e) => {
-            if (!e.target.closest('#topupCustomSelect')) {
-                document.getElementById('topupCustomSelect').classList.remove('open');
-            }
-        });
-        
-        document.getElementById('shopBtn').addEventListener('click', () => { 
-            document.getElementById('shopOverlay').classList.add('show'); 
-            document.getElementById('sortAsc').classList.add('active');
-            document.getElementById('sortDesc').classList.remove('active');
-            this.shopSortOrder = 'asc';
-            document.getElementById('shopSearchInput').value = '';
-            this.renderShop(); 
-        });
-        document.getElementById('closeShopBtn').addEventListener('click', () => document.getElementById('shopOverlay').classList.remove('show'));
-        document.getElementById('shopSearchInput').addEventListener('input', () => this.renderShop());
-        document.getElementById('sortAsc').addEventListener('click', () => {
-            this.shopSortOrder = 'asc';
-            document.getElementById('sortAsc').classList.add('active');
-            document.getElementById('sortDesc').classList.remove('active');
-            this.renderShop();
-        });
-        document.getElementById('sortDesc').addEventListener('click', () => {
-            this.shopSortOrder = 'desc';
-            document.getElementById('sortDesc').classList.add('active');
-            document.getElementById('sortAsc').classList.remove('active');
-            this.renderShop();
-        });
-        
-        document.getElementById('buyModalConfirm').addEventListener('click', () => this.confirmBuy());
-        document.getElementById('buyModalCancel').addEventListener('click', () => this.closeBuyModal());
-        document.getElementById('buyModalOverlay').addEventListener('click', e => { if (e.target === document.getElementById('buyModalOverlay')) this.closeBuyModal(); });
-        
-        document.getElementById('sellConfirmBtn').addEventListener('click', () => this.confirmSell());
-        document.getElementById('sellCancelBtn').addEventListener('click', () => this.closeSellOverlay());
-        document.getElementById('sellOverlay').addEventListener('click', e => { if (e.target === document.getElementById('sellOverlay')) this.closeSellOverlay(); });
-        
-        document.getElementById('settingsBtn').addEventListener('click', () => this.openSettings());
-        document.getElementById('settingsSaveBtn').addEventListener('click', () => this.saveSettingsFromUI());
-        document.getElementById('settingsOverlay').addEventListener('click', e => { if (e.target === document.getElementById('settingsOverlay')) document.getElementById('settingsOverlay').classList.remove('show'); });
-        
-        document.getElementById('tabInventory').addEventListener('click', () => { 
-            this.activeTab = 'inventory'; 
-            document.getElementById('tabInventory').classList.add('active'); 
-            document.getElementById('tabTargets').classList.remove('active'); 
-            this.renderGiftList(); 
-        });
-        document.getElementById('tabTargets').addEventListener('click', () => { 
-            this.activeTab = 'targets'; 
-            document.getElementById('tabTargets').classList.add('active'); 
-            document.getElementById('tabInventory').classList.remove('active'); 
-            this.renderGiftList(); 
-        });
-        
-        document.getElementById('giftListSearchInput').addEventListener('input', () => this.renderGiftList());
-        
-        document.getElementById('stakeSlider').addEventListener('input', (e) => {
-            this.stakeAmount = parseInt(e.target.value) || 0;
-            this.updateChance();
-            this.renderAll();
-        });
-        
-        document.body.addEventListener('click', () => { if (!this.soundEnabled) this.initAudio(); }, { once: true });
-    }
+    });
+    
+    document.getElementById('topupConfirmBtn').addEventListener('click', () => {
+        if (selectedTopupMethod === 'stars') {
+            this.balance += 500;
+            this.renderAll(); this.saveToStorage();
+            document.getElementById('balanceTopupOverlay').classList.remove('show');
+        } else if (selectedTopupMethod === 'gifts') {
+            alert('Функция пополнения подарками Telegram будет доступна с интеграцией бота.');
+            document.getElementById('balanceTopupOverlay').classList.remove('show');
+        } else if (selectedTopupMethod === 'ton') {
+            alert('Оплата через TON будет доступна в следующем обновлении.');
+            document.getElementById('balanceTopupOverlay').classList.remove('show');
+        }
+    });
+    
+    document.getElementById('balanceTopupOverlay').addEventListener('click', (e) => {
+        if (!e.target.closest('#topupCustomSelect')) {
+            document.getElementById('topupCustomSelect').classList.remove('open');
+        }
+    });
+    
+    document.getElementById('shopBtn').addEventListener('click', () => { 
+        document.getElementById('shopOverlay').classList.add('show'); 
+        document.getElementById('sortAsc').classList.add('active');
+        document.getElementById('sortDesc').classList.remove('active');
+        this.shopSortOrder = 'asc';
+        document.getElementById('shopSearchInput').value = '';
+        this.renderShop(); 
+    });
+    document.getElementById('closeShopBtn').addEventListener('click', () => document.getElementById('shopOverlay').classList.remove('show'));
+    document.getElementById('shopSearchInput').addEventListener('input', () => this.renderShop());
+    document.getElementById('sortAsc').addEventListener('click', () => {
+        this.shopSortOrder = 'asc';
+        document.getElementById('sortAsc').classList.add('active');
+        document.getElementById('sortDesc').classList.remove('active');
+        this.renderShop();
+    });
+    document.getElementById('sortDesc').addEventListener('click', () => {
+        this.shopSortOrder = 'desc';
+        document.getElementById('sortDesc').classList.add('active');
+        document.getElementById('sortAsc').classList.remove('active');
+        this.renderShop();
+    });
+    
+    document.getElementById('buyModalConfirm').addEventListener('click', () => this.confirmBuy());
+    document.getElementById('buyModalCancel').addEventListener('click', () => this.closeBuyModal());
+    document.getElementById('buyModalOverlay').addEventListener('click', e => { if (e.target === document.getElementById('buyModalOverlay')) this.closeBuyModal(); });
+    
+    document.getElementById('sellConfirmBtn').addEventListener('click', () => this.confirmSell());
+    document.getElementById('sellCancelBtn').addEventListener('click', () => this.closeSellOverlay());
+    document.getElementById('sellOverlay').addEventListener('click', e => { if (e.target === document.getElementById('sellOverlay')) this.closeSellOverlay(); });
+    
+    document.getElementById('settingsBtn').addEventListener('click', () => this.openSettings());
+    document.getElementById('settingsSaveBtn').addEventListener('click', () => this.saveSettingsFromUI());
+    document.getElementById('settingsOverlay').addEventListener('click', e => { if (e.target === document.getElementById('settingsOverlay')) document.getElementById('settingsOverlay').classList.remove('show'); });
+    
+    document.getElementById('tabInventory').addEventListener('click', () => { 
+        this.activeTab = 'inventory'; 
+        document.getElementById('tabInventory').classList.add('active'); 
+        document.getElementById('tabTargets').classList.remove('active'); 
+        this.renderGiftList(); 
+    });
+    document.getElementById('tabTargets').addEventListener('click', () => { 
+        this.activeTab = 'targets'; 
+        document.getElementById('tabTargets').classList.add('active'); 
+        document.getElementById('tabInventory').classList.remove('active'); 
+        this.renderGiftList(); 
+    });
+    
+    document.getElementById('giftListSearchInput').addEventListener('input', () => this.renderGiftList());
+    
+    document.getElementById('stakeSlider').addEventListener('input', (e) => {
+        this.stakeAmount = parseInt(e.target.value) || 0;
+        this.updateChance();
+        this.renderAll();
+        this.updateStakeSlider();
+    });
+    
+    document.body.addEventListener('click', () => { if (!this.soundEnabled) this.initAudio(); }, { once: true });
+}
 
     openSettings() {
         document.getElementById('settingCoef1').value = this.quickCoefs[0]||2;
@@ -425,16 +435,13 @@ class UpgradeGame {
     }
 
     onUpgradeSuccess(sc) {
-        // Списываем баланс
         if (this.stakeAmount > 0) {
             this.balance -= this.stakeAmount;
         }
-        // Удаляем выбранные подарки
         for (const g of this.selectedGifts) { 
             const idx = this.inventory.findIndex(e => e.giftId === g.id); 
             if(idx !== -1) this.inventory.splice(idx, 1); 
         }
-        // Добавляем целевой подарок
         const ng = this.targetGift;
         if (!this.inventory.find(e => e.giftId === ng.id)) this.inventory.push({ giftId: ng.id, acquiredAt: Date.now() });
         
@@ -448,11 +455,9 @@ class UpgradeGame {
     }
 
     onUpgradeFail(sc) {
-        // Списываем баланс
         if (this.stakeAmount > 0) {
             this.balance -= this.stakeAmount;
         }
-        // Удаляем выбранные подарки
         for (const g of this.selectedGifts) { 
             const idx = this.inventory.findIndex(e => e.giftId === g.id); 
             if(idx !== -1) this.inventory.splice(idx, 1); 
@@ -494,10 +499,20 @@ class UpgradeGame {
     updateStakeSlider() {
         const slider = document.getElementById('stakeSlider');
         if (!slider) return;
-        slider.max = this.balance;
-        slider.value = Math.min(this.stakeAmount, this.balance);
         
-        const pct = (slider.value / slider.max) * 100;
+        let maxStake = this.balance;
+        
+        if (this.targetGift) {
+            const giftsCost = this.selectedGifts.reduce((s, g) => s + g.price, 0);
+            const maxForTarget = Math.floor(this.targetGift.price / 0.95 - giftsCost);
+            if (maxForTarget < maxStake) maxStake = Math.max(0, maxForTarget);
+        }
+        
+        slider.max = maxStake;
+        this.stakeAmount = Math.min(this.stakeAmount, maxStake);
+        slider.value = this.stakeAmount;
+        
+        const pct = maxStake > 0 ? (slider.value / maxStake) * 100 : 0;
         slider.style.background = `linear-gradient(to right, #f0883e 0%, #f5c842 ${pct}%, rgba(255,255,255,0.08) ${pct}%, rgba(255,255,255,0.08) 100%)`;
         
         document.querySelector('.stake-slider-label-right').textContent = 
@@ -506,7 +521,8 @@ class UpgradeGame {
             'Баланс: ' + this.balance.toLocaleString();
     }
 
-    renderCurrentGiftCard() {
+    // В renderCurrentGiftCard() — иконка звёзд в квадрате выбранного
+renderCurrentGiftCard() {
     const card = document.getElementById('currentGiftCard'), no = document.getElementById('currentGiftNameOutside'), po = document.getElementById('currentGiftPriceOutside');
     card.innerHTML = ''; card.className = 'gift-card current-gift';
     
@@ -516,7 +532,6 @@ class UpgradeGame {
     if (hasGifts || hasStake) {
         const grid = document.createElement('div'); grid.className = 'multi-gift-grid';
         
-        // Вычисляем размер иконок в зависимости от общего количества элементов
         const totalItems = this.selectedGifts.length + (hasStake ? 1 : 0);
         const bs = totalItems <= 3 ? 55 : totalItems <= 6 ? 45 : 38;
         
@@ -534,7 +549,7 @@ class UpgradeGame {
         if (hasStake) {
             const w = document.createElement('div'); w.className = 'multi-gift-item'; 
             const img = document.createElement('img'); img.className = 'gift-icon'; 
-            img.src = 'images/deposit_stars_icon.png'; img.alt = 'Stars'; 
+            img.src = 'images/stars.png'; img.alt = 'Stars'; 
             img.style.maxHeight = bs + 'px';
             w.appendChild(img); grid.appendChild(w); 
         }
