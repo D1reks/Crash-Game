@@ -140,20 +140,20 @@ class UpgradeGame {
     saveSettings() { try { localStorage.setItem('upgift_settings', JSON.stringify({ quickCoefs: this.quickCoefs, quickPercents: this.quickPercents, soundEnabled: this.soundEnabled, spinType: this.spinType })); } catch(e){} }
 
     renderQuickButtons() {
-        const c = document.getElementById('quickBetButtons'); if (!c) return;
-        let h = '';
-        for (const x of this.quickCoefs) h += `<button class="quick-bet-btn" data-fraction="1/${x}">x${x}</button>`;
-        const pcts = this.quickPercents;
-        if (pcts[0] !== undefined) h += `<button class="quick-bet-btn chance-btn-35" data-fraction="${pcts[0]}/100">${pcts[0]}%</button>`;
-        if (pcts[1] !== undefined) h += `<button class="quick-bet-btn chance-btn-55" data-fraction="${pcts[1]}/100">${pcts[1]}%</button>`;
-        if (pcts[2] !== undefined) h += `<button class="quick-bet-btn chance-btn-75" data-fraction="${pcts[2]}/100">${pcts[2]}%</button>`;
-        c.innerHTML = h;
-        c.querySelectorAll('.quick-bet-btn').forEach(b => b.addEventListener('click', e => {
-            if (this.isSpinning||!this.primaryGift) return;
-            const f = e.target.dataset.fraction, g = this.findTargetByFraction(f);
-            if (g) { this.targetGiftId = g.id; this.updateChance(); this.renderAll(); this.highlightQuickButton(f); }
-        }));
+    const c = document.getElementById('quickBetButtons'); if (!c) return;
+    let h = '';
+    for (const x of this.quickCoefs) h += `<button class="quick-bet-btn" data-fraction="1/${x}">x${x}</button>`;
+    // ВСЕ кнопки процентов теперь с единым классом, без кастомных
+    for (const p of this.quickPercents) {
+        h += `<button class="quick-bet-btn" data-fraction="${p}/100">${p}%</button>`;
     }
+    c.innerHTML = h;
+    c.querySelectorAll('.quick-bet-btn').forEach(b => b.addEventListener('click', e => {
+        if (this.isSpinning||!this.primaryGift) return;
+        const f = e.target.dataset.fraction, g = this.findTargetByFraction(f);
+        if (g) { this.targetGiftId = g.id; this.updateChance(); this.renderAll(); this.highlightQuickButton(f); }
+    }));
+}
 
     setupEventListeners() {
     document.getElementById('upgradeBtn').addEventListener('click', () => this.startUpgrade());
@@ -341,31 +341,30 @@ class UpgradeGame {
     this.wheelAnimationId = requestAnimationFrame(anim);
 }
 
-    onSpinComplete() {
-        const na = ((this.wheelAngle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
-        const se = this.currentChance * Math.PI * 2;
-        const win = na <= se;
-        const sc = this.currentChance;
-        this.wheelAngle = 0;
-        this.drawWheel();
-        
-        if (win) this.onUpgradeSuccess(sc);
-        else this.onUpgradeFail(sc);
-        
-        setTimeout(() => {
-            document.getElementById('wheelModalOverlay').classList.remove('show');
-            document.getElementById('app').classList.remove('blurred');
-            this.isSpinning = false;
-            const btn = document.getElementById('upgradeBtn');
-            btn.classList.remove('spinning'); btn.textContent = 'Прокачать'; btn.disabled = false;
-            document.querySelectorAll('.quick-bet-btn').forEach(b => b.disabled = false);
-            document.getElementById('currentGiftCard').classList.remove('spinning-disabled');
-            document.getElementById('targetGiftCard').classList.remove('spinning-disabled');
-            document.getElementById('giftListContent').style.pointerEvents = 'auto';
-            document.getElementById('giftListContent').style.opacity = '1';
-            this.renderAll();
-        }, 1800);
-    }
+   onSpinComplete() {
+    const na = ((this.wheelAngle % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+    const halfArc = this.currentChance * Math.PI;
+    // Угол 0 = верх колеса = центр зоны успеха
+    // Успех: na в диапазоне [0, halfArc] или [2*PI - halfArc, 2*PI]
+    const win = na <= halfArc || na >= (Math.PI * 2 - halfArc);
+    const sc = this.currentChance;
+    
+    this.wheelAngle = 0;
+    this.drawWheel();
+    
+    if (win) this.onUpgradeSuccess(sc);
+    else this.onUpgradeFail(sc);
+    
+    setTimeout(() => {
+        document.getElementById('wheelModalOverlay').classList.remove('show');
+        document.getElementById('app').classList.remove('blurred');
+        this.isSpinning = false;
+        const btn = document.getElementById('upgradeBtn');
+        btn.classList.remove('spinning'); btn.textContent = 'Прокачать'; btn.disabled = false;
+        document.querySelectorAll('.quick-bet-btn').forEach(b => b.disabled = false);
+        this.renderAll();
+    }, 1800);
+}
 
     onUpgradeSuccess(sc) {
         const ng = this.targetGift;
@@ -571,44 +570,74 @@ class UpgradeGame {
     renderGiftList() { if (this.activeTab==='inventory') this.renderInventoryListInPanel(); else this.renderTargetsListInPanel(); }
 
     renderInventoryListInPanel() {
-        const c = document.getElementById('giftListContent');
-        const allGifts = this.inventoryGifts;
-        if (!allGifts.length) { c.innerHTML = '<div style="padding:20px;text-align:center;color:#6b7daa;font-size:12px;">Пусто</div>'; return; }
-        
-        const grouped = [];
-        for (const g of allGifts) {
-            const existing = grouped.find(x => x.gift.id === g.id);
-            if (existing) {
-                existing.count++;
-            } else {
-                grouped.push({ gift: g, count: 1 });
-            }
-        }
-        
-        c.innerHTML = grouped.map(grp => {
-            const isSel = this.selectedGiftIds.filter(id => id === grp.gift.id || ALL_GIFTS.find(g => g.id === id)?.id === grp.gift.id).length > 0;
-            const displayName = grp.count > 1 ? `${grp.gift.name} (${grp.count} шт.)` : grp.gift.name;
-            const selCount = this.selectedGiftIds.filter(id => ALL_GIFTS.find(g => g.id === id)?.id === grp.gift.id).length;
-            const statusText = selCount > 0 && selCount < grp.count ? `Выбрано: ${selCount}/${grp.count}` : '';
-            
-            return `<div class="gift-list-item ${selCount > 0 ? 'selected-for-upgrade' : ''}" data-gift-id="${grp.gift.id}">
-                <img src="${grp.gift.icon}" alt="${grp.gift.name}" class="gift-icon-small" onerror="this.src='images/gifts icons/Precious Peach.png'">
-                <div class="gift-list-item-info">
-                    <div class="gift-list-item-name">${displayName} ${statusText ? `<span style="color:#ffd700;font-size:10px;">${statusText}</span>` : ''}</div>
-                    <div class="gift-list-item-price">${grp.gift.price} <span class="star-icon-small"></span></div>
-                </div>
-                <button class="sell-icon-btn" data-gift-id="${grp.gift.id}">Продать</button>
-            </div>`;
-        }).join('');
-        
-        c.querySelectorAll('.gift-list-item').forEach(item => {
-            item.addEventListener('click', (e) => {
-                if (e.target.closest('.sell-icon-btn')) return;
-                this.toggleGiftSelection(item.dataset.giftId);
-            });
-        });
-        c.querySelectorAll('.sell-icon-btn').forEach(btn => btn.addEventListener('click', e => { e.stopPropagation(); this.openSellOverlay(btn.dataset.giftId); }));
+    const c = document.getElementById('giftListContent');
+    const allEntries = this.inventory; // Все экземпляры без группировки
+    
+    if (!allEntries.length) {
+        c.innerHTML = '<div style="padding:20px;text-align:center;color:#6b7daa;font-size:12px;">Пусто</div>';
+        return;
     }
+    
+    // Показываем каждый подарок отдельной строкой
+    // Сортируем: сначала по giftId, затем по acquiredAt (старые сверху)
+    const sorted = [...allEntries].sort((a, b) => {
+        if (a.giftId !== b.giftId) return a.giftId.localeCompare(b.giftId);
+        return (a.acquiredAt || 0) - (b.acquiredAt || 0);
+    });
+    
+    c.innerHTML = sorted.map((entry, index) => {
+        const g = ALL_GIFTS.find(x => x.id === entry.giftId);
+        if (!g) return '';
+        const isSel = this.selectedGiftIds.includes(entry.giftId);
+        return `<div class="gift-list-item ${isSel ? 'selected-for-upgrade' : ''}" data-entry-index="${index}" data-gift-id="${entry.giftId}">
+            <img src="${g.icon}" alt="${g.name}" class="gift-icon-small" onerror="this.src='images/gifts icons/Precious Peach.png'">
+            <div class="gift-list-item-info">
+                <div class="gift-list-item-name">${g.name}</div>
+                <div class="gift-list-item-price">${g.price} <span class="star-icon-small"></span></div>
+            </div>
+            <button class="sell-icon-btn" data-entry-index="${index}" data-gift-id="${entry.giftId}">Продать</button>
+        </div>`;
+    }).join('');
+    
+    c.querySelectorAll('.gift-list-item').forEach(item => {
+        item.addEventListener('click', (e) => {
+            if (e.target.closest('.sell-icon-btn')) return;
+            this.toggleGiftSelection(item.dataset.giftId);
+        });
+    });
+    c.querySelectorAll('.sell-icon-btn').forEach(btn => btn.addEventListener('click', e => {
+        e.stopPropagation();
+        const entryIdx = parseInt(btn.dataset.entryIndex);
+        if (!isNaN(entryIdx)) {
+            // Продаём этот конкретный экземпляр
+            this.sellSpecificEntry(entryIdx);
+        }
+    }));
+}
+
+sellSpecificEntry(entryIndex) {
+    if (entryIndex < 0 || entryIndex >= this.inventory.length) return;
+    const entry = this.inventory[entryIndex];
+    const gift = ALL_GIFTS.find(g => g.id === entry.giftId);
+    if (!gift) return;
+    
+    // Удаляем этот экземпляр
+    this.inventory.splice(entryIndex, 1);
+    this.balance += gift.price;
+    
+    // Убираем из выбранных, если был выбран
+    const si = this.selectedGiftIds.indexOf(entry.giftId);
+    if (si !== -1) this.selectedGiftIds.splice(si, 1);
+    
+    if (this.selectedGiftIds.length === 0 && this.inventory.length > 0) {
+        this.selectedGiftIds = [this.inventory[0].giftId];
+    }
+    
+    this.updateChance();
+    this.saveToStorage();
+    this.renderAll();
+    this.closeSellOverlay();
+}
 
     renderTargetsListInPanel() {
         const c = document.getElementById('giftListContent'), t = this.getAllTargets();
