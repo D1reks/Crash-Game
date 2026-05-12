@@ -112,12 +112,19 @@ class UpgradeGame {
     }
 
     async init() {
-        this.loadFromStorage(); this.deduplicateInventory();
-        if (this.inventory.length > 0 && this.selectedGiftIds.length === 0) this.selectedGiftIds = [this.inventory[0].giftId];
-        this.updateChance();
-        this.sparkSystem = new SparkSystem(document.getElementById('sparkCanvas'));
-        this.loadSettings(); this.renderQuickButtons(); this.setupEventListeners(); this.renderAll();
+    // Скрываем прелоадер
+    const pl = document.getElementById('preloader');
+    if (pl) {
+        pl.classList.add('hide');
+        setTimeout(() => { if (pl.parentNode) pl.remove(); }, 300);
     }
+    
+    this.loadFromStorage(); this.deduplicateInventory();
+    if (this.inventory.length > 0 && this.selectedGiftIds.length === 0) this.selectedGiftIds = [this.inventory[0].giftId];
+    this.updateChance();
+    this.sparkSystem = new SparkSystem(document.getElementById('sparkCanvas'));
+    this.loadSettings(); this.renderQuickButtons(); this.setupEventListeners(); this.renderAll();
+}
 
     deduplicateInventory() { const s = new Set(); const u = []; for (const e of this.inventory) { if (!s.has(e.giftId)) { s.add(e.giftId); u.push(e); } } this.inventory = u; }
 
