@@ -1,107 +1,20 @@
-const BOT_TOKEN = '8735246963:AAGjkrD0XgQODWcy5d8XV4KIMwpNwJxdA4Y';
-
-let tg = null;
-if (window.Telegram && window.Telegram.WebApp) {
-    tg = window.Telegram.WebApp;
-    tg.ready();
-    tg.expand();
-    tg.enableClosingConfirmation();
-}
+// const BOT_TOKEN = '8735246963:AAGjkrD0XgQODWcy5d8XV4KIMwpNwJxdA4Y';
+// let tg = null;
+// if (window.Telegram && window.Telegram.WebApp) {
+//     tg = window.Telegram.WebApp;
+//     tg.ready();
+//     tg.expand();
+//     tg.enableClosingConfirmation();
+// }
 
 let ALL_GIFTS = [];
 
-let iconsLoaded = 0;
-let iconsTotal = 0;
-
-function showImagePreloader() {
-    const pl = document.getElementById('preloader');
-    if (pl) {
-        pl.classList.remove('hide');
-        pl.querySelector('.preloader-text').textContent = 'UPGIFT';
-    }
-}
-
-function hideImagePreloader() {
-    const pl = document.getElementById('preloader');
-    if (pl) {
-        pl.classList.add('hide');
-        setTimeout(() => { if (pl.parentNode) pl.remove(); }, 300);
-    }
-}
-
-function updatePreloaderProgress() {
-    iconsLoaded++;
-    const pl = document.getElementById('preloader');
-    if (pl && iconsTotal > 0) {
-        const pct = Math.round((iconsLoaded / iconsTotal) * 100);
-        pl.querySelector('.preloader-text').textContent = `${pct}%`;
-    }
-}
-
-async function loadGiftsFromTelegram() {
-    try {
-        const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getAvailableGifts`);
-        const data = await response.json();
-        
-        if (data.ok && data.result) {
-            const giftsWithIcons = await Promise.all(data.result.map(async (gift) => {
-                let iconUrl = '';
-                const fileId = gift.sticker?.file_id;
-                if (fileId) {
-                    try {
-                        const fileRes = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getFile?file_id=${fileId}`);
-                        const fileData = await fileRes.json();
-                        if (fileData.ok && fileData.result.file_path) {
-                            iconUrl = `https://api.telegram.org/file/bot${BOT_TOKEN}/${fileData.result.file_path}`;
-                        }
-                    } catch(e) {}
-                }
-                return {
-                    id: gift.id,
-                    name: gift.name || gift.id.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
-                    icon: iconUrl,
-                    price: gift.star_count || 0
-                };
-            }));
-            
-            ALL_GIFTS = giftsWithIcons.filter(g => g.price > 0);
-            
-            iconsTotal = ALL_GIFTS.length;
-            iconsLoaded = 0;
-            showImagePreloader();
-            
-            await Promise.all(ALL_GIFTS.map(gift => {
-                return new Promise((resolve) => {
-                    if (!gift.icon) {
-                        updatePreloaderProgress();
-                        resolve();
-                        return;
-                    }
-                    const img = new Image();
-                    img.onload = () => {
-                        updatePreloaderProgress();
-                        resolve();
-                    };
-                    img.onerror = () => {
-                        gift.icon = 'images/gifts icons/Precious Peach.png';
-                        updatePreloaderProgress();
-                        resolve();
-                    };
-                    img.src = gift.icon;
-                });
-            }));
-            
-            hideImagePreloader();
-            console.log('✅ Загружено подарков из API:', ALL_GIFTS.length);
-        } else {
-            throw new Error('API response not ok');
-        }
-    } catch (e) {
-        console.warn('⚠️ Ошибка API, использую резервный список:', e.message);
-        loadFallbackGifts();
-        hideImagePreloader();
-    }
-}
+// let iconsLoaded = 0;
+// let iconsTotal = 0;
+// function showImagePreloader() { ... }
+// function hideImagePreloader() { ... }
+// function updatePreloaderProgress() { ... }
+// async function loadGiftsFromTelegram() { ... }
 
 function loadFallbackGifts() {
     ALL_GIFTS = [
@@ -119,6 +32,8 @@ function loadFallbackGifts() {
         { id: 'loot_bag', name: 'Loot Bag', icon: 'images/gifts icons/Loot Bag.png', price: 250000 },
     ];
 }
+
+loadFallbackGifts();
 
 class SparkParticle {
     constructor(x, y, vx, vy, life, color, size) {
@@ -272,7 +187,6 @@ class UpgradeGame {
             this.balance += 500;
             this.renderAll(); this.saveToStorage();
             document.getElementById('balanceTopupOverlay').classList.remove('show');
-            if(tg) tg.HapticFeedback.notificationOccurred('success');
         } else if (selectedTopupMethod === 'gifts') {
             alert('Функция пополнения подарками Telegram будет доступна с интеграцией бота.');
             document.getElementById('balanceTopupOverlay').classList.remove('show');
@@ -350,7 +264,6 @@ class UpgradeGame {
         this.spinType = document.querySelector('input[name="spinType"]:checked')?.value||'normal';
         this.saveSettings(); this.renderQuickButtons(); this.updateChance(); this.renderAll();
         document.getElementById('settingsOverlay').classList.remove('show');
-        if(tg) tg.HapticFeedback.notificationOccurred('success');
     }
 
     highlightQuickButton(fr) { document.querySelectorAll('.quick-bet-btn').forEach(b => b.classList.remove('active')); const btn = document.querySelector(`.quick-bet-btn[data-fraction="${fr}"]`); if(btn) btn.classList.add('active'); }
@@ -381,7 +294,6 @@ class UpgradeGame {
     const btn = document.getElementById('upgradeBtn');
     btn.disabled = true; btn.classList.add('spinning'); btn.textContent = 'КРУТИМ...';
     document.querySelectorAll('.quick-bet-btn').forEach(b => b.disabled = true);
-    if(tg) tg.HapticFeedback.impactOccurred('heavy');
     
     document.getElementById('app').classList.add('blurred');
     document.getElementById('wheelModalChance').textContent = (this.currentChance * 100).toFixed(1) + '%';
@@ -456,7 +368,6 @@ class UpgradeGame {
         this.history.unshift({ from: 'upgrade', to: ng.id, chance: sc, success: true, time: Date.now() });
         this.saveToStorage();
         this.showResultText(true, sc);
-        if(tg) tg.HapticFeedback.notificationOccurred('success');
         this.playBeep(1500, 0.2); setTimeout(() => this.playBeep(1800, 0.15), 150);
     }
 
@@ -467,7 +378,6 @@ class UpgradeGame {
         this.history.unshift({ from: 'upgrade', to: this.targetGift.id, chance: sc, success: false, time: Date.now() });
         this.saveToStorage();
         this.showResultText(false, sc);
-        if(tg) tg.HapticFeedback.notificationOccurred('error');
         this.playBeep(200, 0.3, 'sawtooth');
     }
 
@@ -658,7 +568,6 @@ class UpgradeGame {
         const allGifts = this.inventoryGifts;
         if (!allGifts.length) { c.innerHTML = '<div style="padding:20px;text-align:center;color:#6b7daa;font-size:12px;">Пусто</div>'; return; }
         
-        // Группируем одинаковые подарки
         const grouped = [];
         for (const g of allGifts) {
             const existing = grouped.find(x => x.gift.id === g.id);
@@ -734,7 +643,6 @@ class UpgradeGame {
         if (si!==-1) this.selectedGiftIds.splice(si,1);
         if (this.selectedGiftIds.length===0 && this.inventory.length>0) this.selectedGiftIds = [this.inventory[0].giftId];
         this.updateChance(); this.saveToStorage(); this.renderAll(); this.closeSellOverlay();
-        if(tg) tg.HapticFeedback.notificationOccurred('success');
     }
 
     renderShop() {
@@ -789,18 +697,14 @@ class UpgradeGame {
             this.deduplicateInventory();
             if (!this.primaryGift) { this.selectedGiftIds = [g.id]; this.updateChance(); }
             this.saveToStorage(); this.renderAll(); this.renderShop();
-            if(tg) tg.HapticFeedback.notificationOccurred('success');
         }
         this.closeBuyModal();
     }
 }
 
-async function startApp() {
-    await loadGiftsFromTelegram();
-    if (ALL_GIFTS.length === 0) loadFallbackGifts();
+function startApp() {
     window.game = new UpgradeGame();
 }
-
 startApp();
 
 function setVH() { const vh = window.innerHeight * 0.01; document.documentElement.style.setProperty('--vh', `${vh}px`); }

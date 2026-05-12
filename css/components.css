@@ -343,7 +343,7 @@
     border-image: linear-gradient(to right, #e74c3c 0%, #e74c3c 50%, #ffffff 100%) 1;
     text-shadow: none;
 }
-.chance-btn-35:active { background: rgba(255, 255, 255, 0.08); }
+.chance-btn-35:active { background: rgba(255, 255, 255, 0.04); }
 .chance-btn-35.active {
     background: rgba(255, 255, 255, 0.04);
     color: #ffd700;
@@ -359,7 +359,7 @@
     border-image: linear-gradient(to right, #f0883e 0%, #f5c842 50%, #ffffff 100%) 1;
     text-shadow: none;
 }
-.chance-btn-55:active { background: rgba(255, 255, 255, 0.08); }
+.chance-btn-55:active { background: rgba(255, 255, 255, 0.04); }
 .chance-btn-55.active {
     background: rgba(255, 255, 255, 0.04);
     color: #ffd700;
@@ -375,7 +375,7 @@
     border-image: linear-gradient(to right, #2ecc71 0%, #2ecc71 50%, #ffffff 100%) 1;
     text-shadow: none;
 }
-.chance-btn-75:active { background: rgba(255, 255, 255, 0.08); }
+.chance-btn-75:active { background: rgba(255, 255, 255, 0.04); }
 .chance-btn-75.active {
     background: rgba(255, 255, 255, 0.04);
     color: #ffd700;
