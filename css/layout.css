@@ -367,21 +367,39 @@
     text-shadow: 0 0 6px rgba(255, 215, 0, 0.3);
 }
 .sell-icon-btn {
-    background: #3f1a1a; border: 1px solid #f8514960; color: #f85149;
-    padding: 6px 10px; border-radius: 5px; font-size: 11px; font-weight: 700;
-    cursor: pointer; transition: all 0.2s; text-transform: uppercase;
+    background: transparent;
+    border: none;
+    width: 28px;
+    height: 28px;
+    cursor: pointer;
+    transition: all 0.2s;
     flex-shrink: 0;
+    padding: 0;
 }
-.sell-icon-btn:active { background: #5a2020; box-shadow: 0 0 12px rgba(248, 81, 73, 0.3); }
+.sell-icon-btn img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+.sell-icon-btn:active { transform: scale(0.9); }
 
 .withdraw-icon-btn {
-    background: #1a2a1a; border: 1px solid #3fb95060; color: #3fb950;
-    padding: 6px 10px; border-radius: 5px; font-size: 11px; font-weight: 700;
-    cursor: pointer; transition: all 0.2s; text-transform: uppercase;
+    background: transparent;
+    border: none;
+    width: 28px;
+    height: 28px;
+    cursor: pointer;
+    transition: all 0.2s;
     flex-shrink: 0;
+    padding: 0;
     margin-right: 4px;
 }
-.withdraw-icon-btn:active { background: #2a3a2a; box-shadow: 0 0 12px rgba(63, 185, 80, 0.3); }
+.withdraw-icon-btn img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+.withdraw-icon-btn:active { transform: scale(0.9); }
 
 #app.blurred .header,
 #app.blurred .gift-selection-row,
