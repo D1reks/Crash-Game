@@ -726,58 +726,62 @@ renderCurrentGiftCard() {
         else if (this.activeTab === 'targets') this.renderTargetsListInPanel(); 
     }
 
-    renderInventoryListInPanel() {
-        const c = document.getElementById('giftListContent');
-        const allEntries = this.inventory;
-        const search = (document.getElementById('giftListSearchInput')?.value || '').toLowerCase();
-        
-        if (!allEntries.length) {
-            c.innerHTML = '<div style="padding:20px;text-align:center;color:#6b7daa;font-size:12px;">Пусто</div>';
-            return;
-        }
-        
-        const sorted = [...allEntries].sort((a, b) => {
-            if (a.giftId !== b.giftId) return a.giftId.localeCompare(b.giftId);
-            return (a.acquiredAt || 0) - (b.acquiredAt || 0);
-        });
-        
-        const filtered = sorted.filter(entry => {
-            const g = ALL_GIFTS.find(x => x.id === entry.giftId);
-            return g && g.name.toLowerCase().includes(search);
-        });
-        
-        c.innerHTML = filtered.map((entry) => {
-            const g = ALL_GIFTS.find(x => x.id === entry.giftId);
-            if (!g) return '';
-            const isSel = this.selectedGiftIds.includes(entry.giftId);
-            const realIndex = sorted.indexOf(entry);
-            return `<div class="gift-list-item ${isSel ? 'selected-for-upgrade' : ''}" data-entry-index="${realIndex}" data-gift-id="${entry.giftId}">
-                <img src="${g.icon}" alt="${g.name}" class="gift-icon-small" onerror="this.src='images/gifts icons/Precious Peach.png'">
-                <div class="gift-list-item-info">
-                    <div class="gift-list-item-name">${g.name}</div>
-                    <div class="gift-list-item-price">${g.price} <span class="star-icon-small"></span></div>
-                </div>
-                <button class="withdraw-icon-btn" data-entry-index="${realIndex}">Вывести</button>
-                <button class="sell-icon-btn" data-entry-index="${realIndex}">Продать</button>
-            </div>`;
-        }).join('');
-        
-        c.querySelectorAll('.gift-list-item').forEach(item => {
-            item.addEventListener('click', (e) => {
-                if (e.target.closest('.sell-icon-btn') || e.target.closest('.withdraw-icon-btn')) return;
-                this.toggleGiftSelection(item.dataset.giftId);
-            });
-        });
-        c.querySelectorAll('.sell-icon-btn').forEach(btn => btn.addEventListener('click', e => {
-            e.stopPropagation();
-            const entryIdx = parseInt(btn.dataset.entryIndex);
-            if (!isNaN(entryIdx)) this.sellSpecificEntry(entryIdx);
-        }));
-        c.querySelectorAll('.withdraw-icon-btn').forEach(btn => btn.addEventListener('click', e => {
-            e.stopPropagation();
-            alert('Функция вывода будет доступна с интеграцией бота Telegram.');
-        }));
+   renderInventoryListInPanel() {
+    const c = document.getElementById('giftListContent');
+    const allEntries = this.inventory;
+    const search = (document.getElementById('giftListSearchInput')?.value || '').toLowerCase();
+    
+    if (!allEntries.length) {
+        c.innerHTML = '<div style="padding:20px;text-align:center;color:#6b7daa;font-size:12px;">Пусто</div>';
+        return;
     }
+    
+    const sorted = [...allEntries].sort((a, b) => {
+        if (a.giftId !== b.giftId) return a.giftId.localeCompare(b.giftId);
+        return (a.acquiredAt || 0) - (b.acquiredAt || 0);
+    });
+    
+    const filtered = sorted.filter(entry => {
+        const g = ALL_GIFTS.find(x => x.id === entry.giftId);
+        return g && g.name.toLowerCase().includes(search);
+    });
+    
+    c.innerHTML = filtered.map((entry) => {
+        const g = ALL_GIFTS.find(x => x.id === entry.giftId);
+        if (!g) return '';
+        const isSel = this.selectedGiftIds.includes(entry.giftId);
+        const realIndex = sorted.indexOf(entry);
+        return `<div class="gift-list-item ${isSel ? 'selected-for-upgrade' : ''}" data-entry-index="${realIndex}" data-gift-id="${entry.giftId}">
+            <img src="${g.icon}" alt="${g.name}" class="gift-icon-small" onerror="this.src='images/gifts icons/Precious Peach.png'">
+            <div class="gift-list-item-info">
+                <div class="gift-list-item-name">${g.name}</div>
+                <div class="gift-list-item-price">${g.price} <span class="star-icon-small"></span></div>
+            </div>
+            <button class="withdraw-icon-btn" data-entry-index="${realIndex}">
+                <img src="images/withdraw_btn.png" alt="Вывести">
+            </button>
+            <button class="sell-icon-btn" data-entry-index="${realIndex}">
+                <img src="images/sell_btn.png" alt="Продать">
+            </button>
+        </div>`;
+    }).join('');
+    
+    c.querySelectorAll('.gift-list-item').forEach(item => {
+        item.addEventListener('click', (e) => {
+            if (e.target.closest('.sell-icon-btn') || e.target.closest('.withdraw-icon-btn')) return;
+            this.toggleGiftSelection(item.dataset.giftId);
+        });
+    });
+    c.querySelectorAll('.sell-icon-btn').forEach(btn => btn.addEventListener('click', e => {
+        e.stopPropagation();
+        const entryIdx = parseInt(btn.dataset.entryIndex);
+        if (!isNaN(entryIdx)) this.sellSpecificEntry(entryIdx);
+    }));
+    c.querySelectorAll('.withdraw-icon-btn').forEach(btn => btn.addEventListener('click', e => {
+        e.stopPropagation();
+        alert('Функция вывода будет доступна с интеграцией бота Telegram.');
+    }));
+}
 
     sellSpecificEntry(entryIndex) {
         if (entryIndex < 0 || entryIndex >= this.inventory.length) return;
