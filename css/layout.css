@@ -355,9 +355,9 @@
 .gift-list-item:hover,
 .gift-list-item:active { background: #111827; box-shadow: inset 0 0 15px rgba(100, 140, 255, 0.05); }
 .gift-list-item.selected-for-upgrade {
-    background: rgba(255, 215, 0, 0.06);
+    background: rgba(255, 215, 0, 0.05);
     border-left: 4px solid #f0883e;
-    box-shadow: inset 0 0 20px rgba(240, 136, 62, 0.06);
+    box-shadow: inset 0 0 20px rgba(240, 136, 62, 0.05);
 }
 .gift-icon-small {
     width: 42px; height: 42px; object-fit: contain;
