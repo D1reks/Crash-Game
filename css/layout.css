@@ -409,10 +409,6 @@
 }
 .withdraw-icon-btn:active { transform: scale(0.9); }
 
-.icon-btn img {
-    filter: drop-shadow(0 0 6px rgba(240, 136, 62, 0.5)) drop-shadow(0 0 10px rgba(255, 215, 0, 0.3));
-}
-
 #app.blurred .header,
 #app.blurred .gift-selection-row,
 #app.blurred .upgrade-btn,
