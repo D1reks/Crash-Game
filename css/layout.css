@@ -93,8 +93,8 @@
 .gift-card.spinning-disabled { pointer-events: none; opacity: 0.7; }
 
 .multi-gift-grid {
-    display: flex; flex-wrap: wrap; gap: 2px; justify-content: center;
-    align-items: center; width: 100%; height: 100%; padding: 2px;
+    display: flex; flex-wrap: wrap; gap: 1px; justify-content: center;
+    align-items: center; width: 100%; height: 100%; padding: 1px;
 }
 .multi-gift-item { position: relative; display: flex; align-items: center; justify-content: center; }
 .multi-gift-item .gift-icon { max-height: 55px; }
