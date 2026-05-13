@@ -388,12 +388,12 @@
 }
 .gift-list-search-input-wrapper { flex: 1; }
 .gift-list-search-input {
-    width: 100%; background: #111827;
+    width: 100%; background: #0d111f;
     border: none; border-radius: 8px;
     padding: 7px 10px; color: #d0daf0;
     font-size: 12px; outline: none;
 }
-.gift-list-search-input:focus { background: #111827; box-shadow: none; }
+.gift-list-search-input:focus { background: #0d111f; box-shadow: none; }
 .gift-list-search-input::placeholder { color: #5a6070; }
 
 /* Звёзды */
