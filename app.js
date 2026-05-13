@@ -209,9 +209,6 @@ class UpgradeGame {
         } else if (selectedTopupMethod === 'gifts') {
             alert('Функция пополнения подарками Telegram будет доступна с интеграцией бота.');
             document.getElementById('balanceTopupOverlay').classList.remove('show');
-        } else if (selectedTopupMethod === 'ton') {
-            alert('Оплата через TON будет доступна в следующем обновлении.');
-            document.getElementById('balanceTopupOverlay').classList.remove('show');
         }
     });
     
