@@ -45,7 +45,6 @@ async function loadGiftsFromTelegram() {
         
         if (data.ok && data.result) {
             // API возвращает { categories: [...] } или { gifts: [...] }
-            // Нужно собрать все подарки из всех категорий
             let allGifts = [];
             
             if (Array.isArray(data.result)) {
@@ -59,6 +58,10 @@ async function loadGiftsFromTelegram() {
                 }
             } else if (data.result.gifts) {
                 allGifts = data.result.gifts;
+            }
+            
+            if (allGifts.length > 0) {
+                console.log('📦 Пример подарка из API:', JSON.stringify(allGifts[0], null, 2));
             }
             
             const giftsWithIcons = await Promise.all(allGifts.map(async (gift) => {
@@ -76,10 +79,10 @@ async function loadGiftsFromTelegram() {
                     }
                 }
                 return {
-                    id: gift.id || gift.name.toLowerCase().replace(/\s+/g, '_'),
-                    name: gift.name || gift.id?.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+                    id: String(gift.id),
+                    name: gift.title || ('Подарок #' + gift.id),
                     icon: iconUrl || 'images/gifts icons/Precious Peach.png',
-                    price: gift.star_count || gift.price || 0
+                    price: Number(gift.stars) || Number(gift.convert_stars) || 0
                 };
             }));
             
@@ -123,6 +126,7 @@ async function loadGiftsFromTelegram() {
         hideImagePreloader();
     }
 }
+
 function loadFallbackGifts() {
     ALL_GIFTS = [
         { id: 'precious_peach', name: 'Precious Peach', icon: 'images/gifts icons/Precious Peach.png', price: 50 },
