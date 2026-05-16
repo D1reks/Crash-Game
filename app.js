@@ -44,9 +44,26 @@ async function loadGiftsFromTelegram() {
         const data = await response.json();
         
         if (data.ok && data.result) {
-            const giftsWithIcons = await Promise.all(data.result.map(async (gift) => {
+            // API возвращает { categories: [...] } или { gifts: [...] }
+            // Нужно собрать все подарки из всех категорий
+            let allGifts = [];
+            
+            if (Array.isArray(data.result)) {
+                allGifts = data.result;
+            } else if (data.result.categories) {
+                // Перебираем категории и собираем подарки
+                for (const category of data.result.categories) {
+                    if (category.gifts && Array.isArray(category.gifts)) {
+                        allGifts = allGifts.concat(category.gifts);
+                    }
+                }
+            } else if (data.result.gifts) {
+                allGifts = data.result.gifts;
+            }
+            
+            const giftsWithIcons = await Promise.all(allGifts.map(async (gift) => {
                 let iconUrl = '';
-                const fileId = gift.sticker?.file_id;
+                const fileId = gift.sticker?.file_id || gift.sticker_file_id;
                 if (fileId) {
                     try {
                         const fileRes = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getFile?file_id=${fileId}`);
@@ -59,14 +76,16 @@ async function loadGiftsFromTelegram() {
                     }
                 }
                 return {
-                    id: gift.id,
-                    name: gift.name || gift.id.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+                    id: gift.id || gift.name.toLowerCase().replace(/\s+/g, '_'),
+                    name: gift.name || gift.id?.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
                     icon: iconUrl || 'images/gifts icons/Precious Peach.png',
-                    price: gift.star_count || 0
+                    price: gift.star_count || gift.price || 0
                 };
             }));
             
             ALL_GIFTS = giftsWithIcons.filter(g => g.price > 0);
+            
+            if (ALL_GIFTS.length === 0) throw new Error('Empty gifts list');
             
             iconsTotal = ALL_GIFTS.length;
             iconsLoaded = 0;
@@ -94,9 +113,9 @@ async function loadGiftsFromTelegram() {
             }));
             
             hideImagePreloader();
-            console.log('✅ Загружено подарков из API:', ALL_GIFTS.length);
+            console.log('✅ Загружено подарков из API:', ALL_GIFTS.length, ALL_GIFTS.map(g => g.name));
         } else {
-            throw new Error('API response not ok');
+            throw new Error('API response not ok: ' + JSON.stringify(data));
         }
     } catch (e) {
         console.warn('⚠️ Ошибка API, использую резервный список:', e.message);
@@ -104,7 +123,6 @@ async function loadGiftsFromTelegram() {
         hideImagePreloader();
     }
 }
-
 function loadFallbackGifts() {
     ALL_GIFTS = [
         { id: 'precious_peach', name: 'Precious Peach', icon: 'images/gifts icons/Precious Peach.png', price: 50 },
