@@ -1,3 +1,6 @@
+// URL твоего бэкенда (обновляй после перезапуска cloudflared)
+const API_URL = 'https://believe-toner-adsl-would.trycloudflare.com';
+
 const BOT_TOKEN = '8735246963:AAGjkrD0XgQODWcy5d8XV4KIMwpNwJxdA4Y';
 
 let tg = null;
@@ -38,53 +41,13 @@ function updatePreloaderProgress() {
     }
 }
 
-async function loadGiftsFromTelegram() {
+async function loadGiftsFromBackend() {
     try {
-        const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/payments.getStarGifts`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({})
-        });
+        const response = await fetch(`${API_URL}/api/gifts`);
         const data = await response.json();
         
-        if (data.ok && data.result) {
-            let allGifts = [];
-            
-            if (data.result.gifts && Array.isArray(data.result.gifts)) {
-                allGifts = data.result.gifts;
-            } else if (Array.isArray(data.result)) {
-                allGifts = data.result;
-            }
-            
-            if (allGifts.length > 0) {
-                console.log('📦 Пример подарка из API:', JSON.stringify(allGifts[0], null, 2));
-            }
-            
-            const giftsWithIcons = await Promise.all(allGifts.map(async (gift) => {
-                let iconUrl = '';
-                const fileId = gift.sticker?.file_id || gift.sticker_file_id;
-                if (fileId) {
-                    try {
-                        const fileRes = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getFile?file_id=${fileId}`);
-                        const fileData = await fileRes.json();
-                        if (fileData.ok && fileData.result.file_path) {
-                            iconUrl = `https://api.telegram.org/file/bot${BOT_TOKEN}/${fileData.result.file_path}`;
-                        }
-                    } catch(e) {
-                        console.warn('Ошибка загрузки иконки:', e);
-                    }
-                }
-                return {
-                    id: String(gift.id),
-                    name: gift.title || ('Подарок #' + gift.id),
-                    icon: iconUrl || 'images/gifts icons/Precious Peach.png',
-                    price: Number(gift.stars) || Number(gift.convert_stars) || 0
-                };
-            }));
-            
-            ALL_GIFTS = giftsWithIcons.filter(g => g.price > 0);
-            
-            if (ALL_GIFTS.length === 0) throw new Error('Empty gifts list');
+        if (data.gifts && data.gifts.length > 0) {
+            ALL_GIFTS = data.gifts;
             
             iconsTotal = ALL_GIFTS.length;
             iconsLoaded = 0;
@@ -98,10 +61,7 @@ async function loadGiftsFromTelegram() {
                         return;
                     }
                     const img = new Image();
-                    img.onload = () => {
-                        updatePreloaderProgress();
-                        resolve();
-                    };
+                    img.onload = () => { updatePreloaderProgress(); resolve(); };
                     img.onerror = () => {
                         gift.icon = 'images/gifts icons/Precious Peach.png';
                         updatePreloaderProgress();
@@ -112,12 +72,12 @@ async function loadGiftsFromTelegram() {
             }));
             
             hideImagePreloader();
-            console.log('✅ Загружено подарков из API:', ALL_GIFTS.length, ALL_GIFTS.map(g => g.name));
+            console.log('✅ Загружено подарков с бэка:', ALL_GIFTS.length);
         } else {
-            throw new Error('API response not ok: ' + JSON.stringify(data));
+            throw new Error('Empty gifts list');
         }
     } catch (e) {
-        console.warn('⚠️ Ошибка API, использую резервный список:', e.message);
+        console.warn('⚠️ Бэкенд недоступен, использую резервный список:', e.message);
         loadFallbackGifts();
         hideImagePreloader();
     }
@@ -125,18 +85,17 @@ async function loadGiftsFromTelegram() {
 
 async function loadUserStarGifts(userId) {
     try {
-        const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/payments.getUserStarGifts`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                user_id: userId
-            })
+        const response = await fetch(`${API_URL}/api/user/gifts`, {
+            headers: {
+                'Content-Type': 'application/json',
+                'telegram-init-data': tg?.initData || ''
+            }
         });
         const data = await response.json();
-        console.log('getUserStarGifts response:', data);
+        console.log('User gifts response:', data);
         return data;
     } catch (e) {
-        console.warn('getUserStarGifts error:', e);
+        console.warn('User gifts error:', e);
         return null;
     }
 }
@@ -238,16 +197,39 @@ class UpgradeGame {
     }
 
     async init() {
-        const pl = document.getElementById('preloader');
-        if (pl && pl.classList.contains('hide') === false) {
-            // Прелоадер уже скрыт loadGiftsFromTelegram
-        }
-        
-        this.loadFromStorage(); this.deduplicateInventory();
+        this.loadFromStorage();
         if (this.inventory.length > 0 && this.selectedGiftIds.length === 0) this.selectedGiftIds = [this.inventory[0].giftId];
         this.updateChance();
         this.sparkSystem = new SparkSystem(document.getElementById('sparkCanvas'));
         this.loadSettings(); this.renderQuickButtons(); this.setupEventListeners(); this.renderAll();
+        
+        // Синхронизация с бэком в фоне
+        this.syncWithBackend();
+    }
+
+    async syncWithBackend() {
+        if (!tg || !tg.initData) return;
+        try {
+            const response = await fetch(`${API_URL}/api/user`, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'telegram-init-data': tg.initData
+                }
+            });
+            if (response.ok) {
+                const data = await response.json();
+                this.balance = data.user.balance;
+                this.inventory = data.inventory || [];
+                if (this.inventory.length > 0 && this.selectedGiftIds.length === 0) {
+                    this.selectedGiftIds = [this.inventory[0].giftId];
+                }
+                this.updateChance();
+                this.renderAll();
+                console.log('✅ Синхронизировано с бэком');
+            }
+        } catch (e) {
+            console.warn('⚠️ Бэкенд недоступен, работаем локально');
+        }
     }
 
     deduplicateInventory() { const s = new Set(); const u = []; for (const e of this.inventory) { if (!s.has(e.giftId)) { s.add(e.giftId); u.push(e); } } this.inventory = u; }
@@ -424,7 +406,6 @@ class UpgradeGame {
 
     showUserGiftsModal(gifts) {
         const overlay = document.createElement('div');
-        overlay.className = 'gifts-modal-overlay';
         overlay.style.cssText = `
             position: fixed; top: 0; left: 50%; transform: translateX(-50%);
             width: 100%; max-width: 450px; height: 100vh;
@@ -443,8 +424,7 @@ class UpgradeGame {
             <h3 style="color:#ffd700;text-align:center;margin-bottom:16px;">Ваши подарки</h3>
             <div style="display:flex;flex-direction:column;gap:8px;">
                 ${gifts.map(g => `
-                    <div style="display:flex;align-items:center;gap:12px;padding:10px;background:#111827;border-radius:10px;cursor:pointer;" 
-                         data-gift-id="${g.id}">
+                    <div style="display:flex;align-items:center;gap:12px;padding:10px;background:#111827;border-radius:10px;">
                         <span style="font-size:24px;">🎁</span>
                         <div style="flex:1;">
                             <div style="color:#d0daf0;font-size:14px;">${g.title || 'Подарок'}</div>
@@ -533,13 +513,50 @@ class UpgradeGame {
         }, 1800);
     }
 
-    startUpgrade() {
+    async startUpgrade() {
         const tc = this.getSelectedTotalCost();
         if (this.isSpinning || !this.targetGift || tc >= this.targetGift.price) return;
         if (this.stakeAmount > this.balance) return;
         if (this.selectedGifts.some(g => !this.inventory.find(e => e.giftId === g.id))) return;
         if (this.selectedGifts.length === 0 && this.stakeAmount === 0) return;
         
+        // Если есть бэкенд — отправляем запрос туда
+        if (tg && tg.initData) {
+            try {
+                const response = await fetch(`${API_URL}/api/upgrade`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'telegram-init-data': tg.initData
+                    },
+                    body: JSON.stringify({
+                        selectedGiftIds: this.selectedGiftIds,
+                        targetGiftId: this.targetGiftId,
+                        stakeAmount: this.stakeAmount
+                    })
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    this.balance = result.user.balance;
+                    this.inventory = result.inventory || [];
+                    this.selectedGiftIds = this.inventory.length > 0 ? [this.inventory[0].giftId] : [];
+                    this.stakeAmount = 0;
+                    this.updateChance();
+                    this.saveToStorage();
+                    this.renderAll();
+                    
+                    // Показываем анимацию с результатом от сервера
+                    this.showResultText(result.success, result.displayedChance);
+                    this.playBeep(result.success ? 1500 : 200, 0.3);
+                    return;
+                }
+            } catch (e) {
+                console.warn('⚠️ Бэкенд недоступен, крутим локально');
+            }
+        }
+        
+        // Локальное кручение (если бэкенд недоступен)
         this.isSpinning = true;
         const btn = document.getElementById('upgradeBtn');
         btn.disabled = true; btn.classList.add('spinning'); btn.textContent = 'КРУТИМ...';
@@ -556,9 +573,7 @@ class UpgradeGame {
         const st = Date.now();
         const sa = this.wheelAngle;
         
-        const easeSmooth = t => {
-            return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
-        };
+        const easeSmooth = t => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
         
         const anim = () => {
             const el = Date.now() - st;
@@ -621,9 +636,7 @@ class UpgradeGame {
     }
 
     onUpgradeSuccess(sc) {
-        if (this.stakeAmount > 0) {
-            this.balance -= this.stakeAmount;
-        }
+        if (this.stakeAmount > 0) this.balance -= this.stakeAmount;
         for (const g of this.selectedGifts) { 
             const idx = this.inventory.findIndex(e => e.giftId === g.id); 
             if(idx !== -1) this.inventory.splice(idx, 1); 
@@ -641,9 +654,7 @@ class UpgradeGame {
     }
 
     onUpgradeFail(sc) {
-        if (this.stakeAmount > 0) {
-            this.balance -= this.stakeAmount;
-        }
+        if (this.stakeAmount > 0) this.balance -= this.stakeAmount;
         for (const g of this.selectedGifts) { 
             const idx = this.inventory.findIndex(e => e.giftId === g.id); 
             if(idx !== -1) this.inventory.splice(idx, 1); 
@@ -701,10 +712,8 @@ class UpgradeGame {
         const pct = maxStake > 0 ? (slider.value / maxStake) * 100 : 0;
         slider.style.background = `linear-gradient(to right, #f0883e 0%, #f5c842 ${pct}%, rgba(255,255,255,0.08) ${pct}%, rgba(255,255,255,0.08) 100%)`;
         
-        document.querySelector('.stake-slider-label-right').textContent = 
-            'Выбранная сумма: ' + this.stakeAmount.toLocaleString();
-        document.querySelector('.stake-slider-label-left').textContent = 
-            'Баланс: ' + this.balance.toLocaleString();
+        document.querySelector('.stake-slider-label-right').textContent = 'Выбранная сумма: ' + this.stakeAmount.toLocaleString();
+        document.querySelector('.stake-slider-label-left').textContent = 'Баланс: ' + this.balance.toLocaleString();
     }
 
     renderCurrentGiftCard() {
@@ -716,7 +725,6 @@ class UpgradeGame {
         
         if (hasGifts || hasStake) {
             const grid = document.createElement('div'); grid.className = 'multi-gift-grid';
-            
             const totalItems = this.selectedGifts.length + (hasStake ? 1 : 0);
             const bs = totalItems <= 3 ? 55 : totalItems <= 6 ? 45 : 38;
             
@@ -734,24 +742,18 @@ class UpgradeGame {
             if (hasStake) {
                 const w = document.createElement('div'); w.className = 'multi-gift-item'; 
                 const img = document.createElement('img'); img.className = 'gift-icon star-stake-icon'; 
-                img.src = 'images/stars.png'; img.alt = 'Stars'; 
-                img.style.maxHeight = bs + 'px';
+                img.src = 'images/stars.png'; img.alt = 'Stars'; img.style.maxHeight = bs + 'px';
                 w.appendChild(img); grid.appendChild(w); 
             }
             
             card.appendChild(grid);
-            
             const total = this.getSelectedTotalCost();
             const itemCount = this.selectedGifts.length + (hasStake ? 1 : 0);
             
             if (itemCount === 1) {
-                if (hasGifts && this.selectedGifts.length === 1 && !hasStake) {
-                    no.textContent = this.selectedGifts[0].name;
-                } else if (hasStake && !hasGifts) {
-                    no.textContent = 'Звёзды';
-                } else {
-                    no.textContent = 'Ставка';
-                }
+                if (hasGifts && this.selectedGifts.length === 1 && !hasStake) no.textContent = this.selectedGifts[0].name;
+                else if (hasStake && !hasGifts) no.textContent = 'Звёзды';
+                else no.textContent = 'Ставка';
             } else {
                 no.textContent = 'Выбрано: ' + itemCount;
             }
@@ -770,10 +772,8 @@ class UpgradeGame {
         const gift = this.targetGift;
         if (gift) { 
             card.classList.add('target-gift'); 
-            const img = document.createElement('img'); 
-            img.className = 'gift-icon'; 
-            img.src = gift.icon; 
-            img.alt = gift.name;
+            const img = document.createElement('img'); img.className = 'gift-icon'; 
+            img.src = gift.icon; img.alt = gift.name;
             img.onerror = function() { this.src = 'images/gifts icons/Precious Peach.png'; };
             card.appendChild(img);
             const chanceDiv = document.createElement('div');
@@ -784,11 +784,9 @@ class UpgradeGame {
             po.innerHTML = gift.price + ' <span class="star-icon-small"></span>';
         } else { 
             card.classList.add('empty-card'); 
-            const arrows = document.createElement('div'); 
-            arrows.className = 'placeholder-arrows right-arrows'; 
+            const arrows = document.createElement('div'); arrows.className = 'placeholder-arrows right-arrows'; 
             for (let i=0;i<3;i++) { const a = document.createElement('span'); a.className = 'placeholder-arrow'; a.textContent = '❱'; arrows.appendChild(a); } 
-            card.appendChild(arrows); 
-            no.textContent = ''; po.textContent = ''; 
+            card.appendChild(arrows); no.textContent = ''; po.textContent = ''; 
         }
     }
 
@@ -801,7 +799,6 @@ class UpgradeGame {
         const outerRingInner = or + 3, outerRingOuter = or + 9, arrowBaseRadius = outerRingInner + 2;
         
         ctx.clearRect(0, 0, w, h);
-        
         const startAngle = Math.PI / 2;
         
         ctx.beginPath();
@@ -813,16 +810,13 @@ class UpgradeGame {
         
         if (this.currentChance > 0) {
             const halfArc = this.currentChance * Math.PI;
-            const sa = startAngle - halfArc;
-            const ea = startAngle + halfArc;
+            const sa = startAngle - halfArc, ea = startAngle + halfArc;
             ctx.beginPath();
             ctx.arc(cx, cy, outerRingOuter, sa, ea);
             ctx.arc(cx, cy, outerRingInner, ea, sa, true);
             ctx.closePath();
             const grad = ctx.createLinearGradient(cx, cy + or, cx, cy - or);
-            grad.addColorStop(0, '#f0883e');
-            grad.addColorStop(0.5, '#f5c842');
-            grad.addColorStop(1, '#3fb950');
+            grad.addColorStop(0, '#f0883e'); grad.addColorStop(0.5, '#f5c842'); grad.addColorStop(1, '#3fb950');
             ctx.fillStyle = grad;
             ctx.fill();
         }
@@ -836,41 +830,25 @@ class UpgradeGame {
         
         if (this.currentChance > 0) {
             const halfArc = this.currentChance * Math.PI;
-            const sa = startAngle - halfArc;
-            const ea = startAngle + halfArc;
+            const sa = startAngle - halfArc, ea = startAngle + halfArc;
             ctx.beginPath();
             ctx.arc(cx, cy, or - 2, sa, ea);
             ctx.arc(cx, cy, ir + 2, ea, sa, true);
             ctx.closePath();
             const grad = ctx.createLinearGradient(cx, cy + or, cx, cy - or);
-            grad.addColorStop(0, '#f0883e');
-            grad.addColorStop(0.5, '#f5c842');
-            grad.addColorStop(1, '#3fb950');
+            grad.addColorStop(0, '#f0883e'); grad.addColorStop(0.5, '#f5c842'); grad.addColorStop(1, '#3fb950');
             ctx.fillStyle = grad;
             ctx.fill();
         }
         
-        ctx.strokeStyle = '#2a3a5c';
-        ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        ctx.arc(cx, cy, outerRingOuter, 0, Math.PI * 2);
-        ctx.stroke();
-        
+        ctx.strokeStyle = '#2a3a5c'; ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.arc(cx, cy, outerRingOuter, 0, Math.PI * 2); ctx.stroke();
         ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.arc(cx, cy, or, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.arc(cx, cy, ir, 0, Math.PI * 2);
-        ctx.stroke();
-        
-        ctx.beginPath();
-        ctx.arc(cx, cy, cr, 0, Math.PI * 2);
-        ctx.fillStyle = '#08090d';
-        ctx.fill();
-        ctx.strokeStyle = '#2a3a5c';
-        ctx.lineWidth = 2;
-        ctx.stroke();
+        ctx.beginPath(); ctx.arc(cx, cy, or, 0, Math.PI * 2); ctx.stroke();
+        ctx.beginPath(); ctx.arc(cx, cy, ir, 0, Math.PI * 2); ctx.stroke();
+        ctx.beginPath(); ctx.arc(cx, cy, cr, 0, Math.PI * 2);
+        ctx.fillStyle = '#08090d'; ctx.fill();
+        ctx.strokeStyle = '#2a3a5c'; ctx.lineWidth = 2; ctx.stroke();
         
         ctx.save();
         ctx.translate(cx, cy);
@@ -880,27 +858,12 @@ class UpgradeGame {
         const tipX = 0, tipY = -tipRadius;
         const baseX = 0, baseY = -arrowBaseRadius;
         
-        ctx.beginPath();
-        ctx.moveTo(baseX, baseY);
-        ctx.lineTo(tipX, tipY);
-        ctx.strokeStyle = '#ffd700';
-        ctx.lineWidth = 3.5;
-        ctx.lineCap = 'round';
-        ctx.stroke();
-        
-        ctx.beginPath();
-        ctx.moveTo(tipX, tipY);
-        ctx.lineTo(-7, tipY - 12);
-        ctx.lineTo(7, tipY - 12);
-        ctx.closePath();
-        ctx.fillStyle = '#ffd700';
-        ctx.fill();
-        
-        ctx.beginPath();
-        ctx.arc(baseX, baseY, 4.5, 0, Math.PI * 2);
-        ctx.fillStyle = '#ffd700';
-        ctx.fill();
-        
+        ctx.beginPath(); ctx.moveTo(baseX, baseY); ctx.lineTo(tipX, tipY);
+        ctx.strokeStyle = '#ffd700'; ctx.lineWidth = 3.5; ctx.lineCap = 'round'; ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(tipX, tipY); ctx.lineTo(-7, tipY - 12); ctx.lineTo(7, tipY - 12); ctx.closePath();
+        ctx.fillStyle = '#ffd700'; ctx.fill();
+        ctx.beginPath(); ctx.arc(baseX, baseY, 4.5, 0, Math.PI * 2);
+        ctx.fillStyle = '#ffd700'; ctx.fill();
         ctx.restore();
     }
 
@@ -940,12 +903,8 @@ class UpgradeGame {
                     <div class="gift-list-item-name">${g.name}</div>
                     <div class="gift-list-item-price">${g.price} <span class="star-icon-small"></span></div>
                 </div>
-                <button class="withdraw-icon-btn" data-entry-index="${realIndex}">
-                    <img src="images/withdraw_btn.png" alt="Вывести">
-                </button>
-                <button class="sell-icon-btn" data-entry-index="${realIndex}">
-                    <img src="images/sell_btn.png" alt="Продать">
-                </button>
+                <button class="withdraw-icon-btn" data-entry-index="${realIndex}"><img src="images/withdraw_btn.png" alt="Вывести"></button>
+                <button class="sell-icon-btn" data-entry-index="${realIndex}"><img src="images/sell_btn.png" alt="Продать"></button>
             </div>`;
         }).join('');
         
@@ -984,7 +943,6 @@ class UpgradeGame {
     renderTargetsListInPanel() {
         const c = document.getElementById('giftListContent'), t = this.getAllTargets();
         const search = (document.getElementById('giftListSearchInput')?.value || '').toLowerCase();
-        
         const filtered = t.filter(g => g.name.toLowerCase().includes(search));
         
         if (!filtered.length) { c.innerHTML = '<div style="padding:20px;text-align:center;color:#6b7daa;font-size:12px;">Нет подарков</div>'; return; }
@@ -1016,14 +974,9 @@ class UpgradeGame {
     closeSellOverlay() { document.getElementById('sellOverlay').classList.remove('show'); this.sellTargetGiftId = null; this.sellTargetEntryIndex = null; }
     confirmSell() {
         let idx;
-        
-        if (this.sellTargetEntryIndex !== null) {
-            idx = this.sellTargetEntryIndex;
-        } else if (this.sellTargetGiftId) {
-            idx = this.inventory.findIndex(e => e.giftId === this.sellTargetGiftId);
-        } else {
-            return;
-        }
+        if (this.sellTargetEntryIndex !== null) idx = this.sellTargetEntryIndex;
+        else if (this.sellTargetGiftId) idx = this.inventory.findIndex(e => e.giftId === this.sellTargetGiftId);
+        else return;
         
         const gift = ALL_GIFTS.find(g => g.id === this.inventory[idx]?.giftId);
         if (!gift) return;
@@ -1033,27 +986,18 @@ class UpgradeGame {
         
         const si = this.selectedGiftIds.indexOf(gift.id);
         if (si !== -1) this.selectedGiftIds.splice(si, 1);
-        if (this.selectedGiftIds.length === 0 && this.inventory.length > 0) {
-            this.selectedGiftIds = [this.inventory[0].giftId];
-        }
+        if (this.selectedGiftIds.length === 0 && this.inventory.length > 0) this.selectedGiftIds = [this.inventory[0].giftId];
         
-        this.updateChance();
-        this.saveToStorage();
-        this.renderAll();
-        this.closeSellOverlay();
+        this.updateChance(); this.saveToStorage(); this.renderAll(); this.closeSellOverlay();
     }
 
     renderShop() {
         const c = document.getElementById('shopItems');
         const search = (document.getElementById('shopSearchInput')?.value || '').toLowerCase();
-        
         let filtered = ALL_GIFTS.filter(g => g.name.toLowerCase().includes(search));
         
-        if (this.shopSortOrder === 'asc') {
-            filtered.sort((a, b) => a.price - b.price);
-        } else {
-            filtered.sort((a, b) => b.price - a.price);
-        }
+        if (this.shopSortOrder === 'asc') filtered.sort((a, b) => a.price - b.price);
+        else filtered.sort((a, b) => b.price - a.price);
         
         c.innerHTML = filtered.map(g => `
             <div class="shop-item" data-gift-id="${g.id}">
@@ -1081,10 +1025,7 @@ class UpgradeGame {
         document.getElementById('buyModalOverlay').classList.add('show');
     }
 
-    closeBuyModal() {
-        document.getElementById('buyModalOverlay').classList.remove('show');
-        this.buyTargetGiftId = null;
-    }
+    closeBuyModal() { document.getElementById('buyModalOverlay').classList.remove('show'); this.buyTargetGiftId = null; }
 
     confirmBuy() {
         if (!this.buyTargetGiftId) return;
@@ -1104,7 +1045,7 @@ class UpgradeGame {
 }
 
 async function startApp() {
-    await loadGiftsFromTelegram();
+    await loadGiftsFromBackend();
     if (ALL_GIFTS.length === 0) loadFallbackGifts();
     window.game = new UpgradeGame();
 }
