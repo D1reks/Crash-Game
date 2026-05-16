@@ -1,13 +1,109 @@
-// const BOT_TOKEN = '8735246963:AAGjkrD0XgQODWcy5d8XV4KIMwpNwJxdA4Y';
-// let tg = null;
-// if (window.Telegram && window.Telegram.WebApp) {
-//     tg = window.Telegram.WebApp;
-//     tg.ready();
-//     tg.expand();
-//     tg.enableClosingConfirmation();
-// }
+const BOT_TOKEN = '8735246963:AAGjkrD0XgQODWcy5d8XV4KIMwpNwJxdA4Y';
+
+let tg = null;
+if (window.Telegram && window.Telegram.WebApp) {
+    tg = window.Telegram.WebApp;
+    tg.ready();
+    tg.expand();
+    tg.enableClosingConfirmation();
+}
 
 let ALL_GIFTS = [];
+
+let iconsLoaded = 0;
+let iconsTotal = 0;
+
+function showImagePreloader() {
+    const pl = document.getElementById('preloader');
+    if (pl) {
+        pl.classList.remove('hide');
+        pl.querySelector('.preloader-text').textContent = 'UPGIFT';
+    }
+}
+
+function hideImagePreloader() {
+    const pl = document.getElementById('preloader');
+    if (pl) {
+        pl.classList.add('hide');
+        setTimeout(() => { if (pl.parentNode) pl.remove(); }, 300);
+    }
+}
+
+function updatePreloaderProgress() {
+    iconsLoaded++;
+    const pl = document.getElementById('preloader');
+    if (pl && iconsTotal > 0) {
+        const pct = Math.round((iconsLoaded / iconsTotal) * 100);
+        pl.querySelector('.preloader-text').textContent = `${pct}%`;
+    }
+}
+
+async function loadGiftsFromTelegram() {
+    try {
+        const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getAvailableGifts`);
+        const data = await response.json();
+        
+        if (data.ok && data.result) {
+            const giftsWithIcons = await Promise.all(data.result.map(async (gift) => {
+                let iconUrl = '';
+                const fileId = gift.sticker?.file_id;
+                if (fileId) {
+                    try {
+                        const fileRes = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getFile?file_id=${fileId}`);
+                        const fileData = await fileRes.json();
+                        if (fileData.ok && fileData.result.file_path) {
+                            iconUrl = `https://api.telegram.org/file/bot${BOT_TOKEN}/${fileData.result.file_path}`;
+                        }
+                    } catch(e) {
+                        console.warn('Ошибка загрузки иконки:', e);
+                    }
+                }
+                return {
+                    id: gift.id,
+                    name: gift.name || gift.id.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+                    icon: iconUrl || 'images/gifts icons/Precious Peach.png',
+                    price: gift.star_count || 0
+                };
+            }));
+            
+            ALL_GIFTS = giftsWithIcons.filter(g => g.price > 0);
+            
+            iconsTotal = ALL_GIFTS.length;
+            iconsLoaded = 0;
+            showImagePreloader();
+            
+            await Promise.all(ALL_GIFTS.map(gift => {
+                return new Promise((resolve) => {
+                    if (!gift.icon || gift.icon.startsWith('images/')) {
+                        updatePreloaderProgress();
+                        resolve();
+                        return;
+                    }
+                    const img = new Image();
+                    img.onload = () => {
+                        updatePreloaderProgress();
+                        resolve();
+                    };
+                    img.onerror = () => {
+                        gift.icon = 'images/gifts icons/Precious Peach.png';
+                        updatePreloaderProgress();
+                        resolve();
+                    };
+                    img.src = gift.icon;
+                });
+            }));
+            
+            hideImagePreloader();
+            console.log('✅ Загружено подарков из API:', ALL_GIFTS.length);
+        } else {
+            throw new Error('API response not ok');
+        }
+    } catch (e) {
+        console.warn('⚠️ Ошибка API, использую резервный список:', e.message);
+        loadFallbackGifts();
+        hideImagePreloader();
+    }
+}
 
 function loadFallbackGifts() {
     ALL_GIFTS = [
@@ -25,8 +121,6 @@ function loadFallbackGifts() {
         { id: 'loot_bag', name: 'Loot Bag', icon: 'images/gifts icons/Loot Bag.png', price: 250000 },
     ];
 }
-
-loadFallbackGifts();
 
 class SparkParticle {
     constructor(x, y, vx, vy, life, color, size) {
@@ -109,14 +203,12 @@ class UpgradeGame {
 
     async init() {
         const pl = document.getElementById('preloader');
-        if (pl) {
-            pl.classList.add('hide');
-            setTimeout(() => { if (pl.parentNode) pl.remove(); }, 300);
+        if (pl && pl.classList.contains('hide') === false) {
+            // Прелоадер уже скрыт loadGiftsFromTelegram
         }
         
         this.loadFromStorage(); this.deduplicateInventory();
         if (this.inventory.length > 0 && this.selectedGiftIds.length === 0) this.selectedGiftIds = [this.inventory[0].giftId];
-        // targetGiftId не выбираем автоматически — остаётся null
         this.updateChance();
         this.sparkSystem = new SparkSystem(document.getElementById('sparkCanvas'));
         this.loadSettings(); this.renderQuickButtons(); this.setupEventListeners(); this.renderAll();
@@ -127,7 +219,6 @@ class UpgradeGame {
     updateChance() {
         const tc = this.getSelectedTotalCost();
         
-        // Авто-выбор следующей цели если шанс >= 100%
         if (this.targetGift && tc > 0) {
             if (tc >= this.targetGift.price / 0.95) {
                 const allTargets = ALL_GIFTS.filter(g => g.price > tc).sort((a, b) => a.price - b.price);
@@ -167,116 +258,116 @@ class UpgradeGame {
     }
 
     setupEventListeners() {
-    document.getElementById('upgradeBtn').addEventListener('click', () => this.startUpgrade());
-    document.getElementById('currentGiftCard').addEventListener('click', () => { 
-        if (this.isSpinning) return; 
-        if (this.selectedGiftIds.length > 0) { 
-            this.selectedGiftIds = []; 
-            this.updateChance(); 
-            this.renderAll(); 
-            this.saveToStorage(); 
-        } 
-    });
-    
-    let selectedTopupMethod = 'stars';
-    document.getElementById('balanceContainer').addEventListener('click', () => {
-        selectedTopupMethod = 'stars';
-        document.getElementById('topupSelectIcon').src = 'images/deposit_stars_icon.png';
-        document.getElementById('topupSelectText').textContent = 'Звезды Telegram';
-        document.getElementById('topupCustomSelect').classList.remove('open');
-        document.getElementById('balanceTopupOverlay').classList.add('show');
-    });
-    document.getElementById('closeTopupBtn').addEventListener('click', () => document.getElementById('balanceTopupOverlay').classList.remove('show'));
-    
-    document.getElementById('topupSelectHeader').addEventListener('click', () => {
-        document.getElementById('topupCustomSelect').classList.toggle('open');
-    });
-    
-    document.querySelectorAll('.topup-select-option').forEach(opt => {
-        opt.addEventListener('click', (e) => {
-            selectedTopupMethod = opt.dataset.value;
-            document.getElementById('topupSelectIcon').src = opt.dataset.icon;
-            document.getElementById('topupSelectText').textContent = opt.textContent.trim();
-            document.getElementById('topupCustomSelect').classList.remove('open');
+        document.getElementById('upgradeBtn').addEventListener('click', () => this.startUpgrade());
+        document.getElementById('currentGiftCard').addEventListener('click', () => { 
+            if (this.isSpinning) return; 
+            if (this.selectedGiftIds.length > 0) { 
+                this.selectedGiftIds = []; 
+                this.updateChance(); 
+                this.renderAll(); 
+                this.saveToStorage(); 
+            } 
         });
-    });
-    
-    document.getElementById('topupConfirmBtn').addEventListener('click', () => {
-        if (selectedTopupMethod === 'stars') {
-            this.balance += 500;
-            this.renderAll(); this.saveToStorage();
-            document.getElementById('balanceTopupOverlay').classList.remove('show');
-        } else if (selectedTopupMethod === 'gifts') {
-            alert('Функция пополнения подарками Telegram будет доступна с интеграцией бота.');
-            document.getElementById('balanceTopupOverlay').classList.remove('show');
-        }
-    });
-    
-    document.getElementById('balanceTopupOverlay').addEventListener('click', (e) => {
-        if (!e.target.closest('#topupCustomSelect')) {
+        
+        let selectedTopupMethod = 'stars';
+        document.getElementById('balanceContainer').addEventListener('click', () => {
+            selectedTopupMethod = 'stars';
+            document.getElementById('topupSelectIcon').src = 'images/deposit_stars_icon.png';
+            document.getElementById('topupSelectText').textContent = 'Звезды Telegram';
             document.getElementById('topupCustomSelect').classList.remove('open');
-        }
-    });
-    
-    document.getElementById('shopBtn').addEventListener('click', () => { 
-        document.getElementById('shopOverlay').classList.add('show'); 
-        document.getElementById('sortAsc').classList.add('active');
-        document.getElementById('sortDesc').classList.remove('active');
-        this.shopSortOrder = 'asc';
-        document.getElementById('shopSearchInput').value = '';
-        this.renderShop(); 
-    });
-    document.getElementById('closeShopBtn').addEventListener('click', () => document.getElementById('shopOverlay').classList.remove('show'));
-    document.getElementById('shopSearchInput').addEventListener('input', () => this.renderShop());
-    document.getElementById('sortAsc').addEventListener('click', () => {
-        this.shopSortOrder = 'asc';
-        document.getElementById('sortAsc').classList.add('active');
-        document.getElementById('sortDesc').classList.remove('active');
-        this.renderShop();
-    });
-    document.getElementById('sortDesc').addEventListener('click', () => {
-        this.shopSortOrder = 'desc';
-        document.getElementById('sortDesc').classList.add('active');
-        document.getElementById('sortAsc').classList.remove('active');
-        this.renderShop();
-    });
-    
-    document.getElementById('buyModalConfirm').addEventListener('click', () => this.confirmBuy());
-    document.getElementById('buyModalCancel').addEventListener('click', () => this.closeBuyModal());
-    document.getElementById('buyModalOverlay').addEventListener('click', e => { if (e.target === document.getElementById('buyModalOverlay')) this.closeBuyModal(); });
-    
-    document.getElementById('sellConfirmBtn').addEventListener('click', () => this.confirmSell());
-    document.getElementById('sellCancelBtn').addEventListener('click', () => this.closeSellOverlay());
-    document.getElementById('sellOverlay').addEventListener('click', e => { if (e.target === document.getElementById('sellOverlay')) this.closeSellOverlay(); });
-    
-    document.getElementById('settingsBtn').addEventListener('click', () => this.openSettings());
-    document.getElementById('settingsSaveBtn').addEventListener('click', () => this.saveSettingsFromUI());
-    document.getElementById('settingsOverlay').addEventListener('click', e => { if (e.target === document.getElementById('settingsOverlay')) document.getElementById('settingsOverlay').classList.remove('show'); });
-    
-    document.getElementById('tabInventory').addEventListener('click', () => { 
-        this.activeTab = 'inventory'; 
-        document.getElementById('tabInventory').classList.add('active'); 
-        document.getElementById('tabTargets').classList.remove('active'); 
-        this.renderGiftList(); 
-    });
-    document.getElementById('tabTargets').addEventListener('click', () => { 
-        this.activeTab = 'targets'; 
-        document.getElementById('tabTargets').classList.add('active'); 
-        document.getElementById('tabInventory').classList.remove('active'); 
-        this.renderGiftList(); 
-    });
-    
-    document.getElementById('giftListSearchInput').addEventListener('input', () => this.renderGiftList());
-    
-    document.getElementById('stakeSlider').addEventListener('input', (e) => {
-        this.stakeAmount = parseInt(e.target.value) || 0;
-        this.updateChance();
-        this.renderAll();
-        this.updateStakeSlider();
-    });
-    
-    document.body.addEventListener('click', () => { if (!this.soundEnabled) this.initAudio(); }, { once: true });
-}
+            document.getElementById('balanceTopupOverlay').classList.add('show');
+        });
+        document.getElementById('closeTopupBtn').addEventListener('click', () => document.getElementById('balanceTopupOverlay').classList.remove('show'));
+        
+        document.getElementById('topupSelectHeader').addEventListener('click', () => {
+            document.getElementById('topupCustomSelect').classList.toggle('open');
+        });
+        
+        document.querySelectorAll('.topup-select-option').forEach(opt => {
+            opt.addEventListener('click', (e) => {
+                selectedTopupMethod = opt.dataset.value;
+                document.getElementById('topupSelectIcon').src = opt.dataset.icon;
+                document.getElementById('topupSelectText').textContent = opt.textContent.trim();
+                document.getElementById('topupCustomSelect').classList.remove('open');
+            });
+        });
+        
+        document.getElementById('topupConfirmBtn').addEventListener('click', () => {
+            if (selectedTopupMethod === 'stars') {
+                this.balance += 500;
+                this.renderAll(); this.saveToStorage();
+                document.getElementById('balanceTopupOverlay').classList.remove('show');
+            } else if (selectedTopupMethod === 'gifts') {
+                alert('Функция пополнения подарками Telegram будет доступна с интеграцией бота.');
+                document.getElementById('balanceTopupOverlay').classList.remove('show');
+            }
+        });
+        
+        document.getElementById('balanceTopupOverlay').addEventListener('click', (e) => {
+            if (!e.target.closest('#topupCustomSelect')) {
+                document.getElementById('topupCustomSelect').classList.remove('open');
+            }
+        });
+        
+        document.getElementById('shopBtn').addEventListener('click', () => { 
+            document.getElementById('shopOverlay').classList.add('show'); 
+            document.getElementById('sortAsc').classList.add('active');
+            document.getElementById('sortDesc').classList.remove('active');
+            this.shopSortOrder = 'asc';
+            document.getElementById('shopSearchInput').value = '';
+            this.renderShop(); 
+        });
+        document.getElementById('closeShopBtn').addEventListener('click', () => document.getElementById('shopOverlay').classList.remove('show'));
+        document.getElementById('shopSearchInput').addEventListener('input', () => this.renderShop());
+        document.getElementById('sortAsc').addEventListener('click', () => {
+            this.shopSortOrder = 'asc';
+            document.getElementById('sortAsc').classList.add('active');
+            document.getElementById('sortDesc').classList.remove('active');
+            this.renderShop();
+        });
+        document.getElementById('sortDesc').addEventListener('click', () => {
+            this.shopSortOrder = 'desc';
+            document.getElementById('sortDesc').classList.add('active');
+            document.getElementById('sortAsc').classList.remove('active');
+            this.renderShop();
+        });
+        
+        document.getElementById('buyModalConfirm').addEventListener('click', () => this.confirmBuy());
+        document.getElementById('buyModalCancel').addEventListener('click', () => this.closeBuyModal());
+        document.getElementById('buyModalOverlay').addEventListener('click', e => { if (e.target === document.getElementById('buyModalOverlay')) this.closeBuyModal(); });
+        
+        document.getElementById('sellConfirmBtn').addEventListener('click', () => this.confirmSell());
+        document.getElementById('sellCancelBtn').addEventListener('click', () => this.closeSellOverlay());
+        document.getElementById('sellOverlay').addEventListener('click', e => { if (e.target === document.getElementById('sellOverlay')) this.closeSellOverlay(); });
+        
+        document.getElementById('settingsBtn').addEventListener('click', () => this.openSettings());
+        document.getElementById('settingsSaveBtn').addEventListener('click', () => this.saveSettingsFromUI());
+        document.getElementById('settingsOverlay').addEventListener('click', e => { if (e.target === document.getElementById('settingsOverlay')) document.getElementById('settingsOverlay').classList.remove('show'); });
+        
+        document.getElementById('tabInventory').addEventListener('click', () => { 
+            this.activeTab = 'inventory'; 
+            document.getElementById('tabInventory').classList.add('active'); 
+            document.getElementById('tabTargets').classList.remove('active'); 
+            this.renderGiftList(); 
+        });
+        document.getElementById('tabTargets').addEventListener('click', () => { 
+            this.activeTab = 'targets'; 
+            document.getElementById('tabTargets').classList.add('active'); 
+            document.getElementById('tabInventory').classList.remove('active'); 
+            this.renderGiftList(); 
+        });
+        
+        document.getElementById('giftListSearchInput').addEventListener('input', () => this.renderGiftList());
+        
+        document.getElementById('stakeSlider').addEventListener('input', (e) => {
+            this.stakeAmount = parseInt(e.target.value) || 0;
+            this.updateChance();
+            this.renderAll();
+            this.updateStakeSlider();
+        });
+        
+        document.body.addEventListener('click', () => { if (!this.soundEnabled) this.initAudio(); }, { once: true });
+    }
 
     openSettings() {
         document.getElementById('settingCoef1').value = this.quickCoefs[0]||2;
@@ -345,11 +436,11 @@ class UpgradeGame {
     }
 
     startUpgrade() {
-            const tc = this.getSelectedTotalCost();
-    if (this.isSpinning || !this.targetGift || tc >= this.targetGift.price) return;
-    if (this.stakeAmount > this.balance) return;
-    if (this.selectedGifts.some(g => !this.inventory.find(e => e.giftId === g.id))) return;
-    if (this.selectedGifts.length === 0 && this.stakeAmount === 0) return;
+        const tc = this.getSelectedTotalCost();
+        if (this.isSpinning || !this.targetGift || tc >= this.targetGift.price) return;
+        if (this.stakeAmount > this.balance) return;
+        if (this.selectedGifts.some(g => !this.inventory.find(e => e.giftId === g.id))) return;
+        if (this.selectedGifts.length === 0 && this.stakeAmount === 0) return;
         
         this.isSpinning = true;
         const btn = document.getElementById('upgradeBtn');
@@ -494,89 +585,86 @@ class UpgradeGame {
     }
 
     updateStakeSlider() {
-    const slider = document.getElementById('stakeSlider');
-    if (!slider) return;
-    
-    let maxStake = this.balance;
-    
-    if (this.targetGift) {
-        const giftsCost = this.selectedGifts.reduce((s, g) => s + g.price, 0);
-        // Максимальная ставка = цена цели - стоимость подарков - 1
-        // Чтобы сумма всегда была строго меньше цены цели
-        const maxForTarget = this.targetGift.price - giftsCost - 1;
-        if (maxForTarget < maxStake) maxStake = Math.max(0, maxForTarget);
+        const slider = document.getElementById('stakeSlider');
+        if (!slider) return;
+        
+        let maxStake = this.balance;
+        
+        if (this.targetGift) {
+            const giftsCost = this.selectedGifts.reduce((s, g) => s + g.price, 0);
+            const maxForTarget = this.targetGift.price - giftsCost - 1;
+            if (maxForTarget < maxStake) maxStake = Math.max(0, maxForTarget);
+        }
+        
+        slider.max = maxStake;
+        this.stakeAmount = Math.min(this.stakeAmount, maxStake);
+        slider.value = this.stakeAmount;
+        
+        const pct = maxStake > 0 ? (slider.value / maxStake) * 100 : 0;
+        slider.style.background = `linear-gradient(to right, #f0883e 0%, #f5c842 ${pct}%, rgba(255,255,255,0.08) ${pct}%, rgba(255,255,255,0.08) 100%)`;
+        
+        document.querySelector('.stake-slider-label-right').textContent = 
+            'Выбранная сумма: ' + this.stakeAmount.toLocaleString();
+        document.querySelector('.stake-slider-label-left').textContent = 
+            'Баланс: ' + this.balance.toLocaleString();
     }
-    
-    slider.max = maxStake;
-    this.stakeAmount = Math.min(this.stakeAmount, maxStake);
-    slider.value = this.stakeAmount;
-    
-    const pct = maxStake > 0 ? (slider.value / maxStake) * 100 : 0;
-    slider.style.background = `linear-gradient(to right, #f0883e 0%, #f5c842 ${pct}%, rgba(255,255,255,0.08) ${pct}%, rgba(255,255,255,0.08) 100%)`;
-    
-    document.querySelector('.stake-slider-label-right').textContent = 
-        'Выбранная сумма: ' + this.stakeAmount.toLocaleString();
-    document.querySelector('.stake-slider-label-left').textContent = 
-        'Баланс: ' + this.balance.toLocaleString();
-}
 
-    // В renderCurrentGiftCard() — иконка звёзд в квадрате выбранного
-renderCurrentGiftCard() {
-    const card = document.getElementById('currentGiftCard'), no = document.getElementById('currentGiftNameOutside'), po = document.getElementById('currentGiftPriceOutside');
-    card.innerHTML = ''; card.className = 'gift-card current-gift';
-    
-    const hasGifts = this.selectedGifts.length > 0;
-    const hasStake = this.stakeAmount > 0;
-    
-    if (hasGifts || hasStake) {
-        const grid = document.createElement('div'); grid.className = 'multi-gift-grid';
+    renderCurrentGiftCard() {
+        const card = document.getElementById('currentGiftCard'), no = document.getElementById('currentGiftNameOutside'), po = document.getElementById('currentGiftPriceOutside');
+        card.innerHTML = ''; card.className = 'gift-card current-gift';
         
-        const totalItems = this.selectedGifts.length + (hasStake ? 1 : 0);
-        const bs = totalItems <= 3 ? 55 : totalItems <= 6 ? 45 : 38;
+        const hasGifts = this.selectedGifts.length > 0;
+        const hasStake = this.stakeAmount > 0;
         
-        if (hasGifts) {
-            const sg = this.selectedGifts.slice(0, 9);
-            for (const g of sg) { 
+        if (hasGifts || hasStake) {
+            const grid = document.createElement('div'); grid.className = 'multi-gift-grid';
+            
+            const totalItems = this.selectedGifts.length + (hasStake ? 1 : 0);
+            const bs = totalItems <= 3 ? 55 : totalItems <= 6 ? 45 : 38;
+            
+            if (hasGifts) {
+                const sg = this.selectedGifts.slice(0, 9);
+                for (const g of sg) { 
+                    const w = document.createElement('div'); w.className = 'multi-gift-item'; 
+                    const img = document.createElement('img'); img.className = 'gift-icon'; 
+                    img.src = g.icon; img.alt = g.name; img.style.maxHeight = bs + 'px'; 
+                    img.onerror = function() { this.src = 'images/gifts icons/Precious Peach.png'; }; 
+                    w.appendChild(img); grid.appendChild(w); 
+                }
+            }
+            
+            if (hasStake) {
                 const w = document.createElement('div'); w.className = 'multi-gift-item'; 
-                const img = document.createElement('img'); img.className = 'gift-icon'; 
-                img.src = g.icon; img.alt = g.name; img.style.maxHeight = bs + 'px'; 
-                img.onerror = function() { this.src = 'images/gifts icons/Precious Peach.png'; }; 
+                const img = document.createElement('img'); img.className = 'gift-icon star-stake-icon'; 
+                img.src = 'images/stars.png'; img.alt = 'Stars'; 
+                img.style.maxHeight = bs + 'px';
                 w.appendChild(img); grid.appendChild(w); 
             }
-        }
-        
-        if (hasStake) {
-            const w = document.createElement('div'); w.className = 'multi-gift-item'; 
-            const img = document.createElement('img'); img.className = 'gift-icon star-stake-icon'; 
-            img.src = 'images/stars.png'; img.alt = 'Stars'; 
-            img.style.maxHeight = bs + 'px';
-            w.appendChild(img); grid.appendChild(w); 
-        }
-        
-        card.appendChild(grid);
-        
-        const total = this.getSelectedTotalCost();
-        const itemCount = this.selectedGifts.length + (hasStake ? 1 : 0);
-        
-        if (itemCount === 1) {
-            if (hasGifts && this.selectedGifts.length === 1 && !hasStake) {
-                no.textContent = this.selectedGifts[0].name;
-            } else if (hasStake && !hasGifts) {
-                no.textContent = 'Звёзды';
+            
+            card.appendChild(grid);
+            
+            const total = this.getSelectedTotalCost();
+            const itemCount = this.selectedGifts.length + (hasStake ? 1 : 0);
+            
+            if (itemCount === 1) {
+                if (hasGifts && this.selectedGifts.length === 1 && !hasStake) {
+                    no.textContent = this.selectedGifts[0].name;
+                } else if (hasStake && !hasGifts) {
+                    no.textContent = 'Звёзды';
+                } else {
+                    no.textContent = 'Ставка';
+                }
             } else {
-                no.textContent = 'Ставка';
+                no.textContent = 'Выбрано: ' + itemCount;
             }
+            po.innerHTML = total + ' <span class="star-icon-small"></span>';
         } else {
-            no.textContent = 'Выбрано: ' + itemCount;
+            card.classList.add('empty-card');
+            const arrows = document.createElement('div'); arrows.className = 'placeholder-arrows left-arrows';
+            for (let i = 0; i < 3; i++) { const a = document.createElement('span'); a.className = 'placeholder-arrow'; a.textContent = '❱'; arrows.appendChild(a); }
+            card.appendChild(arrows); no.textContent = ''; po.textContent = '';
         }
-        po.innerHTML = total + ' <span class="star-icon-small"></span>';
-    } else {
-        card.classList.add('empty-card');
-        const arrows = document.createElement('div'); arrows.className = 'placeholder-arrows left-arrows';
-        for (let i = 0; i < 3; i++) { const a = document.createElement('span'); a.className = 'placeholder-arrow'; a.textContent = '❱'; arrows.appendChild(a); }
-        card.appendChild(arrows); no.textContent = ''; po.textContent = '';
     }
-}
 
     renderTargetGiftCard() {
         const card = document.getElementById('targetGiftCard'), no = document.getElementById('targetGiftNameOutside'), po = document.getElementById('targetGiftPriceOutside');
@@ -723,62 +811,62 @@ renderCurrentGiftCard() {
         else if (this.activeTab === 'targets') this.renderTargetsListInPanel(); 
     }
 
-   renderInventoryListInPanel() {
-    const c = document.getElementById('giftListContent');
-    const allEntries = this.inventory;
-    const search = (document.getElementById('giftListSearchInput')?.value || '').toLowerCase();
-    
-    if (!allEntries.length) {
-        c.innerHTML = '<div style="padding:20px;text-align:center;color:#6b7daa;font-size:12px;">Пусто</div>';
-        return;
-    }
-    
-    const sorted = [...allEntries].sort((a, b) => {
-        if (a.giftId !== b.giftId) return a.giftId.localeCompare(b.giftId);
-        return (a.acquiredAt || 0) - (b.acquiredAt || 0);
-    });
-    
-    const filtered = sorted.filter(entry => {
-        const g = ALL_GIFTS.find(x => x.id === entry.giftId);
-        return g && g.name.toLowerCase().includes(search);
-    });
-    
-    c.innerHTML = filtered.map((entry) => {
-        const g = ALL_GIFTS.find(x => x.id === entry.giftId);
-        if (!g) return '';
-        const isSel = this.selectedGiftIds.includes(entry.giftId);
-        const realIndex = sorted.indexOf(entry);
-        return `<div class="gift-list-item ${isSel ? 'selected-for-upgrade' : ''}" data-entry-index="${realIndex}" data-gift-id="${entry.giftId}">
-            <img src="${g.icon}" alt="${g.name}" class="gift-icon-small" onerror="this.src='images/gifts icons/Precious Peach.png'">
-            <div class="gift-list-item-info">
-                <div class="gift-list-item-name">${g.name}</div>
-                <div class="gift-list-item-price">${g.price} <span class="star-icon-small"></span></div>
-            </div>
-            <button class="withdraw-icon-btn" data-entry-index="${realIndex}">
-                <img src="images/withdraw_btn.png" alt="Вывести">
-            </button>
-            <button class="sell-icon-btn" data-entry-index="${realIndex}">
-                <img src="images/sell_btn.png" alt="Продать">
-            </button>
-        </div>`;
-    }).join('');
-    
-    c.querySelectorAll('.gift-list-item').forEach(item => {
-        item.addEventListener('click', (e) => {
-            if (e.target.closest('.sell-icon-btn') || e.target.closest('.withdraw-icon-btn')) return;
-            this.toggleGiftSelection(item.dataset.giftId);
+    renderInventoryListInPanel() {
+        const c = document.getElementById('giftListContent');
+        const allEntries = this.inventory;
+        const search = (document.getElementById('giftListSearchInput')?.value || '').toLowerCase();
+        
+        if (!allEntries.length) {
+            c.innerHTML = '<div style="padding:20px;text-align:center;color:#6b7daa;font-size:12px;">Пусто</div>';
+            return;
+        }
+        
+        const sorted = [...allEntries].sort((a, b) => {
+            if (a.giftId !== b.giftId) return a.giftId.localeCompare(b.giftId);
+            return (a.acquiredAt || 0) - (b.acquiredAt || 0);
         });
-    });
-    c.querySelectorAll('.sell-icon-btn').forEach(btn => btn.addEventListener('click', e => {
-        e.stopPropagation();
-        const entryIdx = parseInt(btn.dataset.entryIndex);
-        if (!isNaN(entryIdx)) this.sellSpecificEntry(entryIdx);
-    }));
-    c.querySelectorAll('.withdraw-icon-btn').forEach(btn => btn.addEventListener('click', e => {
-        e.stopPropagation();
-        alert('Функция вывода будет доступна с интеграцией бота Telegram.');
-    }));
-}
+        
+        const filtered = sorted.filter(entry => {
+            const g = ALL_GIFTS.find(x => x.id === entry.giftId);
+            return g && g.name.toLowerCase().includes(search);
+        });
+        
+        c.innerHTML = filtered.map((entry) => {
+            const g = ALL_GIFTS.find(x => x.id === entry.giftId);
+            if (!g) return '';
+            const isSel = this.selectedGiftIds.includes(entry.giftId);
+            const realIndex = sorted.indexOf(entry);
+            return `<div class="gift-list-item ${isSel ? 'selected-for-upgrade' : ''}" data-entry-index="${realIndex}" data-gift-id="${entry.giftId}">
+                <img src="${g.icon}" alt="${g.name}" class="gift-icon-small" onerror="this.src='images/gifts icons/Precious Peach.png'">
+                <div class="gift-list-item-info">
+                    <div class="gift-list-item-name">${g.name}</div>
+                    <div class="gift-list-item-price">${g.price} <span class="star-icon-small"></span></div>
+                </div>
+                <button class="withdraw-icon-btn" data-entry-index="${realIndex}">
+                    <img src="images/withdraw_btn.png" alt="Вывести">
+                </button>
+                <button class="sell-icon-btn" data-entry-index="${realIndex}">
+                    <img src="images/sell_btn.png" alt="Продать">
+                </button>
+            </div>`;
+        }).join('');
+        
+        c.querySelectorAll('.gift-list-item').forEach(item => {
+            item.addEventListener('click', (e) => {
+                if (e.target.closest('.sell-icon-btn') || e.target.closest('.withdraw-icon-btn')) return;
+                this.toggleGiftSelection(item.dataset.giftId);
+            });
+        });
+        c.querySelectorAll('.sell-icon-btn').forEach(btn => btn.addEventListener('click', e => {
+            e.stopPropagation();
+            const entryIdx = parseInt(btn.dataset.entryIndex);
+            if (!isNaN(entryIdx)) this.sellSpecificEntry(entryIdx);
+        }));
+        c.querySelectorAll('.withdraw-icon-btn').forEach(btn => btn.addEventListener('click', e => {
+            e.stopPropagation();
+            alert('Функция вывода будет доступна с интеграцией бота Telegram.');
+        }));
+    }
 
     sellSpecificEntry(entryIndex) {
         if (entryIndex < 0 || entryIndex >= this.inventory.length) return;
@@ -917,9 +1005,12 @@ renderCurrentGiftCard() {
     }
 }
 
-function startApp() {
+async function startApp() {
+    await loadGiftsFromTelegram();
+    if (ALL_GIFTS.length === 0) loadFallbackGifts();
     window.game = new UpgradeGame();
 }
+
 startApp();
 
 function setVH() { const vh = window.innerHeight * 0.01; document.documentElement.style.setProperty('--vh', `${vh}px`); }
