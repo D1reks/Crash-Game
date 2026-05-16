@@ -40,24 +40,18 @@ function updatePreloaderProgress() {
 
 async function loadGiftsFromTelegram() {
     try {
-        const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getAvailableGifts`);
+        // Правильный метод API для получения списка подарков
+        const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/payments.getStarGifts`);
         const data = await response.json();
         
         if (data.ok && data.result) {
-            // API возвращает { categories: [...] } или { gifts: [...] }
             let allGifts = [];
             
-            if (Array.isArray(data.result)) {
-                allGifts = data.result;
-            } else if (data.result.categories) {
-                // Перебираем категории и собираем подарки
-                for (const category of data.result.categories) {
-                    if (category.gifts && Array.isArray(category.gifts)) {
-                        allGifts = allGifts.concat(category.gifts);
-                    }
-                }
-            } else if (data.result.gifts) {
+            // payments.StarGifts имеет поле gifts: Vector<StarGift>
+            if (data.result.gifts && Array.isArray(data.result.gifts)) {
                 allGifts = data.result.gifts;
+            } else if (Array.isArray(data.result)) {
+                allGifts = data.result;
             }
             
             if (allGifts.length > 0) {
@@ -66,6 +60,7 @@ async function loadGiftsFromTelegram() {
             
             const giftsWithIcons = await Promise.all(allGifts.map(async (gift) => {
                 let iconUrl = '';
+                // starGift имеет поле sticker:Document
                 const fileId = gift.sticker?.file_id || gift.sticker_file_id;
                 if (fileId) {
                     try {
@@ -80,8 +75,10 @@ async function loadGiftsFromTelegram() {
                 }
                 return {
                     id: String(gift.id),
+                    // starGift имеет поле title:flags.5?string (может отсутствовать)
                     name: gift.title || ('Подарок #' + gift.id),
                     icon: iconUrl || 'images/gifts icons/Precious Peach.png',
+                    // starGift имеет поле stars:long (цена покупки)
                     price: Number(gift.stars) || Number(gift.convert_stars) || 0
                 };
             }));
