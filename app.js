@@ -40,14 +40,16 @@ function updatePreloaderProgress() {
 
 async function loadGiftsFromTelegram() {
     try {
-        // Правильный метод API для получения списка подарков
-        const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/payments.getStarGifts`);
+        const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/payments.getStarGifts`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({})
+        });
         const data = await response.json();
         
         if (data.ok && data.result) {
             let allGifts = [];
             
-            // payments.StarGifts имеет поле gifts: Vector<StarGift>
             if (data.result.gifts && Array.isArray(data.result.gifts)) {
                 allGifts = data.result.gifts;
             } else if (Array.isArray(data.result)) {
@@ -60,7 +62,6 @@ async function loadGiftsFromTelegram() {
             
             const giftsWithIcons = await Promise.all(allGifts.map(async (gift) => {
                 let iconUrl = '';
-                // starGift имеет поле sticker:Document
                 const fileId = gift.sticker?.file_id || gift.sticker_file_id;
                 if (fileId) {
                     try {
@@ -75,10 +76,8 @@ async function loadGiftsFromTelegram() {
                 }
                 return {
                     id: String(gift.id),
-                    // starGift имеет поле title:flags.5?string (может отсутствовать)
                     name: gift.title || ('Подарок #' + gift.id),
                     icon: iconUrl || 'images/gifts icons/Precious Peach.png',
-                    // starGift имеет поле stars:long (цена покупки)
                     price: Number(gift.stars) || Number(gift.convert_stars) || 0
                 };
             }));
@@ -121,6 +120,24 @@ async function loadGiftsFromTelegram() {
         console.warn('⚠️ Ошибка API, использую резервный список:', e.message);
         loadFallbackGifts();
         hideImagePreloader();
+    }
+}
+
+async function loadUserStarGifts(userId) {
+    try {
+        const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/payments.getUserStarGifts`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                user_id: userId
+            })
+        });
+        const data = await response.json();
+        console.log('getUserStarGifts response:', data);
+        return data;
+    } catch (e) {
+        console.warn('getUserStarGifts error:', e);
+        return null;
     }
 }
 
@@ -317,8 +334,25 @@ class UpgradeGame {
                 this.renderAll(); this.saveToStorage();
                 document.getElementById('balanceTopupOverlay').classList.remove('show');
             } else if (selectedTopupMethod === 'gifts') {
-                alert('Функция пополнения подарками Telegram будет доступна с интеграцией бота.');
-                document.getElementById('balanceTopupOverlay').classList.remove('show');
+                if (tg && tg.initDataUnsafe?.user?.id) {
+                    const userId = tg.initDataUnsafe.user.id;
+                    document.getElementById('balanceTopupOverlay').classList.remove('show');
+                    loadUserStarGifts(userId).then(data => {
+                        if (data && data.ok && data.result) {
+                            const gifts = data.result.gifts || data.result;
+                            if (gifts && gifts.length > 0) {
+                                this.showUserGiftsModal(gifts);
+                            } else {
+                                alert('У вас пока нет подарков для пополнения.');
+                            }
+                        } else {
+                            alert('Не удалось загрузить список подарков.');
+                        }
+                    });
+                } else {
+                    alert('Функция доступна только в Telegram.');
+                    document.getElementById('balanceTopupOverlay').classList.remove('show');
+                }
             }
         });
         
@@ -386,6 +420,51 @@ class UpgradeGame {
         });
         
         document.body.addEventListener('click', () => { if (!this.soundEnabled) this.initAudio(); }, { once: true });
+    }
+
+    showUserGiftsModal(gifts) {
+        const overlay = document.createElement('div');
+        overlay.className = 'gifts-modal-overlay';
+        overlay.style.cssText = `
+            position: fixed; top: 0; left: 50%; transform: translateX(-50%);
+            width: 100%; max-width: 450px; height: 100vh;
+            background: rgba(8, 9, 13, 0.95); backdrop-filter: blur(8px);
+            z-index: 200; display: flex; justify-content: center; align-items: center;
+        `;
+        
+        const card = document.createElement('div');
+        card.style.cssText = `
+            background: #0d111f; border-radius: 16px; padding: 20px;
+            max-width: 320px; width: 90%; max-height: 70vh; overflow-y: auto;
+            border: 1px solid #1e2a45;
+        `;
+        
+        card.innerHTML = `
+            <h3 style="color:#ffd700;text-align:center;margin-bottom:16px;">Ваши подарки</h3>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+                ${gifts.map(g => `
+                    <div style="display:flex;align-items:center;gap:12px;padding:10px;background:#111827;border-radius:10px;cursor:pointer;" 
+                         data-gift-id="${g.id}">
+                        <span style="font-size:24px;">🎁</span>
+                        <div style="flex:1;">
+                            <div style="color:#d0daf0;font-size:14px;">${g.title || 'Подарок'}</div>
+                            <div style="color:#ffd700;font-size:12px;">${g.stars || 0} ⭐</div>
+                        </div>
+                        <button style="background:linear-gradient(135deg,#f0883e,#f5c842,#ffd700);color:#0a0f1a;border:none;padding:8px 16px;border-radius:8px;font-weight:700;cursor:pointer;">Отправить</button>
+                    </div>
+                `).join('')}
+            </div>
+            <button style="width:100%;margin-top:12px;padding:10px;background:#111827;border:1px solid #2a3a5c;color:#a0b4e0;border-radius:10px;cursor:pointer;">Закрыть</button>
+        `;
+        
+        overlay.appendChild(card);
+        document.body.appendChild(overlay);
+        
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay || e.target.textContent === 'Закрыть') {
+                overlay.remove();
+            }
+        });
     }
 
     openSettings() {
