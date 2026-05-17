@@ -1,5 +1,5 @@
 // URL твоего бэкенда (обновляй после перезапуска cloudflared)
-const API_URL = 'https://revealed-accepted-researchers-not.trycloudflare.com';
+const API_URL = 'https://crash-game-production-6c97.up.railway.app';
 
 const BOT_TOKEN = '8735246963:AAGjkrD0XgQODWcy5d8XV4KIMwpNwJxdA4Y';
 
