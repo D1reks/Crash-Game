@@ -1,4 +1,4 @@
-// URL твоего бэкенда (обновляй после перезапуска cloudflared)
+// URL твоего бэкенда на Railway
 const API_URL = 'https://crash-game-production-6c97.up.railway.app';
 
 const BOT_TOKEN = '8735246963:AAGjkrD0XgQODWcy5d8XV4KIMwpNwJxdA4Y';
@@ -546,9 +546,8 @@ class UpgradeGame {
                     this.saveToStorage();
                     this.renderAll();
                     
-                    // Показываем анимацию с результатом от сервера
-                    this.showResultText(result.success, result.displayedChance);
-                    this.playBeep(result.success ? 1500 : 200, 0.3);
+                    // Запускаем анимацию колеса
+                    this.playWheelAnimation(result.success, result.displayedChance);
                     return;
                 }
             } catch (e) {
@@ -557,13 +556,17 @@ class UpgradeGame {
         }
         
         // Локальное кручение (если бэкенд недоступен)
+        this.playWheelAnimation(null, this.currentChance);
+    }
+    
+    playWheelAnimation(serverSuccess, serverChance) {
         this.isSpinning = true;
         const btn = document.getElementById('upgradeBtn');
         btn.disabled = true; btn.classList.add('spinning'); btn.textContent = 'КРУТИМ...';
         document.querySelectorAll('.quick-bet-btn').forEach(b => b.disabled = true);
         
         document.getElementById('app').classList.add('blurred');
-        document.getElementById('wheelModalChance').textContent = (this.currentChance * 100).toFixed(1) + '%';
+        document.getElementById('wheelModalChance').textContent = ((serverChance || this.currentChance) * 100).toFixed(1) + '%';
         document.getElementById('wheelModalOverlay').classList.add('show');
         
         const totalRot = this.spinType === 'fast' ? 3 + Math.floor(Math.random() * 3) : 5 + Math.floor(Math.random() * 5);
@@ -592,11 +595,37 @@ class UpgradeGame {
                 }
             }
             
-            if (p < 1) this.wheelAnimationId = requestAnimationFrame(anim);
-            else { this._lastTick = 0; this.onSpinComplete(); }
+            if (p < 1) {
+                this.wheelAnimationId = requestAnimationFrame(anim);
+            } else {
+                this._lastTick = 0;
+                if (serverSuccess !== null && serverSuccess !== undefined) {
+                    // Результат от сервера
+                    this.wheelAngle = 0;
+                    this.drawWheel();
+                    if (serverSuccess) this.onUpgradeSuccess(serverChance);
+                    else this.onUpgradeFail(serverChance);
+                    this.finishSpin();
+                } else {
+                    // Локальный результат
+                    this.onSpinComplete();
+                }
+            }
         };
         this._lastTick = 0;
         this.wheelAnimationId = requestAnimationFrame(anim);
+    }
+    
+    finishSpin() {
+        setTimeout(() => {
+            document.getElementById('wheelModalOverlay').classList.remove('show');
+            document.getElementById('app').classList.remove('blurred');
+            this.isSpinning = false;
+            const btn = document.getElementById('upgradeBtn');
+            btn.classList.remove('spinning'); btn.textContent = 'Прокачать'; btn.disabled = false;
+            document.querySelectorAll('.quick-bet-btn').forEach(b => b.disabled = false);
+            this.renderAll();
+        }, 1800);
     }
 
     onSpinComplete() {
@@ -624,15 +653,7 @@ class UpgradeGame {
         if (win) this.onUpgradeSuccess(sc);
         else this.onUpgradeFail(sc);
         
-        setTimeout(() => {
-            document.getElementById('wheelModalOverlay').classList.remove('show');
-            document.getElementById('app').classList.remove('blurred');
-            this.isSpinning = false;
-            const btn = document.getElementById('upgradeBtn');
-            btn.classList.remove('spinning'); btn.textContent = 'Прокачать'; btn.disabled = false;
-            document.querySelectorAll('.quick-bet-btn').forEach(b => b.disabled = false);
-            this.renderAll();
-        }, 1800);
+        this.finishSpin();
     }
 
     onUpgradeSuccess(sc) {

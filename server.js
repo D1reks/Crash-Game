@@ -26,6 +26,9 @@ db.exec(`
     CREATE TABLE IF NOT EXISTS users (
         telegram_id INTEGER PRIMARY KEY,
         balance INTEGER DEFAULT 1000,
+        total_upgrades INTEGER DEFAULT 0,
+        total_wins INTEGER DEFAULT 0,
+        total_losses INTEGER DEFAULT 0,
         created_at TEXT DEFAULT (datetime('now'))
     );
     
@@ -134,6 +137,69 @@ async function loadGiftPrices() {
     }
 }
 
+// ==================== МНОГОУРОВНЕВАЯ ЗАЩИТА ====================
+
+function getRealChance(displayedChance, targetPrice, casinoBank, userTotalUpgrades, recentWins) {
+    let multiplier = 1.0;
+    
+    // === УРОВЕНЬ 1: Хаус-эдж по цене подарка ===
+    if (targetPrice <= 250) {
+        multiplier *= 0.95;       // RTP 90%
+    } else if (targetPrice <= 1000) {
+        multiplier *= 0.75;       // RTP ~71%
+    } else if (targetPrice <= 10000) {
+        multiplier *= 0.55;       // RTP ~52%
+    } else {
+        multiplier *= 0.40;       // RTP ~38%
+    }
+    
+    // === УРОВЕНЬ 4: Прогрев новичков (первые 30 апгрейдов) ===
+    if (userTotalUpgrades < 30) {
+        // Убираем защиту банка и кулдаун для новичков
+        // Оставляем только мягкий хаус-эдж
+        return displayedChance * multiplier;
+    }
+    
+    // === УРОВЕНЬ 5: Кулдаун после выигрышей ===
+    if (recentWins >= 3) {
+        multiplier *= 0.7;  // -30% к шансу
+    }
+    
+    // === УРОВЕНЬ 2: Защита банка казино ===
+    if (casinoBank < targetPrice * 5) {
+        const bankRatio = Math.max(0.05, casinoBank / (targetPrice * 5));
+        multiplier *= bankRatio;
+    }
+    
+    return displayedChance * multiplier;
+}
+
+function getCascadeDistribution(casinoBank, totalCost) {
+    let bankShare, ownerShare;
+    
+    // === УРОВЕНЬ 3: Каскадное распределение проигрышей ===
+    if (casinoBank < 10000) {
+        bankShare = 0.9;    // 90% в банк
+        ownerShare = 0.1;   // 10% владельцу
+    } else if (casinoBank < 50000) {
+        bankShare = 0.7;
+        ownerShare = 0.3;
+    } else if (casinoBank < 100000) {
+        bankShare = 0.5;
+        ownerShare = 0.5;
+    } else {
+        bankShare = 0.3;
+        ownerShare = 0.7;
+    }
+    
+    return {
+        bankAmount: Math.floor(totalCost * bankShare),
+        ownerAmount: Math.floor(totalCost * ownerShare)
+    };
+}
+
+// ==================== ЭНДПОИНТЫ ====================
+
 // Эндпоинт для получения списка подарков
 app.get('/api/gifts', (req, res) => {
     const giftsList = Object.entries(GIFT_PRICES).map(([id, info]) => ({
@@ -187,52 +253,70 @@ app.post('/api/upgrade', authMiddleware, (req, res) => {
         if (!item) return res.status(400).json({ error: `Gift ${gid} not in inventory` });
     }
     
+    // Получаем количество побед в последних 10 апгрейдах
+    const recentHistory = db.prepare(
+        'SELECT success FROM history WHERE telegram_id = ? ORDER BY created_at DESC LIMIT 10'
+    ).all(telegramId);
+    const recentWins = recentHistory.filter(h => h.success === 1).length;
+    
     const casino = db.prepare('SELECT * FROM casino_state WHERE id = 1').get();
     let bank = casino.bank;
     const bankBefore = bank;
     
-    const displayedChance = (totalCost / targetPrice) * 0.95;
-    let realChance = displayedChance;
+    const displayedChance = Math.min(0.95, (totalCost / targetPrice) * 0.95);
     
-    if (targetPrice <= 250) realChance *= 0.95;
-    else if (targetPrice <= 1000) realChance *= 0.75;
-    else if (targetPrice <= 10000) realChance *= 0.55;
-    else realChance *= 0.40;
-    
-    if (bank < targetPrice * 5) {
-        realChance *= Math.max(0.05, bank / (targetPrice * 5));
-    }
+    // Вычисляем реальный шанс через многоуровневую защиту
+    const realChance = getRealChance(
+        displayedChance,
+        targetPrice,
+        bank,
+        user.total_upgrades,
+        recentWins
+    );
     
     const win = Math.random() < realChance;
     
     const transaction = db.transaction(() => {
+        // Удаляем использованные подарки
         for (const gid of selectedGiftIds) {
             db.prepare('DELETE FROM inventory WHERE id = (SELECT id FROM inventory WHERE telegram_id = ? AND gift_id = ? LIMIT 1)').run(telegramId, gid);
         }
         
+        // Списываем ставку
         if (stakeAmount > 0) {
             db.prepare('UPDATE users SET balance = balance - ? WHERE telegram_id = ?').run(stakeAmount, telegramId);
         }
         
         if (win) {
+            // Выигрыш — добавляем целевой подарок, списываем из банка
             db.prepare('INSERT INTO inventory (telegram_id, gift_id) VALUES (?, ?)').run(telegramId, targetGiftId);
             bank -= targetPrice;
         } else {
-            let bankShare, ownerShare;
-            if (bank < 10000) { bankShare = 0.9; ownerShare = 0.1; }
-            else if (bank < 50000) { bankShare = 0.7; ownerShare = 0.3; }
-            else if (bank < 100000) { bankShare = 0.5; ownerShare = 0.5; }
-            else { bankShare = 0.3; ownerShare = 0.7; }
-            
-            bank += Math.floor(totalCost * bankShare);
-            const ownerEarnings = Math.floor(totalCost * ownerShare);
-            db.prepare('UPDATE casino_state SET owner_earnings = owner_earnings + ?').run(ownerEarnings);
+            // Проигрыш — каскадное распределение
+            const { bankAmount, ownerAmount } = getCascadeDistribution(bank, totalCost);
+            bank += bankAmount;
+            db.prepare('UPDATE casino_state SET owner_earnings = owner_earnings + ?').run(ownerAmount);
         }
         
+        // Обновляем статистику пользователя
+        db.prepare('UPDATE users SET total_upgrades = total_upgrades + 1, total_wins = total_wins + ?, total_losses = total_losses + ? WHERE telegram_id = ?').run(
+            win ? 1 : 0, win ? 0 : 1, telegramId
+        );
+        
+        // Обновляем банк казино
         db.prepare('UPDATE casino_state SET bank = ?, total_upgrades = total_upgrades + 1').run(bank);
         
+        // История
         db.prepare('INSERT INTO history (telegram_id, from_gifts, to_gift, displayed_chance, real_chance, total_cost, success, casino_bank_before, casino_bank_after) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)').run(
-            telegramId, JSON.stringify(selectedGiftIds), targetGiftId, displayedChance, realChance, totalCost, win ? 1 : 0, bankBefore, bank
+            telegramId,
+            JSON.stringify(selectedGiftIds),
+            targetGiftId,
+            Math.round(displayedChance * 10000) / 10000,
+            Math.round(realChance * 10000) / 10000,
+            totalCost,
+            win ? 1 : 0,
+            bankBefore,
+            bank
         );
     });
     
@@ -241,7 +325,12 @@ app.post('/api/upgrade', authMiddleware, (req, res) => {
     const updatedUser = db.prepare('SELECT * FROM users WHERE telegram_id = ?').get(telegramId);
     const updatedInventory = db.prepare('SELECT * FROM inventory WHERE telegram_id = ? ORDER BY acquired_at').all(telegramId);
     
-    res.json({ success: win, displayedChance, user: updatedUser, inventory: updatedInventory });
+    res.json({
+        success: win,
+        displayedChance: Math.round(displayedChance * 10000) / 10000,
+        user: updatedUser,
+        inventory: updatedInventory
+    });
 });
 
 // Купить
@@ -313,5 +402,6 @@ loadGiftPrices().then(() => {
     app.listen(PORT, () => {
         console.log(`🚀 UPGIFT Backend running on port ${PORT}`);
         console.log('📁 Database: /data/upgift.db');
+        console.log('🛡️ Multi-level protection: ACTIVE');
     });
 });
