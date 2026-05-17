@@ -3,12 +3,20 @@ const express = require('express');
 const cors = require('cors');
 const Database = require('better-sqlite3');
 const crypto = require('crypto');
+const fs = require('fs');
+const path = require('path');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-const db = new Database('/data/upgift.db');
+// Создаём папку для базы если её нет
+const dbDir = '/data';
+if (!fs.existsSync(dbDir)) {
+    fs.mkdirSync(dbDir, { recursive: true });
+}
+
+const db = new Database(path.join(dbDir, 'upgift.db'));
 
 // Включаем WAL-режим для быстрой работы
 db.pragma('journal_mode = WAL');
@@ -125,6 +133,17 @@ async function loadGiftPrices() {
         };
     }
 }
+
+// Эндпоинт для получения списка подарков
+app.get('/api/gifts', (req, res) => {
+    const giftsList = Object.entries(GIFT_PRICES).map(([id, info]) => ({
+        id,
+        name: info.name,
+        price: info.price,
+        icon: 'images/gifts icons/Precious Peach.png'
+    }));
+    res.json({ gifts: giftsList });
+});
 
 // Состояние пользователя
 app.get('/api/user', authMiddleware, (req, res) => {
@@ -270,11 +289,29 @@ app.post('/api/shop/sell', authMiddleware, (req, res) => {
     res.json({ user: updatedUser, inventory: updatedInventory });
 });
 
+// Список подарков пользователя (для пополнения)
+app.get('/api/user/gifts', authMiddleware, async (req, res) => {
+    try {
+        const response = await fetch(
+            `https://api.telegram.org/bot${BOT_TOKEN}/payments.getUserStarGifts`,
+            {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user_id: req.telegramId })
+            }
+        );
+        const data = await response.json();
+        res.json(data);
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+});
+
 const PORT = process.env.PORT || 3000;
 
 loadGiftPrices().then(() => {
     app.listen(PORT, () => {
         console.log(`🚀 UPGIFT Backend running on port ${PORT}`);
-        console.log('📁 Database: upgift.db (локально, только у тебя)');
+        console.log('📁 Database: /data/upgift.db');
     });
 });
