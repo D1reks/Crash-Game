@@ -8,8 +8,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// База данных — один файл, только у тебя
-const db = new Database('upgift.db');
+const db = new Database('/data/upgift.db');
 
 // Включаем WAL-режим для быстрой работы
 db.pragma('journal_mode = WAL');
