@@ -112,54 +112,42 @@ let GIFT_PRICES = {};
 
 async function loadGiftPrices() {
     try {
-        // Метод требует параметр hash (int). 0 = загрузить всё без кеша
-        const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/payments.getStarGifts`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ hash: 0 })
-        });
+        // Bot API метод — без префикса payments
+        const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getAvailableGifts`);
         const data = await response.json();
-        console.log('📦 getStarGifts response:', JSON.stringify(data).slice(0, 500));
+        console.log('📦 getAvailableGifts response:', JSON.stringify(data).slice(0, 500));
         
         if (data.ok && data.result) {
             let allGifts = [];
             
-            // payments.starGifts возвращает объект с полем gifts
+            // Gifts.gifts — массив Gift
             if (data.result.gifts && Array.isArray(data.result.gifts)) {
                 allGifts = data.result.gifts;
-            } else if (data.result._ === 'payments.starGifts' && data.result.gifts) {
-                allGifts = data.result.gifts;
+            } else if (Array.isArray(data.result)) {
+                allGifts = data.result;
             }
             
             if (allGifts.length > 0) {
                 for (const gift of allGifts) {
                     GIFT_PRICES[String(gift.id)] = {
-                        name: gift.title || ('Gift #' + gift.id),
-                        price: Number(gift.stars) || 0
+                        name: gift.id.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+                        price: gift.star_count || 0
                     };
                 }
                 console.log('✅ Загружено подарков:', Object.keys(GIFT_PRICES).length);
-                console.log('📋 Подарки:', Object.values(GIFT_PRICES).map(g => `${g.name} (${g.price}⭐)`).join(', '));
             } else {
-                console.warn('⚠️ Пустой список подарков в ответе, структура:', Object.keys(data.result));
+                console.warn('⚠️ Пустой список, структура:', Object.keys(data.result));
                 throw new Error('Empty gifts');
             }
         } else {
-            console.warn('⚠️ API ответ не ok:', data);
-            throw new Error('API not ok: ' + JSON.stringify(data).slice(0, 300));
+            throw new Error('API not ok: ' + JSON.stringify(data));
         }
     } catch (e) {
-        console.warn('⚠️ Не удалось загрузить подарки, использую заглушки:', e.message);
-        GIFT_PRICES = {
-            'precious_peach': { name: 'Precious Peach', price: 50 },
-            'desk_calendar': { name: 'Desk Calendar', price: 100 },
-            'durovs_cap': { name: "Durov's Cap", price: 500 },
-            'swiss_watch': { name: 'Swiss Watch', price: 1000 },
-            'plush_pepe': { name: 'Plush Pepe', price: 10000 },
-            'loot_bag': { name: 'Loot Bag', price: 250000 },
-        };
+        console.warn('⚠️ Не удалось загрузить подарки:', e.message);
+        GIFT_PRICES = { /* заглушки */ };
     }
 }
+
 // ==================== МНОГОУРОВНЕВАЯ ЗАЩИТА ====================
 
 function getRealChance(displayedChance, targetPrice, casinoBank, userTotalUpgrades, recentWins) {
