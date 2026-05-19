@@ -1,5 +1,4 @@
 fastapi==0.115.6
 uvicorn==0.34.0
 python-dotenv==1.0.1
-tgCrypto==1.2.5
 kurigram @ git+https://github.com/KurimuzonAkuma/kurigram.git@dev
