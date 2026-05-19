@@ -1,3 +1,5 @@
-node_modules/
-upgift.db
+node_modules
 .env
+gifts-proxy/.env
+*.session
+/data
