@@ -110,42 +110,38 @@ function authMiddleware(req, res, next) {
 // Цены подарков
 let GIFT_PRICES = {};
 
+const GIFTS_PROXY_URL = process.env.GIFTS_PROXY_URL || 'http://localhost:8001';
+
 async function loadGiftPrices() {
-    // Словарь названий по ID подарков (будем пополнять)
-    const GIFT_NAMES = {
-        '5170145012310081615': 'Heart Locket',
-        // Добавим остальные когда увидим их ID
-    };
-    
     try {
-        const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getAvailableGifts`);
+        const response = await fetch(`${GIFTS_PROXY_URL}/api/gifts`);
         const data = await response.json();
         
-        if (data.ok && data.result?.gifts && Array.isArray(data.result.gifts)) {
-            for (const gift of data.result.gifts) {
-                const giftId = String(gift.id);
-                const name = GIFT_NAMES[giftId] || `Gift #${giftId.slice(-6)}`;
-                GIFT_PRICES[giftId] = {
-                    name: name,
-                    price: gift.star_count || 0
+        if (data.success && data.gifts && Array.isArray(data.gifts)) {
+            GIFT_PRICES = {};
+            for (const gift of data.gifts) {
+                GIFT_PRICES[gift.id] = {
+                    name: gift.name,
+                    price: gift.price
                 };
             }
-            console.log('✅ Загружено подарков:', Object.keys(GIFT_PRICES).length);
-            console.log('📋 Подарки:', Object.entries(GIFT_PRICES).map(([id, g]) => `${g.name} (${g.price}⭐) [${id}]`).join('\n'));
-        } else {
-            throw new Error('Invalid response');
+            console.log(`✅ Загружено ${Object.keys(GIFT_PRICES).length} подарков через Client API`);
+            return;
         }
     } catch (e) {
-        console.warn('⚠️ Не удалось загрузить подарки:', e.message);
-        GIFT_PRICES = {
-            'precious_peach': { name: 'Precious Peach', price: 50 },
-            'desk_calendar': { name: 'Desk Calendar', price: 100 },
-            'durovs_cap': { name: "Durov's Cap", price: 500 },
-            'swiss_watch': { name: 'Swiss Watch', price: 1000 },
-            'plush_pepe': { name: 'Plush Pepe', price: 10000 },
-            'loot_bag': { name: 'Loot Bag', price: 250000 },
-        };
+        console.warn('⚠️ Прокси недоступен:', e.message);
     }
+    
+    // Fallback на старый список
+    console.warn('⚠️ Использую fallback-список');
+    GIFT_PRICES = {
+        'precious_peach': { name: 'Precious Peach', price: 50 },
+        'desk_calendar': { name: 'Desk Calendar', price: 100 },
+        'durovs_cap': { name: "Durov's Cap", price: 500 },
+        'swiss_watch': { name: 'Swiss Watch', price: 1000 },
+        'plush_pepe': { name: 'Plush Pepe', price: 10000 },
+        'loot_bag': { name: 'Loot Bag', price: 250000 },
+    };
 }
 // ==================== МНОГОУРОВНЕВАЯ ЗАЩИТА ====================
 
