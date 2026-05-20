@@ -13,6 +13,7 @@ from pyrogram.errors import (
     AuthKeyUnregistered,
     SessionExpired,
     SessionRevoked,
+    SessionPasswordNeeded,
     Unauthorized,
 )
 
@@ -120,13 +121,50 @@ class GiftsClient:
             in_memory=False,
         )
 
-        try:
-            await self.client.start()
-            me = await self.client.get_me()
-            logger.info(f"✅ Logged in as @{me.username or me.first_name} [{me.id}]")
-        except (AuthKeyUnregistered, SessionExpired, SessionRevoked, Unauthorized) as e:
-            logger.error(f"Auth error: {e}")
-            raise
+        phone_code = os.getenv("PHONE_CODE", "").strip()
+
+        if phone_code:
+            # Non-interactive auth for containerised environments (no TTY).
+            # The caller must supply PHONE_CODE via the environment variable.
+            logger.info("PHONE_CODE env var detected — using non-interactive auth flow")
+            try:
+                await self.client.connect()
+
+                # Request the confirmation code so Telegram gives us a
+                # phone_code_hash that is required for sign_in().
+                sent = await self.client.send_code(phone)
+                logger.info("Confirmation code requested from Telegram")
+
+                try:
+                    signed_in = await self.client.sign_in(
+                        phone_number=phone,
+                        phone_code_hash=sent.phone_code_hash,
+                        phone_code=phone_code,
+                    )
+                    logger.info(f"✅ Signed in as {signed_in.first_name} [{signed_in.id}]")
+                except SessionPasswordNeeded:
+                    # Account has two-step verification enabled.
+                    if not password:
+                        raise ValueError(
+                            "Two-step verification is enabled but PASSWORD env var is not set"
+                        )
+                    logger.info("Two-step verification required — using PASSWORD")
+                    signed_in = await self.client.check_password(password)
+                    logger.info(f"✅ Signed in (2FA) as {signed_in.first_name} [{signed_in.id}]")
+
+            except (AuthKeyUnregistered, SessionExpired, SessionRevoked, Unauthorized) as e:
+                logger.error(f"Auth error: {e}")
+                raise
+        else:
+            # Interactive fallback — works locally when a TTY is available.
+            logger.info("No PHONE_CODE env var — falling back to interactive auth (requires TTY)")
+            try:
+                await self.client.start()
+                me = await self.client.get_me()
+                logger.info(f"✅ Logged in as @{me.username or me.first_name} [{me.id}]")
+            except (AuthKeyUnregistered, SessionExpired, SessionRevoked, Unauthorized) as e:
+                logger.error(f"Auth error: {e}")
+                raise
 
     async def stop(self):
         if self.client:
