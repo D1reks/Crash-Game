@@ -122,7 +122,12 @@ async function loadGiftPrices() {
             for (const gift of data.gifts) {
                 GIFT_PRICES[gift.id] = {
                     name: gift.name,
-                    price: gift.price
+                    price: gift.price,
+                    has_icon: gift.has_icon || false,
+                    upgrade_price: gift.upgrade_price || null,
+                    total_amount: gift.total_amount || null,
+                    limited: gift.limited || false,
+                    premium_required: gift.premium_required || false,
                 };
             }
             console.log(`✅ Загружено ${Object.keys(GIFT_PRICES).length} подарков через Client API`);
@@ -135,43 +140,38 @@ async function loadGiftPrices() {
     // Fallback на старый список
     console.warn('⚠️ Использую fallback-список');
     GIFT_PRICES = {
-        'precious_peach': { name: 'Precious Peach', price: 50 },
-        'desk_calendar': { name: 'Desk Calendar', price: 100 },
-        'durovs_cap': { name: "Durov's Cap", price: 500 },
-        'swiss_watch': { name: 'Swiss Watch', price: 1000 },
-        'plush_pepe': { name: 'Plush Pepe', price: 10000 },
-        'loot_bag': { name: 'Loot Bag', price: 250000 },
+        'precious_peach': { name: 'Precious Peach', price: 50, has_icon: false },
+        'desk_calendar': { name: 'Desk Calendar', price: 100, has_icon: false },
+        'durovs_cap': { name: "Durov's Cap", price: 500, has_icon: false },
+        'swiss_watch': { name: 'Swiss Watch', price: 1000, has_icon: false },
+        'plush_pepe': { name: 'Plush Pepe', price: 10000, has_icon: false },
+        'loot_bag': { name: 'Loot Bag', price: 250000, has_icon: false },
     };
 }
+
 // ==================== МНОГОУРОВНЕВАЯ ЗАЩИТА ====================
 
 function getRealChance(displayedChance, targetPrice, casinoBank, userTotalUpgrades, recentWins) {
     let multiplier = 1.0;
     
-    // === УРОВЕНЬ 1: Хаус-эдж по цене подарка ===
     if (targetPrice <= 250) {
-        multiplier *= 0.95;       // RTP 90%
+        multiplier *= 0.95;
     } else if (targetPrice <= 1000) {
-        multiplier *= 0.75;       // RTP ~71%
+        multiplier *= 0.75;
     } else if (targetPrice <= 10000) {
-        multiplier *= 0.55;       // RTP ~52%
+        multiplier *= 0.55;
     } else {
-        multiplier *= 0.40;       // RTP ~38%
+        multiplier *= 0.40;
     }
     
-    // === УРОВЕНЬ 4: Прогрев новичков (первые 30 апгрейдов) ===
     if (userTotalUpgrades < 30) {
-        // Убираем защиту банка и кулдаун для новичков
-        // Оставляем только мягкий хаус-эдж
         return displayedChance * multiplier;
     }
     
-    // === УРОВЕНЬ 5: Кулдаун после выигрышей ===
     if (recentWins >= 3) {
-        multiplier *= 0.7;  // -30% к шансу
+        multiplier *= 0.7;
     }
     
-    // === УРОВЕНЬ 2: Защита банка казино ===
     if (casinoBank < targetPrice * 5) {
         const bankRatio = Math.max(0.05, casinoBank / (targetPrice * 5));
         multiplier *= bankRatio;
@@ -183,19 +183,14 @@ function getRealChance(displayedChance, targetPrice, casinoBank, userTotalUpgrad
 function getCascadeDistribution(casinoBank, totalCost) {
     let bankShare, ownerShare;
     
-    // === УРОВЕНЬ 3: Каскадное распределение проигрышей ===
     if (casinoBank < 10000) {
-        bankShare = 0.9;    // 90% в банк
-        ownerShare = 0.1;   // 10% владельцу
+        bankShare = 0.9; ownerShare = 0.1;
     } else if (casinoBank < 50000) {
-        bankShare = 0.7;
-        ownerShare = 0.3;
+        bankShare = 0.7; ownerShare = 0.3;
     } else if (casinoBank < 100000) {
-        bankShare = 0.5;
-        ownerShare = 0.5;
+        bankShare = 0.5; ownerShare = 0.5;
     } else {
-        bankShare = 0.3;
-        ownerShare = 0.7;
+        bankShare = 0.3; ownerShare = 0.7;
     }
     
     return {
@@ -212,7 +207,9 @@ app.get('/api/gifts', (req, res) => {
         id,
         name: info.name,
         price: info.price,
-        icon: 'images/gifts icons/Precious Peach.png'
+        icon: info.has_icon 
+            ? `${GIFTS_PROXY_URL}/api/gifts/${id}/icon`
+            : 'images/gifts icons/Precious Peach.png'
     }));
     res.json({ gifts: giftsList });
 });
@@ -259,7 +256,6 @@ app.post('/api/upgrade', authMiddleware, (req, res) => {
         if (!item) return res.status(400).json({ error: `Gift ${gid} not in inventory` });
     }
     
-    // Получаем количество побед в последних 10 апгрейдах
     const recentHistory = db.prepare(
         'SELECT success FROM history WHERE telegram_id = ? ORDER BY created_at DESC LIMIT 10'
     ).all(telegramId);
@@ -271,58 +267,38 @@ app.post('/api/upgrade', authMiddleware, (req, res) => {
     
     const displayedChance = Math.min(0.95, (totalCost / targetPrice) * 0.95);
     
-    // Вычисляем реальный шанс через многоуровневую защиту
-    const realChance = getRealChance(
-        displayedChance,
-        targetPrice,
-        bank,
-        user.total_upgrades,
-        recentWins
-    );
+    const realChance = getRealChance(displayedChance, targetPrice, bank, user.total_upgrades, recentWins);
     
     const win = Math.random() < realChance;
     
     const transaction = db.transaction(() => {
-        // Удаляем использованные подарки
         for (const gid of selectedGiftIds) {
             db.prepare('DELETE FROM inventory WHERE id = (SELECT id FROM inventory WHERE telegram_id = ? AND gift_id = ? LIMIT 1)').run(telegramId, gid);
         }
         
-        // Списываем ставку
         if (stakeAmount > 0) {
             db.prepare('UPDATE users SET balance = balance - ? WHERE telegram_id = ?').run(stakeAmount, telegramId);
         }
         
         if (win) {
-            // Выигрыш — добавляем целевой подарок, списываем из банка
             db.prepare('INSERT INTO inventory (telegram_id, gift_id) VALUES (?, ?)').run(telegramId, targetGiftId);
             bank -= targetPrice;
         } else {
-            // Проигрыш — каскадное распределение
             const { bankAmount, ownerAmount } = getCascadeDistribution(bank, totalCost);
             bank += bankAmount;
             db.prepare('UPDATE casino_state SET owner_earnings = owner_earnings + ?').run(ownerAmount);
         }
         
-        // Обновляем статистику пользователя
         db.prepare('UPDATE users SET total_upgrades = total_upgrades + 1, total_wins = total_wins + ?, total_losses = total_losses + ? WHERE telegram_id = ?').run(
             win ? 1 : 0, win ? 0 : 1, telegramId
         );
         
-        // Обновляем банк казино
         db.prepare('UPDATE casino_state SET bank = ?, total_upgrades = total_upgrades + 1').run(bank);
         
-        // История
         db.prepare('INSERT INTO history (telegram_id, from_gifts, to_gift, displayed_chance, real_chance, total_cost, success, casino_bank_before, casino_bank_after) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)').run(
-            telegramId,
-            JSON.stringify(selectedGiftIds),
-            targetGiftId,
-            Math.round(displayedChance * 10000) / 10000,
-            Math.round(realChance * 10000) / 10000,
-            totalCost,
-            win ? 1 : 0,
-            bankBefore,
-            bank
+            telegramId, JSON.stringify(selectedGiftIds), targetGiftId,
+            Math.round(displayedChance * 10000) / 10000, Math.round(realChance * 10000) / 10000,
+            totalCost, win ? 1 : 0, bankBefore, bank
         );
     });
     
@@ -407,7 +383,8 @@ const PORT = process.env.PORT || 3000;
 loadGiftPrices().then(() => {
     app.listen(PORT, () => {
         console.log(`🚀 UPGIFT Backend running on port ${PORT}`);
-        console.log('📁 Database: /data/upgift.db');
+        console.log('📁 Database: ' + path.join(dbDir, 'upgift.db'));
         console.log('🛡️ Multi-level protection: ACTIVE');
+        console.log('🔗 Proxy URL: ' + GIFTS_PROXY_URL);
     });
 });

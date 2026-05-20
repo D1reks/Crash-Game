@@ -1,4 +1,5 @@
 import asyncio
+import base64
 import logging
 from contextlib import asynccontextmanager
 from typing import Any, Optional
@@ -6,6 +7,7 @@ from typing import Any, Optional
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import Response
 from pyrogram import Client, raw
 from pyrogram.errors import (
     AuthKeyUnregistered,
@@ -54,6 +56,27 @@ class GiftsCache:
 
                 new_gifts = {}
                 for gift in result.gifts:
+                    # Парсим стикер
+                    sticker_file_id = None
+                    sticker_raw = None
+                    sticker = getattr(gift, "sticker", None)
+                    if sticker:
+                        dc_id = getattr(sticker, "dc_id", 0)
+                        media_id = getattr(sticker, "id", 0)
+                        access_hash = getattr(sticker, "access_hash", 0)
+                        file_reference = getattr(sticker, "file_reference", b"")
+                        if all([dc_id, media_id, access_hash, file_reference]):
+                            sticker_raw = {
+                                "dc_id": dc_id,
+                                "id": media_id,
+                                "access_hash": access_hash,
+                                "file_reference_b64": base64.b64encode(file_reference).decode(),
+                            }
+                            # Формируем file_id для pyrogram
+                            sticker_file_id = (
+                                f"CAADBAAD{media_id}AC{access_hash}AA{base64.urlsafe_b64encode(file_reference).decode().rstrip('=')}"
+                            )
+
                     gift_data = {
                         "id": str(gift.id),
                         "name": getattr(gift, "title", None) or f"Gift #{str(gift.id)[-6:]}",
@@ -62,6 +85,8 @@ class GiftsCache:
                         "total_amount": getattr(gift, "availability_total", None),
                         "limited": getattr(gift, "limited", False),
                         "premium_required": getattr(gift, "require_premium", False),
+                        "has_icon": sticker_file_id is not None,
+                        "sticker_raw": sticker_raw,
                     }
                     new_gifts[str(gift.id)] = gift_data
 
@@ -71,10 +96,8 @@ class GiftsCache:
                 self.last_update = time.time()
                 logger.info(f"✅ Cache updated: {len(self.gifts)} gifts loaded")
 
-                sample = list(self.gifts.values())[:5]
-                logger.info("📋 Sample: " + ", ".join(
-                    f"{g['name']} ({g['price']}⭐)" for g in sample
-                ))
+                with_icons = sum(1 for g in self.gifts.values() if g["has_icon"])
+                logger.info(f"📋 With icons: {with_icons}/{len(self.gifts)}")
 
             except Exception as e:
                 logger.error(f"Failed to update cache: {e}")
@@ -104,14 +127,14 @@ class GiftsClient:
             raise ValueError("Missing API_ID, API_HASH or PHONE_NUMBER in .env")
 
         self.client = Client(
-    name="gifts_proxy",
-    api_id=api_id,
-    api_hash=api_hash,
-    phone_number=phone,
-    password=password or None,
-    workdir="./data",
-    in_memory=False,
-)
+            name="gifts_proxy",
+            api_id=api_id,
+            api_hash=api_hash,
+            phone_number=phone,
+            password=password or None,
+            workdir="./data",
+            in_memory=False,
+        )
 
         try:
             await self.client.start()
@@ -190,6 +213,46 @@ async def get_gift(gift_id: str):
         raise HTTPException(status_code=404, detail="Gift not found")
 
     return {"success": True, "gift": gift}
+
+
+@app.get("/api/gifts/{gift_id}/icon")
+async def get_gift_icon(gift_id: str):
+    """Скачать иконку подарка из Telegram"""
+    if not gifts_client.client:
+        raise HTTPException(status_code=503, detail="Client not initialized")
+
+    gift = cache.gifts.get(gift_id)
+    if not gift:
+        raise HTTPException(status_code=404, detail="Gift not found")
+
+    sticker_raw = gift.get("sticker_raw")
+    if not sticker_raw:
+        raise HTTPException(status_code=404, detail="No icon available for this gift")
+
+    try:
+        # Используем pyrogram для скачивания файла
+        from pyrogram.types import InputDocumentFileLocation
+
+        file_location = InputDocumentFileLocation(
+            dc_id=sticker_raw["dc_id"],
+            id=sticker_raw["id"],
+            access_hash=sticker_raw["access_hash"],
+            file_reference=base64.b64decode(sticker_raw["file_reference_b64"]),
+        )
+
+        file_bytes = await gifts_client.client.download_media(
+            file_location,
+            in_memory=True,
+        )
+
+        return Response(
+            content=bytes(file_bytes) if file_bytes else b"",
+            media_type="image/webp",
+            headers={"Cache-Control": "public, max-age=86400"},
+        )
+    except Exception as e:
+        logger.error(f"Failed to download icon for gift {gift_id}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @app.get("/api/gifts/search")
