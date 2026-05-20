@@ -11,7 +11,7 @@ app.use(cors());
 app.use(express.json());
 
 // Создаём папку для базы если её нет
-const dbDir = '/data';
+const dbDir = process.env.DB_DIR || path.join(__dirname, 'data');
 if (!fs.existsSync(dbDir)) {
     fs.mkdirSync(dbDir, { recursive: true });
 }

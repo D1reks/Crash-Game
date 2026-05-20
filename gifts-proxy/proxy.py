@@ -104,14 +104,14 @@ class GiftsClient:
             raise ValueError("Missing API_ID, API_HASH or PHONE_NUMBER in .env")
 
         self.client = Client(
-            name="gifts_proxy",
-            api_id=api_id,
-            api_hash=api_hash,
-            phone_number=phone,
-            password=password or None,
-            workdir=".",
-            in_memory=False,
-        )
+    name="gifts_proxy",
+    api_id=api_id,
+    api_hash=api_hash,
+    phone_number=phone,
+    password=password or None,
+    workdir="./data",
+    in_memory=False,
+)
 
         try:
             await self.client.start()
