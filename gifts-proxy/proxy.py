@@ -21,12 +21,8 @@ load_dotenv()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("gifts-proxy")
 
-# ==================== Кэш подарков ====================
-
 
 class GiftsCache:
-    """Кэш подарков с автообновлением"""
-
     def __init__(self, ttl: int = 300):
         self.gifts: dict[str, dict[str, Any]] = {}
         self.last_hash: int = 0
@@ -49,14 +45,12 @@ class GiftsCache:
                 )
 
                 if isinstance(result, raw.types.payments.StarGiftsNotModified):
-                    logger.debug("Gift list unchanged, keeping cache")
                     import time
                     self.last_update = time.time()
                     return
 
                 new_gifts = {}
                 for gift in result.gifts:
-                    # Парсим стикер
                     sticker_file_id = None
                     sticker_raw = None
                     sticker = getattr(gift, "sticker", None)
@@ -72,10 +66,6 @@ class GiftsCache:
                                 "access_hash": access_hash,
                                 "file_reference_b64": base64.b64encode(file_reference).decode(),
                             }
-                            # Формируем file_id для pyrogram
-                            sticker_file_id = (
-                                f"CAADBAAD{media_id}AC{access_hash}AA{base64.urlsafe_b64encode(file_reference).decode().rstrip('=')}"
-                            )
 
                     gift_data = {
                         "id": str(gift.id),
@@ -85,7 +75,7 @@ class GiftsCache:
                         "total_amount": getattr(gift, "availability_total", None),
                         "limited": getattr(gift, "limited", False),
                         "premium_required": getattr(gift, "require_premium", False),
-                        "has_icon": sticker_file_id is not None,
+                        "has_icon": sticker_raw is not None,
                         "sticker_raw": sticker_raw,
                     }
                     new_gifts[str(gift.id)] = gift_data
@@ -96,9 +86,6 @@ class GiftsCache:
                 self.last_update = time.time()
                 logger.info(f"✅ Cache updated: {len(self.gifts)} gifts loaded")
 
-                with_icons = sum(1 for g in self.gifts.values() if g["has_icon"])
-                logger.info(f"📋 With icons: {with_icons}/{len(self.gifts)}")
-
             except Exception as e:
                 logger.error(f"Failed to update cache: {e}")
                 if not self.gifts:
@@ -106,9 +93,6 @@ class GiftsCache:
 
 
 cache = GiftsCache(ttl=300)
-
-
-# ==================== Клиент ====================
 
 
 class GiftsClient:
@@ -132,7 +116,7 @@ class GiftsClient:
             api_hash=api_hash,
             phone_number=phone,
             password=password or None,
-            workdir="./data",
+            workdir="/data",
             in_memory=False,
         )
 
@@ -147,13 +131,9 @@ class GiftsClient:
     async def stop(self):
         if self.client:
             await self.client.stop()
-            logger.info("Client stopped")
 
 
 gifts_client = GiftsClient()
-
-
-# ==================== FastAPI ====================
 
 
 @asynccontextmanager
@@ -180,44 +160,30 @@ app.add_middleware(
 
 @app.get("/health")
 async def health():
-    return {
-        "status": "ok",
-        "gifts_count": len(cache.gifts),
-        "client_ready": gifts_client.client is not None,
-    }
+    return {"status": "ok", "gifts_count": len(cache.gifts)}
 
 
 @app.get("/api/gifts")
 async def get_gifts():
     if not gifts_client.client:
         raise HTTPException(status_code=503, detail="Client not initialized")
-
     await cache.update(gifts_client.client)
-
-    return {
-        "success": True,
-        "count": len(cache.gifts),
-        "gifts": list(cache.gifts.values()),
-    }
+    return {"success": True, "count": len(cache.gifts), "gifts": list(cache.gifts.values())}
 
 
 @app.get("/api/gifts/{gift_id}")
 async def get_gift(gift_id: str):
     if not gifts_client.client:
         raise HTTPException(status_code=503, detail="Client not initialized")
-
     await cache.update(gifts_client.client)
-
     gift = cache.gifts.get(gift_id)
     if not gift:
         raise HTTPException(status_code=404, detail="Gift not found")
-
     return {"success": True, "gift": gift}
 
 
 @app.get("/api/gifts/{gift_id}/icon")
 async def get_gift_icon(gift_id: str):
-    """Скачать иконку подарка из Telegram"""
     if not gifts_client.client:
         raise HTTPException(status_code=503, detail="Client not initialized")
 
@@ -227,10 +193,9 @@ async def get_gift_icon(gift_id: str):
 
     sticker_raw = gift.get("sticker_raw")
     if not sticker_raw:
-        raise HTTPException(status_code=404, detail="No icon available for this gift")
+        raise HTTPException(status_code=404, detail="No icon available")
 
     try:
-        # Используем pyrogram для скачивания файла
         from pyrogram.types import InputDocumentFileLocation
 
         file_location = InputDocumentFileLocation(
@@ -240,10 +205,7 @@ async def get_gift_icon(gift_id: str):
             file_reference=base64.b64decode(sticker_raw["file_reference_b64"]),
         )
 
-        file_bytes = await gifts_client.client.download_media(
-            file_location,
-            in_memory=True,
-        )
+        file_bytes = await gifts_client.client.download_media(file_location, in_memory=True)
 
         return Response(
             content=bytes(file_bytes) if file_bytes else b"",
@@ -255,25 +217,8 @@ async def get_gift_icon(gift_id: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.get("/api/gifts/search")
-async def search_gifts(q: str = "", min_price: int = 0, max_price: int = 999999999):
-    if not gifts_client.client:
-        raise HTTPException(status_code=503, detail="Client not initialized")
-
-    await cache.update(gifts_client.client)
-
-    results = []
-    for gift in cache.gifts.values():
-        if min_price <= gift["price"] <= max_price:
-            if not q or q.lower() in gift["name"].lower():
-                results.append(gift)
-
-    return {"success": True, "count": len(results), "gifts": results}
-
-
 if __name__ == "__main__":
     import os
     import uvicorn
-
-    port = int(os.getenv("PROXY_PORT", 8001))
+    port = int(os.getenv("PORT", 8001))
     uvicorn.run(app, host="0.0.0.0", port=port, log_level="info")
